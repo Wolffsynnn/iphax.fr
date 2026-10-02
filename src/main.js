@@ -30,6 +30,51 @@ let currentChatType = null;
 let chatUnsubscribe = null;
 
 // ═══════════════════════════════════════════════════════════
+// MAPPING RÔLES ↔ BULLES DE CONNEXION
+// ═══════════════════════════════════════════════════════════
+const ROLES_PAR_BULLE = {
+  membre:    ['membre'],
+  ecoutant:  ['ecoutant', 'responsable', 'chef_service'],
+  admin:     ['admin', 'moderateur'],
+  dev:       ['dev', 'developpeur'],
+  fondateur: ['fondateur']
+};
+
+const LABELS_ESPACES = {
+  membre:    'Membre',
+  ecoutant:  'Écoutant',
+  admin:     'Admin / Modérateur',
+  dev:       'Développeur',
+  fondateur: 'Fondateur'
+};
+
+const LABELS_ROLES = {
+  membre:      'Membre',
+  ecoutant:    'Écoutant·e',
+  responsable: 'Responsable',
+  chef_service:'Chef de service',
+  moderateur:  'Modérateur',
+  admin:       'Administrateur',
+  dev:         'Développeur',
+  developpeur: 'Développeur',
+  fondateur:   'Fondateur'
+};
+
+// Vérifie si un rôle est compatible avec la bulle sélectionnée
+function roleCompatibleAvecBulle(role, bulle) {
+  const rolesAcceptes = ROLES_PAR_BULLE[bulle] || ['membre'];
+  return rolesAcceptes.includes(role);
+}
+
+// Trouve la bulle correspondant à un rôle
+function bulleDepuisRole(role) {
+  for (const [bulle, roles] of Object.entries(ROLES_PAR_BULLE)) {
+    if (roles.includes(role)) return bulle;
+  }
+  return 'membre';
+}
+
+// ═══════════════════════════════════════════════════════════
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById(id);
@@ -137,6 +182,10 @@ roleBubbles.forEach(bubble => {
       formSignup.classList.remove('active');
     }
     window.currentRole = role;
+
+    // Effacer les erreurs quand on change de bulle
+    clearError('login-error');
+    clearError('signup-error');
   });
 });
 window.currentRole = 'membre';
@@ -164,20 +213,20 @@ function clearError(elId) {
 function traductError(code, rawMessage) {
   console.error('🔍 Code Firebase :', code, '| Message :', rawMessage);
   const errors = {
-    'auth/email-already-in-use': 'Cet email est déjà utilisé.',
-    'auth/invalid-email': 'Email invalide.',
-    'auth/weak-password': 'Mot de passe trop faible (min. 8 caractères).',
-    'auth/user-not-found': 'Aucun compte avec cet email.',
-    'auth/wrong-password': 'Mot de passe incorrect.',
-    'auth/invalid-credential': 'Email ou mot de passe incorrect.',
-    'auth/too-many-requests': 'Trop de tentatives. Réessaie plus tard.',
-    'auth/network-request-failed': 'Problème de connexion.',
-    'auth/popup-closed-by-user': 'Connexion annulée.',
-    'auth/cancelled-popup-request': 'Connexion annulée.',
-    'auth/operation-not-allowed': 'Méthode non activée.',
-    'permission-denied': 'Règles Firestore bloquent l\'écriture.'
+    'auth/email-already-in-use': '📧 Cet email est déjà utilisé. Essaie de te connecter à la place.',
+    'auth/invalid-email': '📧 Cet email n\'est pas valide.',
+    'auth/weak-password': '🔑 Le mot de passe doit contenir au moins 8 caractères (dont 1 lettre et 1 chiffre).',
+    'auth/user-not-found': '👤 Aucun compte n\'existe avec cet email. Vérifie ou inscris-toi.',
+    'auth/wrong-password': '🔑 Mot de passe incorrect.',
+    'auth/invalid-credential': '🔑 Email ou mot de passe incorrect. Vérifie tes informations.',
+    'auth/too-many-requests': '⏳ Trop de tentatives. Patiente 1 minute puis réessaie.',
+    'auth/network-request-failed': '📡 Problème de connexion internet. Vérifie ton réseau.',
+    'auth/popup-closed-by-user': '❌ Tu as annulé la connexion Google.',
+    'auth/cancelled-popup-request': '❌ Connexion annulée.',
+    'auth/operation-not-allowed': '⚙️ Cette méthode de connexion n\'est pas activée.',
+    'permission-denied': '🔒 Tu n\'as pas la permission. Vérifie les règles Firestore.'
   };
-  return errors[code] || `Erreur : ${code || rawMessage || 'inconnue'}`;
+  return errors[code] || `⚠️ Erreur : ${code || rawMessage || 'inconnue'}`;
 }
 
 function calculerAge(dateNaissance) {
@@ -207,13 +256,13 @@ formSignup.addEventListener('submit', async (e) => {
   const password = document.getElementById('signup-password').value;
 
   const age = calculerAge(birthdate);
-  if (age >= 18) { showError('signup-error', '❌ Réservé aux moins de 18 ans.'); return; }
-  if (age < 8) { showError('signup-error', '❌ Minimum 8 ans.'); return; }
+  if (age >= 18) { showError('signup-error', '❌ Iphax est réservé aux moins de 18 ans.'); return; }
+  if (age < 8) { showError('signup-error', '❌ Tu dois avoir au moins 8 ans pour t\'inscrire.'); return; }
   if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-    showError('signup-error', '❌ 1 lettre + 1 chiffre minimum.'); return;
+    showError('signup-error', '🔑 Le mot de passe doit contenir au moins 1 lettre et 1 chiffre.'); return;
   }
   if (!/^[A-Za-z][A-Za-z0-9._-]{2,23}$/.test(username)) {
-    showError('signup-error', '❌ Nom d\'utilisateur invalide.'); return;
+    showError('signup-error', '👤 Nom d\'utilisateur invalide : 3-24 caractères, commence par une lettre, autorisé . _ -'); return;
   }
 
   try {
@@ -235,35 +284,66 @@ formSignup.addEventListener('submit', async (e) => {
     showScreen('screen-cgu');
   } catch (error) {
     console.error('❌', error);
-    showError('signup-error', '❌ ' + traductError(error.code, error.message));
+    showError('signup-error', traductError(error.code, error.message));
   }
 });
 
 // ═══════════════════════════════════════════════════════════
+// CONNEXION avec vérification de l'espace (bulle)
+// ═══════════════════════════════════════════════════════════
 formLogin.addEventListener('submit', async (e) => {
   e.preventDefault();
   clearError('login-error');
+
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
+  const bulleChoisie = window.currentRole || 'membre';
 
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     const user = cred.user;
     console.log('✅ Connexion réussie');
+
+    // Charger le profil pour vérifier le rôle
     const snap = await getDoc(doc(db, 'users', user.uid));
-    if (snap.exists()) {
-      currentUser = user;
-      currentUserData = snap.data();
-      routeUser(currentUserData);
-    } else {
-      showScreen('screen-cgu');
+
+    if (!snap.exists()) {
+      // Profil manquant → cas rare
+      showError('login-error', '⚠️ Ton profil est incomplet. Contacte un administrateur.');
+      await signOut(auth);
+      return;
     }
+
+    const data = snap.data();
+    const role = data.role || 'membre';
+
+    // Vérification : le rôle correspond-il à la bulle choisie ?
+    if (!roleCompatibleAvecBulle(role, bulleChoisie)) {
+      // Déconnexion immédiate
+      await signOut(auth);
+
+      const vraiEspace = LABELS_ESPACES[bulleDepuisRole(role)];
+      const espaceTente = LABELS_ESPACES[bulleChoisie];
+      const roleLabel = LABELS_ROLES[role] || role;
+
+      showError('login-error',
+        `🚫 Mauvais espace ! Ton compte est un compte ${roleLabel}, mais tu essaies de te connecter dans l'espace ${espaceTente}. Utilise la bulle « ${vraiEspace} » en haut à droite.`
+      );
+      return;
+    }
+
+    currentUser = user;
+    currentUserData = data;
+    routeUser(data);
+
   } catch (error) {
     console.error('❌', error);
-    showError('login-error', '❌ ' + traductError(error.code, error.message));
+    showError('login-error', traductError(error.code, error.message));
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// CONNEXION GOOGLE avec vérification
 // ═══════════════════════════════════════════════════════════
 const btnGoogle = document.getElementById('btn-google');
 const googleProvider = new GoogleAuthProvider();
@@ -271,6 +351,9 @@ const googleProvider = new GoogleAuthProvider();
 btnGoogle.addEventListener('click', async () => {
   clearError('login-error');
   clearError('signup-error');
+
+  const bulleChoisie = window.currentRole || 'membre';
+
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
@@ -279,6 +362,7 @@ btnGoogle.addEventListener('click', async () => {
 
     let data;
     if (!snap.exists()) {
+      // Nouveau compte Google → créer profil basique
       data = {
         uid: user.uid, email: user.email, username: null,
         displayName: user.displayName || 'Utilisateur',
@@ -290,13 +374,28 @@ btnGoogle.addEventListener('click', async () => {
       data = snap.data();
     }
 
+    const role = data.role || 'membre';
+
+    // Vérifier l'espace
+    if (!roleCompatibleAvecBulle(role, bulleChoisie)) {
+      await signOut(auth);
+      const vraiEspace = LABELS_ESPACES[bulleDepuisRole(role)];
+      const espaceTente = LABELS_ESPACES[bulleChoisie];
+      const roleLabel = LABELS_ROLES[role] || role;
+
+      showError('login-error',
+        `🚫 Mauvais espace ! Ton compte est un compte ${roleLabel}, mais tu essaies de te connecter dans l'espace ${espaceTente}. Utilise la bulle « ${vraiEspace} » en haut à droite.`
+      );
+      return;
+    }
+
     currentUser = user;
     currentUserData = data;
     console.log('✅ Connexion Google réussie');
     routeUser(data);
   } catch (error) {
     console.error('❌', error);
-    showError('login-error', '❌ ' + traductError(error.code, error.message));
+    showError('login-error', traductError(error.code, error.message));
   }
 });
 
@@ -357,7 +456,7 @@ if (btnAcceptCgu) {
       routeUser(currentUserData);
     } catch (error) {
       console.error('❌ CGU :', error);
-      alert('❌ ERREUR CGU :\n' + (error.code || '?') + '\n\n' + (error.message || error));
+      alert('❌ Erreur lors de l\'enregistrement des CGU.\n\n' + (error.message || error));
     }
   });
 }
@@ -562,7 +661,7 @@ async function saveMoodData() {
     );
   } catch (e) {
     console.error('Erreur save moods :', e);
-    alert('❌ ERREUR MOOD :\n' + (e.code || '?') + '\n\n' + (e.message || e));
+    alert('❌ Impossible d\'enregistrer. ' + (e.code === 'permission-denied' ? 'Vérifie tes permissions.' : e.message));
   }
 }
 
@@ -638,7 +737,6 @@ let journalCache = [];
 
 async function loadJournal() {
   const list = document.getElementById('journal-list');
-  const empty = document.getElementById('journal-empty');
   if (!list || !currentUser) return;
 
   try {
@@ -682,7 +780,7 @@ async function loadJournal() {
     });
   } catch (e) {
     console.error('Erreur chargement journal :', e);
-    list.innerHTML = '<p class="empty-state">Erreur : ' + (e.code || e.message) + '</p>';
+    list.innerHTML = '<p class="empty-state">⚠️ Erreur de chargement. Réessaie plus tard.</p>';
   }
 }
 
@@ -725,7 +823,7 @@ function openJournalEntry(id) {
       await loadJournal();
     } catch (e) {
       console.error('Erreur suppression :', e);
-      alert('❌ ERREUR SUPPRESSION :\n' + (e.code || '?') + '\n\n' + (e.message || e));
+      alert('❌ Impossible de supprimer. ' + (e.code === 'permission-denied' ? 'Vérifie tes permissions.' : e.message));
     }
   });
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
@@ -814,7 +912,7 @@ function openJournalForm() {
   overlay.querySelector('#journal-save').addEventListener('click', async () => {
     const title = overlay.querySelector('#journal-title').value.trim();
     const content = overlay.querySelector('#journal-content').value.trim();
-    if (!content) { alert('Écris quelque chose 💙'); return; }
+    if (!content) { alert('✍️ Écris quelque chose avant d\'enregistrer.'); return; }
 
     try {
       await addDoc(collection(db, 'users', currentUser.uid, 'journal'), {
@@ -826,10 +924,9 @@ function openJournalForm() {
       });
       overlay.remove();
       await loadJournal();
-      console.log('✅ Note enregistrée');
     } catch (e) {
       console.error('Erreur save note :', e);
-      alert('❌ ERREUR JOURNAL :\n' + (e.code || '?') + '\n\n' + (e.message || e));
+      alert('❌ Impossible d\'enregistrer. ' + (e.code === 'permission-denied' ? 'Vérifie tes permissions.' : e.message));
     }
   });
 }
@@ -871,7 +968,7 @@ async function loadObjectifs() {
         try {
           await updateDoc(doc(db, 'users', currentUser.uid, 'objectifs', id), { done: !item.done });
           await loadObjectifs();
-        } catch (e) { console.error(e); alert('❌ ' + (e.code || e.message)); }
+        } catch (e) { console.error(e); alert('❌ Erreur : ' + (e.code === 'permission-denied' ? 'Permissions' : e.message)); }
       });
     });
 
@@ -882,12 +979,12 @@ async function loadObjectifs() {
         try {
           await deleteDoc(doc(db, 'users', currentUser.uid, 'objectifs', btn.dataset.id));
           await loadObjectifs();
-        } catch (e) { console.error(e); alert('❌ ' + (e.code || e.message)); }
+        } catch (e) { console.error(e); alert('❌ Erreur : ' + (e.code === 'permission-denied' ? 'Permissions' : e.message)); }
       });
     });
   } catch (e) {
     console.error('Erreur objectifs :', e);
-    list.innerHTML = '<p class="empty-state">Erreur : ' + (e.code || e.message) + '</p>';
+    list.innerHTML = '<p class="empty-state">⚠️ Erreur de chargement. Réessaie plus tard.</p>';
   }
 }
 
@@ -921,14 +1018,14 @@ if (btnNewObjectif) {
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     overlay.querySelector('#obj-save').addEventListener('click', async () => {
       const text = overlay.querySelector('#objectif-text').value.trim();
-      if (!text) { alert('Écris ton objectif !'); return; }
+      if (!text) { alert('✍️ Écris ton objectif !'); return; }
       try {
         await addDoc(collection(db, 'users', currentUser.uid, 'objectifs'), {
           text, done: false, createdAt: serverTimestamp()
         });
         overlay.remove();
         await loadObjectifs();
-      } catch (e) { console.error(e); alert('❌ ' + (e.code || e.message)); }
+      } catch (e) { console.error(e); alert('❌ Erreur : ' + (e.code === 'permission-denied' ? 'Permissions' : e.message)); }
     });
   });
 }
@@ -966,12 +1063,12 @@ async function loadRappels() {
         try {
           await deleteDoc(doc(db, 'users', currentUser.uid, 'rappels', btn.dataset.id));
           await loadRappels();
-        } catch (e) { console.error(e); alert('❌ ' + (e.code || e.message)); }
+        } catch (e) { console.error(e); alert('❌ Erreur : ' + (e.code === 'permission-denied' ? 'Permissions' : e.message)); }
       });
     });
   } catch (e) {
     console.error('Erreur rappels :', e);
-    list.innerHTML = '<p class="empty-state">Erreur : ' + (e.code || e.message) + '</p>';
+    list.innerHTML = '<p class="empty-state">⚠️ Erreur de chargement. Réessaie plus tard.</p>';
   }
 }
 
@@ -1005,14 +1102,14 @@ if (btnNewRappel) {
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     overlay.querySelector('#rap-save').addEventListener('click', async () => {
       const text = overlay.querySelector('#rappel-text').value.trim();
-      if (!text) { alert('Écris ton rappel !'); return; }
+      if (!text) { alert('✍️ Écris ton rappel !'); return; }
       try {
         await addDoc(collection(db, 'users', currentUser.uid, 'rappels'), {
           text, createdAt: serverTimestamp()
         });
         overlay.remove();
         await loadRappels();
-      } catch (e) { console.error(e); alert('❌ ' + (e.code || e.message)); }
+      } catch (e) { console.error(e); alert('❌ Erreur : ' + (e.code === 'permission-denied' ? 'Permissions' : e.message)); }
     });
   });
 }
@@ -1069,7 +1166,7 @@ function startChatListener(type) {
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }, (err) => {
     console.error('Erreur chat listener :', err);
-    messagesEl.innerHTML = '<p class="empty-state">Erreur : ' + (err.code || err.message) + '</p>';
+    messagesEl.innerHTML = '<p class="empty-state">⚠️ Impossible de charger la conversation. Réessaie plus tard.</p>';
   });
 }
 
@@ -1093,10 +1190,11 @@ if (chatForm) {
       });
     } catch (err) {
       console.error('❌ Erreur envoi message :', err);
-      alert('❌ ERREUR ENVOI :\n\n' +
-            'Code : ' + (err.code || '?') + '\n\n' +
-            'Message : ' + (err.message || err) + '\n\n' +
-            'Chat ID : ' + currentUser.uid + '_' + currentChatType);
+      if (err.code === 'permission-denied') {
+        alert('🔒 Impossible d\'envoyer ton message.\n\nVérifie que les règles Firestore sont bien à jour (autoriser les utilisateurs connectés à écrire dans /chats).');
+      } else {
+        alert('❌ Erreur d\'envoi.\n\n' + (err.message || err));
+      }
     }
   });
 }
@@ -1152,7 +1250,7 @@ async function loadFilGeneral() {
     });
   } catch (e) {
     console.error('Erreur fil général :', e);
-    feed.innerHTML = '<p class="empty-state">Erreur : ' + (e.code || e.message) + '</p>';
+    feed.innerHTML = '<p class="empty-state">⚠️ Impossible de charger le fil. Réessaie plus tard.</p>';
   }
 }
 
@@ -1215,7 +1313,7 @@ if (btnDemandeFil) {
     overlay.querySelector('#fil-send').addEventListener('click', async () => {
       const title = overlay.querySelector('#fil-title').value.trim();
       const content = overlay.querySelector('#fil-content').value.trim();
-      if (!content) { alert('Écris ton message 💙'); return; }
+      if (!content) { alert('✍️ Écris ton message 💙'); return; }
 
       try {
         await addDoc(collection(db, 'demandes-fil'), {
@@ -1228,10 +1326,10 @@ if (btnDemandeFil) {
           createdAt: serverTimestamp()
         });
         overlay.remove();
-        alert('✅ Ta demande a été envoyée !');
+        alert('✅ Ta demande a été envoyée ! Elle sera examinée par un modérateur.');
       } catch (e) {
         console.error(e);
-        alert('❌ ERREUR DEMANDE :\n' + (e.code || '?') + '\n\n' + (e.message || e));
+        alert('❌ Impossible d\'envoyer ta demande. Réessaie plus tard.');
       }
     });
   });
