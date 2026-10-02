@@ -132,11 +132,11 @@ function traductError(code, rawMessage) {
     'auth/too-many-requests': '⏳ Trop de tentatives. Patiente.',
     'auth/network-request-failed': '📡 Problème de connexion.',
     'auth/popup-closed-by-user': '❌ Connexion Google annulée.',
-    'auth/popup-blocked': '🚫 Popup bloquée. Autorise les popups puis réessaie.',
+    'auth/popup-blocked': '🚫 Popup bloquée. Autorise les popups.',
     'auth/cancelled-popup-request': '❌ Connexion annulée.',
-    'auth/unauthorized-domain': '🚫 Ce domaine n\'est pas autorisé dans Firebase.',
+    'auth/unauthorized-domain': '🚫 Ce domaine n\'est pas autorisé.',
     'auth/operation-not-allowed': '⚙️ Méthode non activée.',
-    'auth/account-exists-with-different-credential': '⚠️ Un compte existe déjà avec cet email via une autre méthode.',
+    'auth/account-exists-with-different-credential': '⚠️ Un compte existe déjà avec cet email.',
     'permission-denied': '🔒 Tu n\'as pas la permission.'
   };
   return errors[code] || `⚠️ Erreur : ${code || rawMessage || 'inconnue'}`;
@@ -362,13 +362,12 @@ formLogin.addEventListener('submit', async (e) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CONNEXION GOOGLE — Popup en priorité, redirect en fallback
+// CONNEXION GOOGLE — Popup en priorité
 // ═══════════════════════════════════════════════════════════════════════════
 const btnGoogle = document.getElementById('btn-google');
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-// Fonction commune pour traiter un user Google (popup ou redirect)
 async function handleGoogleUser(user, bulleChoisie) {
   const ref = doc(db, 'users', user.uid);
   const snap = await getDoc(ref);
@@ -407,7 +406,6 @@ async function handleGoogleUser(user, bulleChoisie) {
   routeUser(data);
 }
 
-// CLIC sur le bouton Google
 btnGoogle.addEventListener('click', async () => {
   clearError('login-error');
   clearError('signup-error');
@@ -416,50 +414,41 @@ btnGoogle.addEventListener('click', async () => {
   sessionStorage.setItem('iphax_bulle_choisie', bulleChoisie);
 
   try {
-    // ★ ESSAYER LA POPUP EN PREMIER (plus fiable que le redirect)
-    console.log('🔵 Tentative de connexion Google via POPUP…');
+    console.log('🔵 Tentative Google POPUP…');
     const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
     console.log('✅ Popup réussie');
-    await handleGoogleUser(user, bulleChoisie);
+    await handleGoogleUser(result.user, bulleChoisie);
   } catch (error) {
     console.warn('⚠️ Popup échouée :', error.code);
 
-    // Si la popup est bloquée ou problème d'environnement → essayer le redirect
     if (error.code === 'auth/popup-blocked' ||
-        error.code === 'auth/operation-not-supported-in-this-environment' ||
-        error.code === 'auth/cancelled-popup-request' === false) {
-      console.log('🔵 Fallback : tentative avec REDIRECT…');
+        error.code === 'auth/operation-not-supported-in-this-environment') {
+      console.log('🔵 Fallback REDIRECT…');
       try {
         await signInWithRedirect(auth, googleProvider);
         return;
       } catch (e2) {
-        console.error('❌ Redirect aussi échoué :', e2);
+        console.error('❌ Redirect échoué :', e2);
         showError('login-error', traductError(e2.code, e2.message));
         return;
       }
     }
 
-    // Autres erreurs (annulation, mauvais espace...)
     showError('login-error', traductError(error.code, error.message));
   }
 });
 
-// ─────────────────────────────────────────────────────────────────────────
-// RETOUR DE REDIRECT (si l'utilisateur a été redirigé vers Google)
-// ─────────────────────────────────────────────────────────────────────────
 (async () => {
   try {
     const result = await getRedirectResult(auth);
     if (result && result.user) {
-      console.log('✅ Retour de redirect Google détecté');
+      console.log('✅ Retour redirect Google');
       const bulleChoisie = sessionStorage.getItem('iphax_bulle_choisie') || 'membre';
       sessionStorage.removeItem('iphax_bulle_choisie');
       await handleGoogleUser(result.user, bulleChoisie);
     }
   } catch (error) {
     console.error('❌ Erreur redirect :', error);
-    // On ne bloque pas, on ne montre rien si pas de redirect en cours
   }
 })();
 
@@ -1255,13 +1244,12 @@ function initEcoListeners() {
   startMesConvsListener();
 }
 
+// ★ FIX : plus de orderBy ni de limit → tri côté client ★
 function startEnAttenteListener() {
   if (ecoEnAttenteUnsubscribe) ecoEnAttenteUnsubscribe();
   const q = query(
     collection(db, 'conversations'),
-    where('status', '==', 'waiting'),
-    orderBy('createdAt', 'asc'),
-    limit(50)
+    where('status', '==', 'waiting')
   );
   ecoEnAttenteUnsubscribe = onSnapshot(q, (snap) => {
     const container = document.getElementById('convs-en-attente');
@@ -1269,6 +1257,9 @@ function startEnAttenteListener() {
     if (!container) return;
     const convs = [];
     snap.forEach(d => convs.push({ id: d.id, ...d.data() }));
+
+    // ★ Tri côté client (contourne l'index composite) ★
+    convs.sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
 
     if (badge) {
       if (convs.length > 0) {
