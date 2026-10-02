@@ -6,7 +6,8 @@
   <meta name="theme-color" content="#050E24">
   <meta name="description" content="Iphax — Collectif d'écoute en ligne pour les jeunes. Ici, quelqu'un t'écoute.">
   <meta name="author" content="Moonlight Studio & RPTR">
-  <meta name="keywords" content="écoute, soutien, jeunes, collectif, aide, bienveillance">
+  <meta name="keywords" content="écoute, soutien, jeunes, collectif, aide, bienveillance, santé mentale">
+  <meta name="robots" content="index, follow">
   <title>Iphax — Collectif d'écoute</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,107 +17,72 @@
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════════════════════════
-     ÉCRAN 1 — INTRO (Splash Screen)
-     ─────────────────────────────────────────────────────────────────────────
-     • Affiché à chaque lancement de l'application
-     • Fond bleu nuit avec halos cyan/bleu animés
-     • Logo Iphax + titre + sous-titre + bouton Continuer
-     • Après clic : vérifie si l'utilisateur est déjà connecté
-     ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     ÉCRAN 1 : INTRO
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="screen-intro" class="screen active">
 
-  <!-- ─── Fond animé ─── -->
   <div class="intro-bg">
     <div class="glow glow-1"></div>
     <div class="glow glow-2"></div>
     <div class="stars"></div>
   </div>
 
-  <!-- ─── Contenu centré ─── -->
   <div class="intro-content">
-
-    <!-- Logo Iphax -->
     <div class="intro-logo">
-      <img src="https://i.imgur.com/B76uhb4.png" alt="Logo Iphax">
+      <img src="https://i.imgur.com/B76uhb4.png" alt="Logo Iphax" draggable="false">
     </div>
 
-    <!-- Titre principal -->
     <h1 class="intro-title">Iphax</h1>
-
-    <!-- Sous-titre -->
     <p class="intro-subtitle">By Moonlight studio</p>
 
-    <!-- Bouton Continuer -->
-    <button class="btn btn-primary intro-btn" id="btn-continuer">
+    <button class="btn btn-primary intro-btn" id="btn-continuer" type="button">
       <span>Continuer</span>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M5 12h14M13 5l7 7-7 7"/>
       </svg>
     </button>
 
-    <!-- Message rassurant -->
     <p class="intro-footnote">Ici, quelqu'un t'écoute 💙</p>
-
   </div>
 </section>
 
 
-<!-- ══════════════════════════════════════════════════════════════════════════
-     ÉCRAN 2 — AUTH (Connexion / Inscription)
-     ─────────────────────────────────────────────────────────────────────────
-     • 5 bulles de rôle sur le côté droit (desktop) ou en bas (mobile)
-     • Onglets Connexion / Inscription (visibles seulement pour Membre)
-     • Formulaire Connexion : Email + Mot de passe
-     • Formulaire Inscription : Email + Username + DisplayName + Date naissance + Mot de passe
-     • Bouton Google (Continuer avec Google)
-     ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     ÉCRAN 2 : AUTH (Connexion / Inscription)
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="screen-auth" class="screen">
 
-  <!-- ─── Fond animé ─── -->
   <div class="auth-bg">
     <div class="glow glow-3"></div>
   </div>
 
-  <!-- ─── BULLES DE RÔLE (5) ─── -->
+  <!-- Bulles de rôle -->
   <div class="role-bubbles">
-
-    <!-- Bulle Membre -->
     <button class="role-bubble active" data-role="membre" type="button" title="Espace Membre">
       <span class="bubble-icon">👤</span>
       <span class="bubble-label">Membre</span>
     </button>
-
-    <!-- Bulle Admin / Modérateur -->
-    <button class="role-bubble" data-role="admin" type="button" title="Espace Admin / Modérateur">
+    <button class="role-bubble" data-role="admin" type="button" title="Espace Admin">
       <span class="bubble-icon">🔧</span>
       <span class="bubble-label">Admin</span>
     </button>
-
-    <!-- Bulle Écoutant -->
     <button class="role-bubble" data-role="ecoutant" type="button" title="Espace Écoutant">
       <span class="bubble-icon">🧑‍⚕️</span>
       <span class="bubble-label">Écoutant</span>
     </button>
-
-    <!-- Bulle Développeur -->
-    <button class="role-bubble" data-role="dev" type="button" title="Espace Développeur">
+    <button class="role-bubble" data-role="dev" type="button" title="Espace Dev">
       <span class="bubble-icon">💻</span>
       <span class="bubble-label">Dev</span>
     </button>
-
-    <!-- Bulle Fondateur (discrète) -->
     <button class="role-bubble role-bubble-founder" data-role="fondateur" type="button" title="Espace Fondateur">
       <span class="bubble-icon">👑</span>
       <span class="bubble-label">Fondateur</span>
     </button>
-
   </div>
 
-  <!-- ─── Contenant principal ─── -->
   <div class="auth-container">
 
-    <!-- En-tête -->
     <div class="auth-header">
       <div class="auth-logo-mini">
         <img src="https://i.imgur.com/B76uhb4.png" alt="Logo Iphax">
@@ -125,17 +91,15 @@
       <p class="auth-subtitle" id="auth-subtitle">Ici, quelqu'un t'écoute 💙</p>
     </div>
 
-    <!-- Onglets Connexion / Inscription -->
     <div class="auth-tabs" data-active="login">
       <button class="tab active" data-tab="login" type="button">Connexion</button>
       <button class="tab" data-tab="signup" type="button">Inscription</button>
       <span class="tab-indicator"></span>
     </div>
 
-    <!-- ═══ FORMULAIRE CONNEXION ═══ -->
+    <!-- ─── Connexion ─── -->
     <form id="form-login" class="auth-form active" autocomplete="on">
 
-      <!-- Champ Email -->
       <div class="field">
         <label for="login-email">Email</label>
         <div class="field-input">
@@ -147,7 +111,6 @@
         </div>
       </div>
 
-      <!-- Champ Mot de passe -->
       <div class="field">
         <label for="login-password">Mot de passe</label>
         <div class="field-input">
@@ -170,10 +133,9 @@
       <p class="auth-error" id="login-error"></p>
     </form>
 
-    <!-- ═══ FORMULAIRE INSCRIPTION ═══ -->
+    <!-- ─── Inscription ─── -->
     <form id="form-signup" class="auth-form" autocomplete="off">
 
-      <!-- Champ Email -->
       <div class="field">
         <label for="signup-email">Email</label>
         <div class="field-input">
@@ -185,19 +147,14 @@
         </div>
       </div>
 
-      <!-- Username + DisplayName -->
       <div class="field-row">
-
         <div class="field">
           <label for="signup-username">Nom d'utilisateur</label>
           <div class="field-input">
             <span class="field-prefix">@</span>
-            <input type="text" id="signup-username" placeholder="luna_92" required
-                   minlength="3" maxlength="24" pattern="^[A-Za-z][A-Za-z0-9._-]{2,23}$"
-                   title="3 à 24 caractères, commence par une lettre, autorisé : . _ -">
+            <input type="text" id="signup-username" placeholder="luna_92" required minlength="3" maxlength="24" pattern="^[A-Za-z][A-Za-z0-9._-]{2,23}$">
           </div>
         </div>
-
         <div class="field">
           <label for="signup-displayname">Nom d'affichage</label>
           <div class="field-input">
@@ -208,10 +165,8 @@
             <input type="text" id="signup-displayname" placeholder="Luna 🌙" required maxlength="30">
           </div>
         </div>
-
       </div>
 
-      <!-- Date de naissance -->
       <div class="field">
         <label for="signup-birthdate">Date de naissance</label>
         <div class="field-input">
@@ -224,7 +179,6 @@
         <p class="field-hint">Iphax est réservé aux mineurs (moins de 18 ans).</p>
       </div>
 
-      <!-- Mot de passe -->
       <div class="field">
         <label for="signup-password">Mot de passe</label>
         <div class="field-input">
@@ -232,7 +186,7 @@
             <rect x="4" y="10" width="16" height="11" rx="2.5"/>
             <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
           </svg>
-          <input type="password" id="signup-password" placeholder="Min. 8 car., 1 lettre + 1 chiffre" required minlength="8" autocomplete="new-password">
+          <input type="password" id="signup-password" placeholder="Min. 8 car., 1 lettre + 1 chiffre" required minlength="8">
           <button type="button" class="toggle-eye" aria-label="Afficher le mot de passe">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
@@ -246,12 +200,10 @@
       <p class="auth-error" id="signup-error"></p>
     </form>
 
-    <!-- Séparateur "ou" -->
     <div class="divider"><span>ou</span></div>
 
-    <!-- Bouton Google -->
     <button type="button" class="btn btn-google" id="btn-google">
-      <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <svg width="18" height="18" viewBox="0 0 48 48">
         <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 19.3-7.6 20.6-17.6.1-.9.1-1.9 0-2.9z"/>
         <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 5.1 29.3 3 24 3 16.1 3 9.3 7.5 6.3 14.7z"/>
         <path fill="#4CAF50" d="M24 45c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.3 36 26.8 37 24 37c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.2 40.5 16 45 24 45z"/>
@@ -264,14 +216,9 @@
 </section>
 
 
-<!-- ══════════════════════════════════════════════════════════════════════════
-     ÉCRAN 3 — CGU (Conditions Générales d'Utilisation)
-     ─────────────────────────────────────────────────────────────────────────
-     • Texte scrollable obligatoire (il faut scroller jusqu'en bas)
-     • Case à cocher déverrouillée seulement après scroll complet
-     • Bouton Accepter (désactivé tant que la case n'est pas cochée)
-     • Bouton Refuser → retour à l'écran d'intro
-     ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     ÉCRAN 3 : CGU (Conditions Générales d'Utilisation)
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="screen-cgu" class="screen">
 
   <div class="cgu-bg">
@@ -280,61 +227,47 @@
 
   <div class="cgu-container">
 
-    <!-- En-tête -->
     <div class="cgu-header">
       <span class="cgu-icon">📜</span>
       <h1 class="cgu-title">Conditions Générales d'Utilisation</h1>
       <p class="cgu-subtitle">Merci de lire et d'accepter avant de continuer</p>
     </div>
 
-    <!-- Texte scrollable des CGU -->
     <div class="cgu-text" id="cgu-text">
 
       <h2>1. Présentation d'Iphax</h2>
       <p>Iphax est une application web de collectif d'écoute en ligne, éditée conjointement par <strong>RPTR</strong> et <strong>Moonlight Studio</strong>.</p>
       <p>Elle permet à des <strong>mineurs (0 à 17 ans)</strong> de dialoguer par chat écrit avec des écoutants pairs formés, dans un cadre bienveillant, confidentiel et sécurisé.</p>
       <p><strong>Iphax n'est pas</strong> : un service d'urgence vitale, un service médical ou psychologique, ni un substitut à un professionnel de santé.</p>
-      <p>Iphax est actuellement en phase de <strong>bêta</strong>, mais déjà accessible au public. Le service peut évoluer à tout moment sans préavis.</p>
+      <p>Iphax est actuellement en phase de <strong>bêta</strong>.</p>
 
       <h2>2. Conditions d'accès</h2>
       <p>Pour utiliser Iphax, tu dois :</p>
       <ul>
-        <li>Avoir <strong>moins de 18 ans</strong> (le service est réservé aux mineurs)</li>
-        <li>Créer <strong>un seul compte</strong> (un compte par personne)</li>
-        <li>Fournir des informations <strong>exactes</strong> (email valide, date de naissance réelle)</li>
-        <li>Ne pas usurper l'identité d'une autre personne</li>
+        <li>Avoir <strong>moins de 18 ans</strong></li>
+        <li>Créer <strong>un seul compte</strong></li>
+        <li>Fournir des informations <strong>exactes</strong></li>
       </ul>
-      <p>Tout compte créé avec de fausses informations pourra être supprimé sans préavis.</p>
 
       <h2>3. Ton compte</h2>
-      <p>À l'inscription, tu choisis :</p>
-      <ul>
-        <li>Un <strong>nom d'utilisateur</strong> (unique, modifiable tous les 30 jours)</li>
-        <li>Un <strong>nom d'affichage</strong> (modifiable tous les 7 jours)</li>
-        <li>Un <strong>mot de passe</strong> sécurisé (8 caractères min., 1 lettre + 1 chiffre)</li>
-      </ul>
-      <p>Tu es <strong>responsable</strong> de la confidentialité de ton mot de passe. Ne le partage avec personne, même un écoutant.</p>
+      <p>Tu choisis un nom d'utilisateur (modifiable tous les 30 jours), un nom d'affichage (modifiable tous les 7 jours) et un mot de passe sécurisé.</p>
 
       <h2>4. Ce qu'Iphax propose</h2>
       <ul>
-        <li>💬 Une <strong>écoute bienveillante</strong> par des pairs formés</li>
-        <li>🧑‍⚕️ Des <strong>adultes référents</strong> (professionnels) qui supervisent le collectif</li>
-        <li>📚 Des <strong>ressources</strong> et un <strong>espace public</strong> modéré</li>
-        <li>🔒 Un <strong>espace privé</strong> confidentiel (journal intime, mood tracker, objectifs)</li>
-        <li>💭 Des <strong>fils thérapeutiques</strong> (groupes restreints de 5 à 15 personnes)</li>
+        <li>💬 Une écoute bienveillante par des pairs formés</li>
+        <li>🧑‍⚕️ Des adultes référents qui supervisent</li>
+        <li>📚 Des ressources et un espace public modéré</li>
+        <li>🔒 Un espace privé confidentiel</li>
       </ul>
 
       <h2>5. Ce qu'Iphax ne fait PAS</h2>
-      <p>Iphax <strong>ne remplace pas</strong> : un médecin, un psychologue ou un psychiatre, ni un service d'urgence.</p>
-      <p>Iphax <strong>ne fournit pas</strong> : de diagnostic, de traitement médical, ni de prescription.</p>
-      <p>Iphax <strong>ne peut pas</strong> garantir une réponse immédiate à toute heure.</p>
+      <p>Iphax ne remplace pas un médecin, psychologue ou psychiatre. Iphax ne fournit ni diagnostic, ni traitement, ni prescription.</p>
 
       <h2>6. Numéros d'urgence</h2>
-      <p>Si tu es en danger ou si tu as besoin d'une aide immédiate, appelle :</p>
       <ul>
-        <li>📞 <strong>3114</strong> — Prévention du suicide (24h/24, gratuit)</li>
-        <li>📞 <strong>3018</strong> — Harcèlement et cyberharcèlement</li>
-        <li>📞 <strong>119</strong> — Enfance en danger (24h/24)</li>
+        <li>📞 <strong>3114</strong> — Prévention du suicide</li>
+        <li>📞 <strong>3018</strong> — Harcèlement</li>
+        <li>📞 <strong>119</strong> — Enfance en danger</li>
         <li>📞 <strong>15</strong> — SAMU</li>
         <li>📞 <strong>112</strong> — Urgences européennes</li>
         <li>📞 <strong>3919</strong> — Violences Femmes Info</li>
@@ -346,73 +279,56 @@
       <p>Sur Iphax, tu <strong>ne dois pas</strong> :</p>
       <ul>
         <li>Harceler, insulter ou menacer quelqu'un</li>
-        <li>Tenir des propos discriminatoires (racisme, sexisme, homophobie, validisme…)</li>
+        <li>Tenir des propos discriminatoires</li>
         <li>Publier du contenu sexuel ou pornographique</li>
         <li>Faire l'apologie de la violence</li>
         <li>Encourager au suicide ou à l'automutilation</li>
         <li>Spammer, faire de la publicité ou des arnaques</li>
         <li>Usurper l'identité de quelqu'un</li>
-        <li>Partager des informations personnelles (les tiennes ou celles des autres)</li>
+        <li>Partager des informations personnelles</li>
         <li>Publier du contenu illégal</li>
-        <li>Contourner les règles (faux comptes, etc.)</li>
+        <li>Contourner les règles</li>
       </ul>
 
       <h2>8. Confidentialité</h2>
-      <p>🔒 <strong>Tes échanges sont confidentiels.</strong> Ce que tu écris à un écoutant reste entre vous. Aucun autre membre ne peut le voir.</p>
-      <p><strong>Exception légale</strong> : dans des cas <strong>très graves de danger immédiat</strong> (maltraitance, risque vital…), la loi nous oblige à prévenir les autorités compétentes <strong>pour te protéger</strong>.</p>
+      <p>🔒 <strong>Tes échanges sont confidentiels.</strong> Exception légale en cas de danger immédiat.</p>
 
       <h2>9. Signalement</h2>
-      <p>Un bouton <strong>"Signaler"</strong> sera disponible directement dans l'app pour signaler tout comportement problématique.</p>
+      <p>Un bouton "Signaler" est disponible dans l'app.</p>
 
       <h2>10. Sanctions</h2>
-      <p>En cas de non-respect des règles :</p>
-      <ul>
-        <li>⚠️ <strong>Avertissement</strong> — rappel à l'ordre</li>
-        <li>⏸️ <strong>Suspension temporaire</strong> — compte bloqué quelques jours</li>
-        <li>🚫 <strong>Bannissement définitif</strong> — compte supprimé</li>
-      </ul>
-      <p>Dans les cas <strong>très graves</strong>, ton compte peut être supprimé <strong>immédiatement</strong>, sans avertissement.</p>
+      <p>Avertissement → suspension → bannissement. Suppression immédiate en cas de danger grave.</p>
 
       <h2>11. Modification des CGU</h2>
-      <p>Nous pouvons modifier ces CGU à tout moment. En cas de modification, tu devras <strong>re-accepter</strong> les nouvelles conditions à ta prochaine connexion.</p>
+      <p>Tu devras re-accepter les nouvelles conditions à ta prochaine connexion.</p>
 
       <h2>12. Contact</h2>
-      <p>Pour toute question, réclamation ou signalement :</p>
-      <ul>
-        <li>📧 Éditeurs : <strong>RPTR</strong> et <strong>Moonlight Studio</strong></li>
-      </ul>
+      <p>Éditeurs : <strong>RPTR</strong> et <strong>Moonlight Studio</strong></p>
 
     </div>
 
-    <!-- Pied : acceptation -->
     <div class="cgu-footer">
       <label class="cgu-check disabled" id="cgu-check-label">
         <input type="checkbox" id="cgu-checkbox" disabled>
         <span class="cgu-check-box"></span>
         <span>J'accepte les Conditions Générales d'Utilisation</span>
       </label>
-      <button class="btn btn-primary btn-full" id="btn-accept-cgu" disabled>J'accepte et je continue</button>
-      <button class="btn btn-ghost btn-full" id="btn-refuse-cgu">Je refuse</button>
+      <button class="btn btn-primary btn-full" id="btn-accept-cgu" type="button" disabled>J'accepte et je continue</button>
+      <button class="btn btn-ghost btn-full" id="btn-refuse-cgu" type="button">Je refuse</button>
     </div>
 
   </div>
 </section>
 
 
-<!-- ══════════════════════════════════════════════════════════════════════════
-     ÉCRAN 4 — APP MEMBRE
-     ─────────────────────────────────────────────────────────────────────────
-     Barre de navigation : News · Perso · Écouter · Public · Profil
-     Pages : News, Espace perso, Mood Tracker, Journal, Objectifs, Rappels,
-             Écouter, Chat, Espace public, Fil général, Profil
-     ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     ÉCRAN 4 : APP MEMBRE
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="app-membre" class="screen">
 
   <div class="app-content">
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : NEWS
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- NEWS -->
     <div class="page active" data-page="news">
       <header class="page-header">
         <h1 class="page-title">📰 News</h1>
@@ -420,24 +336,17 @@
       </header>
 
       <div class="feed" id="news-feed">
-
-        <!-- Post épinglé par défaut -->
         <article class="card card-pinned">
           <span class="card-badge">📌 Épinglé</span>
           <h3>Bienvenue sur Iphax 💙</h3>
-          <p>Ici, quelqu'un t'écoute. N'hésite pas à explorer, écrire, partager. Ta voix compte.</p>
+          <p>Ici, quelqu'un t'écoute. N'hésite pas à explorer, écrire, partager.</p>
           <span class="card-meta">Par l'équipe Iphax</span>
         </article>
-
-        <!-- Zone dynamique : les autres news seront chargées ici -->
         <div id="news-dynamic"></div>
-
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : ESPACE PERSO
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- ESPACE PERSO -->
     <div class="page" data-page="perso">
       <header class="page-header">
         <h1 class="page-title">📔 Espace perso</h1>
@@ -445,58 +354,47 @@
       </header>
 
       <div class="grid-cards">
-
         <button class="grid-card" data-target="journal">
           <span class="grid-icon">📔</span>
           <span class="grid-title">Journal intime</span>
           <span class="grid-desc">Écris ce que tu ressens</span>
         </button>
-
         <button class="grid-card" data-target="mood-tracker">
           <span class="grid-icon">😊</span>
           <span class="grid-title">Mood tracker</span>
           <span class="grid-desc">Suis ton état au quotidien</span>
         </button>
-
         <button class="grid-card" data-target="objectifs">
           <span class="grid-icon">🎯</span>
           <span class="grid-title">Objectifs</span>
           <span class="grid-desc">Tes petits défis perso</span>
         </button>
-
         <button class="grid-card" data-target="rappels">
           <span class="grid-icon">💡</span>
           <span class="grid-title">Rappels positifs</span>
           <span class="grid-desc">Pensées bienveillantes</span>
         </button>
-
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : MOOD TRACKER
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- MOOD TRACKER -->
     <div class="page" data-page="mood-tracker">
-
       <header class="page-header page-header-flex">
         <div>
           <h1 class="page-title">😊 Mood Tracker</h1>
           <p class="page-subtitle">Suis ton état au quotidien</p>
         </div>
-        <button class="btn-gear" id="btn-back-perso" title="Retour">←</button>
+        <button class="btn-gear" id="btn-back-perso" type="button">←</button>
       </header>
 
-      <!-- Légende des couleurs -->
       <div class="mood-legend" id="mood-legend"></div>
 
-      <!-- Navigation mois -->
       <div class="mood-month-nav">
         <button class="mood-nav-btn" id="mood-prev" type="button">←</button>
         <h2 class="mood-month-title" id="mood-month-title">Chargement…</h2>
         <button class="mood-nav-btn" id="mood-next" type="button">→</button>
       </div>
 
-      <!-- Tableau scrollable -->
       <div class="mood-table-wrapper" id="mood-table-wrapper">
         <table class="mood-table" id="mood-table"></table>
       </div>
@@ -504,69 +402,58 @@
       <p class="mood-hint">👆 Glisse pour voir tous les jours · Clique sur une case pour noter</p>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : JOURNAL INTIME
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- JOURNAL -->
     <div class="page" data-page="journal">
-
       <header class="page-header page-header-flex">
         <div>
           <h1 class="page-title">📔 Journal intime</h1>
           <p class="page-subtitle">100% privé — personne ne peut lire</p>
         </div>
-        <button class="btn-gear" id="btn-back-perso-journal" title="Retour">←</button>
+        <button class="btn-gear" id="btn-back-perso-journal" type="button">←</button>
       </header>
 
-      <button class="btn btn-primary btn-full" id="btn-new-journal">✍️ Nouvelle note</button>
+      <button class="btn btn-primary btn-full" id="btn-new-journal" type="button">✍️ Nouvelle note</button>
 
       <div class="journal-list" id="journal-list">
         <p class="empty-state" id="journal-empty">Aucune note pour l'instant. Écris ta première 💙</p>
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : OBJECTIFS
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- OBJECTIFS -->
     <div class="page" data-page="objectifs">
-
       <header class="page-header page-header-flex">
         <div>
           <h1 class="page-title">🎯 Objectifs</h1>
           <p class="page-subtitle">Tes petits défis perso</p>
         </div>
-        <button class="btn-gear" id="btn-back-perso-objectifs" title="Retour">←</button>
+        <button class="btn-gear" id="btn-back-perso-objectifs" type="button">←</button>
       </header>
 
-      <button class="btn btn-primary btn-full" id="btn-new-objectif">➕ Nouvel objectif</button>
+      <button class="btn btn-primary btn-full" id="btn-new-objectif" type="button">➕ Nouvel objectif</button>
 
       <div class="objectifs-list" id="objectifs-list">
         <p class="empty-state">Aucun objectif pour l'instant.</p>
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : RAPPELS POSITIFS
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- RAPPELS -->
     <div class="page" data-page="rappels">
-
       <header class="page-header page-header-flex">
         <div>
           <h1 class="page-title">💡 Rappels positifs</h1>
           <p class="page-subtitle">Tes pensées bienveillantes</p>
         </div>
-        <button class="btn-gear" id="btn-back-perso-rappels" title="Retour">←</button>
+        <button class="btn-gear" id="btn-back-perso-rappels" type="button">←</button>
       </header>
 
-      <button class="btn btn-primary btn-full" id="btn-new-rappel">➕ Nouveau rappel</button>
+      <button class="btn btn-primary btn-full" id="btn-new-rappel" type="button">➕ Nouveau rappel</button>
 
       <div class="rappels-list" id="rappels-list">
         <p class="empty-state">Aucun rappel pour l'instant.</p>
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : ÉCOUTER (bouton central de la nav)
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- ÉCOUTER -->
     <div class="page" data-page="ecouter">
       <header class="page-header">
         <h1 class="page-title">🎯 Écouter</h1>
@@ -574,42 +461,37 @@
       </header>
 
       <div class="ecouter-hero">
-
-        <!-- Parler maintenant (écoutant éphémère) -->
-        <button class="btn-hero" id="btn-parler-maintenant">
+        <button class="btn-hero" id="btn-parler-maintenant" type="button">
           <span class="hero-icon">💬</span>
           <span class="hero-title">Parler maintenant</span>
           <span class="hero-desc">Un écoutant disponible t'écoute</span>
         </button>
-
-        <!-- Mon écoutant (référent permanent) -->
-        <button class="btn-hero btn-hero-secondary" id="btn-mon-ecoutant">
+        <button class="btn-hero btn-hero-secondary" id="btn-mon-ecoutant" type="button">
           <span class="hero-icon">👤</span>
           <span class="hero-title">Mon écoutant</span>
           <span class="hero-desc">Ton écoutant référent permanent</span>
         </button>
-
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : CHAT (côté membre)
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- CHAT MEMBRE -->
     <div class="page" data-page="chat">
-
       <header class="page-header page-header-flex">
         <div>
           <h1 class="page-title" id="chat-title">💬 Chat</h1>
           <p class="page-subtitle" id="chat-subtitle">Discussion</p>
         </div>
-        <button class="btn-gear" id="btn-back-chat" title="Retour">←</button>
+        <div class="chat-header-actions">
+          <button class="btn-quit-chat" id="btn-quit-chat" type="button" style="display:none;">❌ Quitter</button>
+          <button class="btn-gear" id="btn-back-chat" type="button">←</button>
+        </div>
       </header>
 
       <div class="chat-messages" id="chat-messages"></div>
 
       <form class="chat-input-bar" id="chat-form">
         <input type="text" id="chat-input" placeholder="Écris ton message…" autocomplete="off">
-        <button type="submit" class="chat-send-btn">
+        <button type="submit" class="chat-send-btn" aria-label="Envoyer">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="m22 2-7 20-4-9-9-4Z"/>
             <path d="M22 2 11 13"/>
@@ -618,9 +500,7 @@
       </form>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : ESPACE PUBLIC
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- ESPACE PUBLIC -->
     <div class="page" data-page="public">
       <header class="page-header">
         <h1 class="page-title">🌐 Espace public</h1>
@@ -628,53 +508,45 @@
       </header>
 
       <div class="feed">
-
         <article class="card card-pinned">
           <span class="card-badge">🌐 Fil général</span>
           <h3>Fil général Iphax</h3>
           <p>Témoignages, mots gentils, conseils…</p>
-          <button class="btn btn-primary btn-small" id="btn-fil-general">Voir le fil</button>
+          <button class="btn btn-primary btn-small" id="btn-fil-general" type="button">Voir le fil</button>
         </article>
 
         <div class="section-label">🧑‍⚕️ Fils thérapeutiques</div>
         <div id="fils-thera-list">
           <p class="empty-state">Aucun fil thérapeutique rejoint pour l'instant.</p>
         </div>
-
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : FIL GÉNÉRAL
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- FIL GÉNÉRAL -->
     <div class="page" data-page="fil-general">
-
       <header class="page-header page-header-flex">
         <div>
           <h1 class="page-title">🌐 Fil général</h1>
           <p class="page-subtitle">Partage bienveillant</p>
         </div>
-        <button class="btn-gear" id="btn-back-fil" title="Retour">←</button>
+        <button class="btn-gear" id="btn-back-fil" type="button">←</button>
       </header>
 
-      <button class="btn btn-primary btn-full" id="btn-demande-fil">✍️ Demander à publier</button>
+      <button class="btn btn-primary btn-full" id="btn-demande-fil" type="button">✍️ Demander à publier</button>
 
       <div class="feed" id="fil-general-feed">
         <p class="empty-state">Aucun post pour l'instant.</p>
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : PROFIL
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- PROFIL -->
     <div class="page" data-page="profil">
-
       <header class="page-header page-header-flex">
         <div>
           <h1 class="page-title" id="profil-nom">Chargement…</h1>
           <p class="page-subtitle" id="profil-username">@…</p>
         </div>
-        <button class="btn-gear" id="btn-gear">⚙️</button>
+        <button class="btn-gear" id="btn-gear" type="button">⚙️</button>
       </header>
 
       <div class="grid-cards">
@@ -703,41 +575,40 @@
 
   </div>
 
-  <!-- ─── Barre de navigation MEMBRE ─── -->
+  <!-- BARRE DE NAVIGATION MEMBRE -->
   <nav class="bottom-nav">
     <button class="nav-item active" data-page="news" type="button">
-      <span class="nav-icon">📰</span><span class="nav-label">News</span>
+      <span class="nav-icon">📰</span>
+      <span class="nav-label">News</span>
     </button>
     <button class="nav-item" data-page="perso" type="button">
-      <span class="nav-icon">📔</span><span class="nav-label">Perso</span>
+      <span class="nav-icon">📔</span>
+      <span class="nav-label">Perso</span>
     </button>
     <button class="nav-item nav-center" data-page="ecouter" type="button">
-      <span class="nav-icon">🎯</span><span class="nav-label">Écouter</span>
+      <span class="nav-icon">🎯</span>
+      <span class="nav-label">Écouter</span>
     </button>
     <button class="nav-item" data-page="public" type="button">
-      <span class="nav-icon">🌐</span><span class="nav-label">Public</span>
+      <span class="nav-icon">🌐</span>
+      <span class="nav-label">Public</span>
     </button>
     <button class="nav-item" data-page="profil" type="button">
-      <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Profil</span>
     </button>
   </nav>
-
 </section>
 
 
-<!-- ══════════════════════════════════════════════════════════════════════════
-     ÉCRAN 5 — APP ÉCOUTANT
-     ─────────────────────────────────────────────────────────────────────────
-     Barre de navigation : News · Formation · Écoute · Fils · Profil
-     Pages : News, Formation (Wysp), Conversations, Chat écoutant, Fils, Profil
-     ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     ÉCRAN 5 : APP ÉCOUTANT
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="app-ecoutant" class="screen">
 
   <div class="app-content">
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : NEWS ÉCOUTANT
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- NEWS ÉCOUTANT -->
     <div class="page active" data-page="news-eco">
       <header class="page-header">
         <h1 class="page-title">📰 News</h1>
@@ -745,24 +616,19 @@
       </header>
 
       <div class="feed">
-
-        <button class="btn-create-news" id="btn-create-news-eco">➕ Créer une news</button>
+        <button class="btn-create-news" id="btn-create-news-eco" type="button">➕ Créer une news</button>
 
         <article class="card card-pinned">
           <span class="card-badge">📌 Épinglé</span>
           <h3>Bienvenue sur Iphax 💙</h3>
           <p>Ici, quelqu'un t'écoute. N'hésite pas à explorer, écrire, partager.</p>
-          <span class="card-meta">Par l'équipe Iphax</span>
         </article>
 
         <div id="news-eco-dynamic"></div>
-
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : FORMATION (Wysp)
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- FORMATION (Wysp) -->
     <div class="page" data-page="formation">
       <header class="page-header">
         <h1 class="page-title">📚 Formation & Ressources</h1>
@@ -770,7 +636,6 @@
       </header>
 
       <div class="wysp-container">
-
         <div class="wysp-wrapper">
           <svg class="wysp" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -783,13 +648,10 @@
                 <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
               </radialGradient>
             </defs>
-
             <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlow)" opacity="0.4"/>
             <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBody)" stroke="#00E5FF" stroke-width="1.5"/>
-
             <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="#00E5FF" stroke-width="1.2"/>
             <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="#00E5FF" stroke-width="1.2"/>
-
             <circle cx="78" cy="115" r="22" fill="#FFFFFF"/>
             <circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
             <circle cx="78" cy="115" r="13" fill="#00E5FF"/>
@@ -798,20 +660,16 @@
             <circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
             <circle cx="82" cy="110" r="3" fill="#FFFFFF"/>
             <circle cx="126" cy="110" r="3" fill="#FFFFFF"/>
-
             <path d="M 100 130 L 95 142 L 105 142 Z" fill="#FFB347"/>
             <path d="M 88 155 Q 100 165 112 155" stroke="#8FA6C7" stroke-width="2" fill="none" stroke-linecap="round"/>
-
             <path d="M 42 130 Q 30 150 45 175 Q 55 160 55 140 Z" fill="#0A1A3D" stroke="#00E5FF" stroke-width="1"/>
             <path d="M 158 130 Q 170 150 155 175 Q 145 160 145 140 Z" fill="#0A1A3D" stroke="#00E5FF" stroke-width="1"/>
-
             <circle cx="30" cy="60" r="2" fill="#00E5FF" opacity="0.8"/>
             <circle cx="170" cy="45" r="1.5" fill="#FFFFFF" opacity="0.7"/>
             <circle cx="160" cy="200" r="1.5" fill="#00E5FF" opacity="0.6"/>
             <circle cx="40" cy="210" r="2" fill="#FFFFFF" opacity="0.5"/>
           </svg>
         </div>
-
         <h2 class="wysp-title">Wysp prépare cet espace 🔨</h2>
         <p class="wysp-text">
           Formation, bien-être, supervision…<br>
@@ -819,99 +677,76 @@
           et à progresser dans ton rôle d'écoutant.
         </p>
         <p class="wysp-soon">⏳ Bientôt disponible</p>
-
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : CONVERSATIONS ÉCOUTANT
-         ─────────────────────────────────────────────────────────────────
-         • Mini-onglets : En attente / Mes conversations / Stats
-         • Badge dynamique sur "En attente"
-         • Filtres : Tout, Non lus, Sans réponse, Marqués
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- CONVERSATIONS ÉCOUTANT -->
     <div class="page" data-page="conversations">
-
       <header class="page-header">
         <h1 class="page-title">💬 Conversations</h1>
         <p class="page-subtitle">Écoute et accompagne</p>
       </header>
 
-      <!-- ─── Mini-onglets ─── -->
-      <div class="mini-tabs" id="mini-tabs-eco">
-
+      <div class="mini-tabs" id="mini-tabs-eco" data-active="en-attente">
         <button class="mini-tab active" data-mini="en-attente" type="button">
           🔥 En attente
           <span class="mini-tab-badge" id="badge-attente" style="display:none;">0</span>
         </button>
-
-        <button class="mini-tab" data-mini="mes-convs" type="button">
-          💬 Mes conversations
-        </button>
-
-        <button class="mini-tab" data-mini="stats" type="button">
-          📊 Stats
-        </button>
-
+        <button class="mini-tab" data-mini="mes-convs" type="button">💬 Mes convs</button>
+        <button class="mini-tab" data-mini="resolues" type="button">✅ Résolues</button>
+        <button class="mini-tab" data-mini="stats" type="button">📊 Stats</button>
+        <span class="mini-tab-indicator"></span>
       </div>
 
-      <!-- ─── Sous-onglet : EN ATTENTE ─── -->
       <div class="mini-content active" data-mini-content="en-attente">
-
         <div class="filters">
           <button class="filter active" type="button">Tout</button>
           <button class="filter" type="button">Non lus</button>
           <button class="filter" type="button">Sans réponse</button>
           <button class="filter" type="button">Marqués</button>
         </div>
-
         <div id="convs-en-attente">
-          <p class="empty-state">Aucune conversation en attente pour l'instant ✨</p>
+          <p class="empty-state">Aucune conversation en attente ✨</p>
         </div>
-
       </div>
 
-      <!-- ─── Sous-onglet : MES CONVERSATIONS ─── -->
       <div class="mini-content" data-mini-content="mes-convs">
-
         <div class="filters">
           <button class="filter active" type="button">Tout</button>
           <button class="filter" type="button">Non lus</button>
           <button class="filter" type="button">Sans réponse</button>
           <button class="filter" type="button">Marqués</button>
         </div>
-
         <div id="convs-mes">
           <p class="empty-state">Aucune conversation pour l'instant.</p>
         </div>
-
       </div>
 
-      <!-- ─── Sous-onglet : STATS ─── -->
-      <div class="mini-content" data-mini-content="stats">
-        <p class="empty-state">Stats personnelles à venir 📊</p>
-      </div>
-
+            <!-- Sous-onglet : RÉSOLUES -->
+            <div class="mini-content" data-mini-content="resolues">
+              <div id="convs-resolues">
+                <p class="empty-state">Aucune conversation résolue pour l'instant ✅</p>
+              </div>
+            </div>      
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : CHAT ÉCOUTANT
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- CHAT ÉCOUTANT -->
     <div class="page" data-page="chat-eco">
-
       <header class="page-header page-header-flex">
         <div>
           <h1 class="page-title" id="chat-eco-title">💬 Conversation</h1>
           <p class="page-subtitle" id="chat-eco-subtitle">…</p>
         </div>
-        <button class="btn-gear" id="btn-back-chat-eco" title="Retour">←</button>
+        <button class="btn-gear" id="btn-back-chat-eco" type="button">←</button>
       </header>
+
+      <div class="chat-eco-infos" id="chat-eco-infos"></div>
 
       <div class="chat-messages" id="chat-eco-messages"></div>
 
       <form class="chat-input-bar" id="chat-eco-form">
         <input type="text" id="chat-eco-input" placeholder="Écris ton message…" autocomplete="off">
-        <button type="submit" class="chat-send-btn">
+        <button type="submit" class="chat-send-btn" aria-label="Envoyer">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="m22 2-7 20-4-9-9-4Z"/>
             <path d="M22 2 11 13"/>
@@ -920,42 +755,35 @@
       </form>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : FILS DE DISCUSSION
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- FILS DE DISCUSSION -->
     <div class="page" data-page="fils">
       <header class="page-header">
         <h1 class="page-title">💭 Fils de discussion</h1>
       </header>
 
       <div class="feed">
-
         <article class="card card-pinned">
           <span class="card-badge">🌐 Fil général</span>
           <h3>Fil général Iphax</h3>
           <p>Écris avec validation admin</p>
-          <button class="btn btn-primary btn-small">✍️ Proposer un post</button>
+          <button class="btn btn-primary btn-small" type="button">✍️ Proposer un post</button>
         </article>
 
         <div class="section-label">🧑‍⚕️ Mes fils thérapeutiques</div>
         <p class="empty-state">Aucun fil thérapeutique pour l'instant.</p>
 
-        <button class="btn btn-primary btn-small">➕ Créer un fil thérapeutique</button>
-
+        <button class="btn btn-primary btn-small" type="button">➕ Créer un fil thérapeutique</button>
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         PAGE : PROFIL ÉCOUTANT
-         ══════════════════════════════════════════════════════════════════ -->
+    <!-- PROFIL ÉCOUTANT -->
     <div class="page" data-page="profil-eco">
-
       <header class="page-header page-header-flex">
         <div>
           <h1 class="page-title" id="profil-eco-nom">Chargement…</h1>
           <p class="page-subtitle" id="profil-eco-username">@…</p>
         </div>
-        <button class="btn-gear" id="btn-gear-eco">⚙️</button>
+        <button class="btn-gear" id="btn-gear-eco" type="button">⚙️</button>
       </header>
 
       <div class="grid-cards">
@@ -994,39 +822,37 @@
 
   </div>
 
-  <!-- ─── Barre de navigation ÉCOUTANT ─── -->
+  <!-- BARRE DE NAVIGATION ÉCOUTANT -->
   <nav class="bottom-nav">
     <button class="nav-item active" data-page="news-eco" type="button">
-      <span class="nav-icon">📰</span><span class="nav-label">News</span>
+      <span class="nav-icon">📰</span>
+      <span class="nav-label">News</span>
     </button>
     <button class="nav-item" data-page="formation" type="button">
-      <span class="nav-icon">📚</span><span class="nav-label">Formation</span>
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">Formation</span>
     </button>
     <button class="nav-item nav-center" data-page="conversations" type="button">
-      <span class="nav-icon">💬</span><span class="nav-label">Écoute</span>
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Écoute</span>
     </button>
     <button class="nav-item" data-page="fils" type="button">
-      <span class="nav-icon">💭</span><span class="nav-label">Fils</span>
+      <span class="nav-icon">💭</span>
+      <span class="nav-label">Fils</span>
     </button>
     <button class="nav-item" data-page="profil-eco" type="button">
-      <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Profil</span>
     </button>
   </nav>
-
 </section>
 
 
-<!-- ══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
      FIREBASE (via CDN)
-     ─────────────────────────────────────────────────────────────────────────
-     • initializeApp + Auth + Firestore
-     • Toutes les fonctions sont exposées sur window pour main.js
-     • IMPORTANT : signInWithPopup ET signInWithRedirect sont tous les deux
-       exposés (pour ne rien casser)
-     ══════════════════════════════════════════════════════════════════════════ -->
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-
   import {
     getAuth,
     createUserWithEmailAndPassword,
@@ -1039,7 +865,6 @@
     updateProfile,
     signOut
   } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-
   import {
     getFirestore,
     doc, setDoc, getDoc, updateDoc, deleteDoc,
@@ -1059,7 +884,6 @@
   };
 
   const app = initializeApp(firebaseConfig);
-
   window.iphaxAuth = getAuth(app);
   window.iphaxDb = getFirestore(app);
 
