@@ -1651,3 +1651,43 @@ document.querySelectorAll('.mini-tab').forEach(tab => {
       if (container) container.dataset.active = tab.dataset.mini;
     });
   });
+  
+// ═══════════════════════════════════════════════════════════════════════════
+// FILTRES — Injection de l'indicateur glissant
+// ═══════════════════════════════════════════════════════════════════════════
+function setupFilterIndicators() {
+    document.querySelectorAll('.filters').forEach(container => {
+      // Ne pas ajouter 2x
+      if (container.querySelector('.filter-indicator')) return;
+  
+      const filters = container.querySelectorAll('.filter');
+      if (filters.length === 0) return;
+  
+      // Créer l'indicateur
+      const indicator = document.createElement('span');
+      indicator.className = 'filter-indicator';
+      // Positionner selon le nombre de filtres (largeur dynamique)
+      const count = filters.length;
+      indicator.style.width = `calc(${100 / count}% - ${(8 / count)}px)`;
+      container.appendChild(indicator);
+  
+      // Gérer les clics
+      filters.forEach((filter, index) => {
+        filter.addEventListener('click', () => {
+          filters.forEach(f => f.classList.remove('active'));
+          filter.classList.add('active');
+          indicator.style.transform = `translateX(calc(100% * ${index}))`;
+        });
+      });
+    });
+  }
+  
+  // Lancer au démarrage
+  setupFilterIndicators();
+  
+  // Relancer après chaque affichage de page qui contient des filtres
+  document.querySelectorAll('.mini-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      setTimeout(setupFilterIndicators, 100);
+    });
+  });
