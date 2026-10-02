@@ -2630,7 +2630,7 @@ async function openMoodViewerFor(memberId, memberName) {
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
-    <div class="modal" style="max-width:820px;">
+    <div class="modal" style="max-width:900px;">
       <div class="modal-header">
         <div>
           <div class="modal-title">📊 Mood tracker de ${escapeHtml(memberName || 'Membre')}</div>
@@ -2644,57 +2644,223 @@ async function openMoodViewerFor(memberId, memberName) {
     </div>`;
   document.body.appendChild(overlay);
 
-  // Fetch moods
-  const data = await fetchAllMoods(memberId, 6);
-  const body = overlay.querySelector('#mood-viewer-body');
+  // État local du viewer
+  let viewMonth = new Date();
+  let viewMode = 'line'; // 'line' ou 'bar'
+  let viewPeriod = 30;
 
-  body.innerHTML = `
-    <div class="mood-viewer-controls">
-      <div class="mood-view-periods">
-        <button class="mood-period-btn" data-period="7" type="button">7 jours</button>
-        <button class="mood-period-btn active" data-period="30" type="button">30 jours</button>
-        <button class="mood-period-btn" data-period="90" type="button">3 mois</button>
-        <button class="mood-period-btn" data-period="180" type="button">6 mois</button>
-      </div>
-      <div class="mood-view-modes">
-        <button class="mood-mode-btn active" data-mode="line" type="button">📈 Courbes</button>
-        <button class="mood-mode-btn" data-mode="bar" type="button">📊 Barres</button>
-      </div>
-    </div>
-    <div class="mood-view-legend">
-      ${MOOD_ELEMENTS.map((el, i) => `
-        <span class="mood-view-legend-item">
-          <span class="mood-view-legend-dot" style="background:${ELEMENT_COLORS[i]}"></span>
-          ${el.label}
-        </span>
-      `).join('')}
-    </div>
-    <div class="mood-view-chart" id="mood-view-chart">
-      ${buildMoodChart(data, 30, 'line')}
-    </div>
-  `;
+  // Charger un mois pour le tableau
+  async function loadMonth(month) {
+    const key = getMonthKey(month);
+    try {
+      const snap = await getDoc(doc(db, 'users', memberId, 'moods', key));
+      return snap.exists() ? (snap.data().cells || {}) : {};
+    } catch (e) { return {}; }
+  }
 
-  // Boutons période
-  body.querySelectorAll('.mood-period-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      body.querySelectorAll('.mood-period-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const period = parseInt(btn.dataset.period, 10);
-      const mode = body.querySelector('.mood-mode-btn.active').dataset.mode;
-      body.querySelector('#mood-view-chart').innerHTML = buildMoodChart(data, period, mode);
+  // Charger les N derniers jours pour le graphique
+  async function loadRecent(days) {
+    const today = new Date();
+    const all = {};
+    const monthsToFetch = new Set();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+      monthsToFetch.add(getMonthKey(d));
+    }
+    for (const mk of monthsToFetch) {
+      try {
+        const snap = await getDoc(doc(db, 'users', memberId, 'moods', mk));
+        if (snap.exists()) all[mk] = snap.data().cells || {};
+      } catch (e) {}
+    }
+    return all;
+  }
+
+  // Rendu du tableau
+  function buildTable(cells) {
+    const days = getDaysInMonth(viewMonth);
+    const today = new Date();
+    const isCurrent = today.getFullYear() === viewMonth.getFullYear() && today.getMonth() === viewMonth.getMonth();
+
+    let html = '<table class="mood-table">';
+    html += '<thead><tr><th>Élément</th>';
+    for (let d = 1; d <= days; d++) {
+      const date = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d);
+      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+      const isToday = isCurrent && today.getDate() === d;
+      html += `<th class="${isWeekend?'weekend':''} ${isToday?'today':''}">${d}</th>`;
+    }
+    html += '</tr></thead><tbody>';
+    MOOD_ELEMENTS.forEach(el => {
+      html += `<tr><th>${el.label}</th>`;
+      for (let d = 1; d <= days; d++) {
+        const isToday = isCurrent && today.getDate() === d;
+        const idx = cells[d] && cells[d][el.id] != null ? cells[d][el.id] : -1;
+        const bg = idx >= 0 ? MOOD_COLORS[idx].hex : 'transparent';
+        html += `<td class="mood-cell ${idx>=0?'has-color':''} ${isToday?'today':''}" style="background:${bg}"></td>`;
+      }
+      html += '</tr>';
     });
-  });
+    html += '</tbody></table>';
+    return html;
+  }
 
-  // Boutons mode
-  body.querySelectorAll('.mood-mode-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      body.querySelectorAll('.mood-mode-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const mode = btn.dataset.mode;
-      const period = parseInt(body.querySelector('.mood-period-btn.active').dataset.period, 10);
-      body.querySelector('#mood-view-chart').innerHTML = buildMoodChart(data, period, mode);
+  // Construction du graphique
+  function buildChart(allMoodData, daysCount, mode) {
+    const W = 860, H = 320;
+    const padL = 30, padR = 20, padT = 20, padB = 30;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
+
+    const today = new Date();
+    const points = [];
+    for (let i = daysCount - 1; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+      const mk = getMonthKey(d);
+      const day = d.getDate();
+      const cells = (allMoodData[mk] && allMoodData[mk][day]) || {};
+      points.push({ day, cells });
+    }
+
+    const maxY = 6;
+    let svg = `<svg viewBox="0 0 ${W} ${H}" class="mood-chart-svg" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">`;
+
+    // Grille
+    for (let lvl = 0; lvl <= maxY; lvl++) {
+      const y = padT + innerH - (lvl / maxY) * innerH;
+      svg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+      svg += `<text x="${padL - 6}" y="${y + 3}" text-anchor="end" fill="rgba(143,166,199,0.6)" font-size="9">${lvl}</text>`;
+    }
+
+    if (mode === 'line') {
+      MOOD_ELEMENTS.forEach((el, elIdx) => {
+        const color = ELEMENT_COLORS[elIdx];
+        const pts = [];
+        points.forEach((p, i) => {
+          const val = p.cells[el.id];
+          if (val == null) return;
+          const x = padL + (i / (points.length - 1 || 1)) * innerW;
+          const y = padT + innerH - (val / maxY) * innerH;
+          pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+        });
+        if (pts.length > 1) {
+          svg += `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>`;
+        }
+        points.forEach((p, i) => {
+          const val = p.cells[el.id];
+          if (val == null) return;
+          const x = padL + (i / (points.length - 1 || 1)) * innerW;
+          const y = padT + innerH - (val / maxY) * innerH;
+          svg += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5" fill="${color}"/>`;
+        });
+      });
+    } else {
+      const clusterW = innerW / points.length;
+      const barW = Math.max(0.8, (clusterW * 0.9) / 7);
+      const gap = (clusterW - barW * 7) / 2;
+
+      points.forEach((p, i) => {
+        MOOD_ELEMENTS.forEach((el, elIdx) => {
+          const val = p.cells[el.id];
+          if (val == null) return;
+          const color = ELEMENT_COLORS[elIdx];
+          const x = padL + i * clusterW + gap + elIdx * barW;
+          const h = (val / maxY) * innerH;
+          const y = padT + innerH - h;
+          svg += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(2)}" height="${h.toFixed(1)}" fill="${color}" opacity="0.9" rx="0.5"/>`;
+        });
+      });
+    }
+
+    // Labels jours
+    const labelStep = Math.max(1, Math.ceil(points.length / 15));
+    points.forEach((p, i) => {
+      if (i % labelStep !== 0 && i !== points.length - 1) return;
+      const x = padL + (i / (points.length - 1 || 1)) * innerW;
+      svg += `<text x="${x.toFixed(1)}" y="${H - 8}" text-anchor="middle" fill="rgba(143,166,199,0.6)" font-size="9">${p.day}</text>`;
     });
-  });
+
+    svg += `</svg>`;
+    return svg;
+  }
+
+  // Rendu complet
+  async function renderAll() {
+    const body = overlay.querySelector('#mood-viewer-body');
+
+    // Charger les données nécessaires
+    const tableCells = await loadMonth(viewMonth);
+    const chartData = await loadRecent(viewPeriod);
+
+    const monthTitle = formatMonthTitle(viewMonth);
+
+    body.innerHTML = `
+      <!-- SECTION TABLEAU -->
+      <div class="section-label" style="margin-top:0;">📋 Tableau — ${monthTitle}</div>
+      <div class="mood-month-nav" style="margin-bottom:10px;">
+        <button class="mood-nav-btn" id="mv-prev" type="button">←</button>
+        <h2 class="mood-month-title">${monthTitle}</h2>
+        <button class="mood-nav-btn" id="mv-next" type="button">→</button>
+      </div>
+      <div class="mood-table-wrapper" style="max-height:380px;">
+        ${buildTable(tableCells)}
+      </div>
+
+      <!-- SECTION GRAPHIQUE -->
+      <div class="section-label" style="margin-top:24px;">📈 Graphique</div>
+      <div class="mood-viewer-controls">
+        <div class="mood-view-periods">
+          <button class="mood-period-btn ${viewPeriod===7?'active':''}" data-period="7" type="button">7 jours</button>
+          <button class="mood-period-btn ${viewPeriod===30?'active':''}" data-period="30" type="button">30 jours</button>
+          <button class="mood-period-btn ${viewPeriod===90?'active':''}" data-period="90" type="button">3 mois</button>
+          <button class="mood-period-btn ${viewPeriod===180?'active':''}" data-period="180" type="button">6 mois</button>
+        </div>
+        <div class="mood-view-modes">
+          <button class="mood-mode-btn ${viewMode==='line'?'active':''}" data-mode="line" type="button">📈 Courbes</button>
+          <button class="mood-mode-btn ${viewMode==='bar'?'active':''}" data-mode="bar" type="button">📊 Barres</button>
+        </div>
+      </div>
+      <div class="mood-view-legend">
+        ${MOOD_ELEMENTS.map((el, i) => `
+          <span class="mood-view-legend-item">
+            <span class="mood-view-legend-dot" style="background:${ELEMENT_COLORS[i]}"></span>
+            ${el.label}
+          </span>
+        `).join('')}
+      </div>
+      <div class="mood-view-chart">
+        ${buildChart(chartData, viewPeriod, viewMode)}
+      </div>
+    `;
+
+    // Navigation mois
+    body.querySelector('#mv-prev').addEventListener('click', () => {
+      viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1);
+      renderAll();
+    });
+    body.querySelector('#mv-next').addEventListener('click', () => {
+      viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1);
+      renderAll();
+    });
+
+    // Périodes
+    body.querySelectorAll('.mood-period-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        viewPeriod = parseInt(btn.dataset.period, 10);
+        renderAll();
+      });
+    });
+
+    // Modes
+    body.querySelectorAll('.mood-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        viewMode = btn.dataset.mode;
+        renderAll();
+      });
+    });
+  }
+
+  renderAll();
 
   // Fermer
   overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
