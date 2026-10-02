@@ -540,9 +540,23 @@
     </div>
 
     <!-- PROFIL -->
-    <div class="page" data-page="profil">
-      <header class="page-header page-header-flex">
-        <div>
+   
+// ═══════════════════════════════════════════════════════════════════════════
+// INITIALISATION DES PROFILS — Remplir au démarrage + à chaque changement
+// ═══════════════════════════════════════════════════════════════════════════
+function ensureProfilsRendered() {
+  if (!currentUserData) return;
+  const pH = document.getElementById('profil-header');
+  const peH = document.getElementById('profil-eco-header');
+  if (pH && !pH.innerHTML.trim()) renderProfilHeader('profil-header', currentUserData);
+  if (peH && !peH.innerHTML.trim()) renderProfilHeader('profil-eco-header', currentUserData);
+}
+
+// Lancer toutes les 500ms (léger) quand un utilisateur est connecté
+setInterval(ensureProfilsRendered, 500);
+
+// Et une fois au chargement
+setTimeout(ensureProfilsRendered, 1500);
           <h1 class="page-title" id="profil-nom">Chargement…</h1>
           <p class="page-subtitle" id="profil-username">@…</p>
         </div>

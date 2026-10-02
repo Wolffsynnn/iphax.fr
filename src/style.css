@@ -2558,3 +2558,342 @@
   border-left: 3px solid #FFD93D;
   background: linear-gradient(135deg, rgba(255, 217, 61, 0.06), var(--bg-card));
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ★★★ THÈMES PERSONNALISABLES ★★★
+   ─────────────────────────────────────────────────────────────────────────
+   Chaque utilisateur peut choisir une couleur de thème dans son profil.
+   Le thème change TOUTES les couleurs d'accent de l'app (cyan + bleu).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 🔵 Thème 1 : Iphax (par défaut) — cyan/bleu */
+body[data-theme="iphax"] {
+  --cyan: #00E5FF;
+  --blue: #0099FF;
+  --blue-deep: #003D8F;
+  --gradient-iphax: linear-gradient(135deg, #00E5FF 0%, #0099FF 50%, #0057C9 100%);
+  --border: rgba(0, 153, 255, 0.15);
+  --border-focus: rgba(0, 229, 255, 0.55);
+  --border-strong: rgba(0, 229, 255, 0.35);
+}
+
+/* 🟣 Thème 2 : Violet */
+body[data-theme="violet"] {
+  --cyan: #A78BFA;
+  --blue: #7C3AED;
+  --blue-deep: #5B21B6;
+  --gradient-iphax: linear-gradient(135deg, #A78BFA 0%, #7C3AED 50%, #5B21B6 100%);
+  --border: rgba(124, 58, 237, 0.20);
+  --border-focus: rgba(167, 139, 250, 0.55);
+  --border-strong: rgba(167, 139, 250, 0.35);
+}
+
+/* 🌸 Thème 3 : Rose */
+body[data-theme="rose"] {
+  --cyan: #F472B6;
+  --blue: #DB2777;
+  --blue-deep: #9D174D;
+  --gradient-iphax: linear-gradient(135deg, #F472B6 0%, #DB2777 50%, #9D174D 100%);
+  --border: rgba(219, 39, 119, 0.20);
+  --border-focus: rgba(244, 114, 182, 0.55);
+  --border-strong: rgba(244, 114, 182, 0.35);
+}
+
+/* 🟢 Thème 4 : Émeraude */
+body[data-theme="emeraude"] {
+  --cyan: #3DDC97;
+  --blue: #059669;
+  --blue-deep: #065F46;
+  --gradient-iphax: linear-gradient(135deg, #3DDC97 0%, #059669 50%, #065F46 100%);
+  --border: rgba(5, 150, 105, 0.20);
+  --border-focus: rgba(61, 220, 151, 0.55);
+  --border-strong: rgba(61, 220, 151, 0.35);
+}
+
+/* 🟠 Thème 5 : Coucher de soleil */
+body[data-theme="sunset"] {
+  --cyan: #FB923C;
+  --blue: #EA580C;
+  --blue-deep: #9A3412;
+  --gradient-iphax: linear-gradient(135deg, #FB923C 0%, #EA580C 50%, #9A3412 100%);
+  --border: rgba(234, 88, 12, 0.20);
+  --border-focus: rgba(251, 146, 60, 0.55);
+  --border-strong: rgba(251, 146, 60, 0.35);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PROFIL — En-tête (avatar + nom + username + bio)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.profil-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  position: relative;
+  backdrop-filter: blur(10px);
+}
+
+.profil-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--gradient-iphax);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+  border: 3px solid var(--border-focus);
+  position: relative;
+  overflow: hidden;
+}
+
+.profil-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 24px rgba(0, 229, 255, 0.4);
+}
+
+.profil-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profil-avatar-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 26px;
+  height: 26px;
+  background: var(--gradient-iphax);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 2px solid var(--bg-night);
+  pointer-events: none;
+}
+
+.profil-infos {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.profil-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profil-username {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.profil-bio {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-top: 4px;
+  font-style: italic;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODALE — Sélecteur d'avatar
+   ═══════════════════════════════════════════════════════════════════════════ */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.avatar-choice {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(10, 26, 61, 0.7);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  transition: all 0.2s var(--ease);
+  padding: 0;
+}
+
+.avatar-choice:hover {
+  border-color: var(--border-focus);
+  transform: scale(1.08);
+}
+
+.avatar-choice.selected {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.35);
+  transform: scale(1.1);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODALE — Sélecteur de thème
+   ═══════════════════════════════════════════════════════════════════════════ */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.theme-choice {
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+  padding: 0;
+  position: relative;
+}
+
+.theme-choice:hover {
+  transform: translateY(-3px);
+  border-color: var(--text-secondary);
+}
+
+.theme-choice.selected {
+  border-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+  transform: scale(1.08);
+}
+
+.theme-choice::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent);
+  pointer-events: none;
+}
+
+.theme-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STATS — En construction (Wysp)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.stats-wysp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 30px 20px;
+  background: var(--bg-card);
+  border: 1.5px dashed var(--border-focus);
+  border-radius: var(--radius-lg);
+  gap: 14px;
+}
+
+.stats-wysp svg {
+  width: 110px;
+  height: 130px;
+  filter: drop-shadow(0 0 24px rgba(0, 229, 255, 0.4));
+  animation: wyspFloat 4s ease-in-out infinite;
+}
+
+.stats-wysp-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stats-wysp-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BADGE COOLDOWN (délai restant)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cooldown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(255, 179, 71, 0.15);
+  border: 1px solid rgba(255, 179, 71, 0.4);
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--warning);
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BI O — Compteur de caractères
+   ═══════════════════════════════════════════════════════════════════════════ */
+.bio-counter {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 4px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .profil-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 18px;
+  }
+
+  .profil-infos {
+    align-items: center;
+  }
+
+  .profil-name {
+    font-size: 19px;
+  }
+
+  .avatar-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .theme-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -2025,3 +2025,397 @@ function isUnread(c) {
   });
   
   console.log('✅ main.js entièrement chargé');
+  
+// ═══════════════════════════════════════════════════════════════════════════
+// ★★★ PROFIL UTILISATEUR — Avatar, Thème, Modifications ★★★
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── 20 avatars prédéfinis (emojis) ───
+const AVATARS = [
+    '🌙', '⭐', '✨', '🌌', '🌠',
+    '🦉', '🐱', '🐶', '🦊', '🐰',
+    '🐼', '🦋', '🌸', '🌺', '🌻',
+    '🍀', '💙', '🎧', '🎨', '📚'
+  ];
+  
+  // ─── 5 thèmes ───
+  const THEMES = [
+    { id: 'iphax',     label: 'Iphax',     colors: ['#00E5FF', '#0099FF', '#0057C9'] },
+    { id: 'violet',    label: 'Violet',    colors: ['#A78BFA', '#7C3AED', '#5B21B6'] },
+    { id: 'rose',      label: 'Rose',      colors: ['#F472B6', '#DB2777', '#9D174D'] },
+    { id: 'emeraude',  label: 'Émeraude',  colors: ['#3DDC97', '#059669', '#065F46'] },
+    { id: 'sunset',    label: 'Sunset',    colors: ['#FB923C', '#EA580C', '#9A3412'] }
+  ];
+  
+  // ─── Application du thème au démarrage ───
+  function applyTheme(themeId) {
+    document.body.dataset.theme = themeId || 'iphax';
+    try { localStorage.setItem('iphax_theme', themeId || 'iphax'); } catch (e) {}
+  }
+  
+  // Appliquer immédiatement le thème sauvegardé (avant même Firebase)
+  applyTheme(localStorage.getItem('iphax_theme') || 'iphax');
+  
+  // ─── Calcul jours restants avant modif ───
+  function joursRestants(lastChangeTs, cooldownJours) {
+    if (!lastChangeTs) return 0;
+    const last = lastChangeTs.toMillis ? lastChangeTs.toMillis() : new Date(lastChangeTs).getTime();
+    const diffMs = (cooldownJours * 24 * 60 * 60 * 1000) - (Date.now() - last);
+    if (diffMs <= 0) return 0;
+    return Math.ceil(diffMs / (24 * 60 * 60 * 1000));
+  }
+  
+  // ─── Rendu de l'en-tête du profil ───
+  function renderProfilHeader(containerId, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+  
+    const avatar = data.avatar || '🌙';
+    const displayName = data.displayName || 'Utilisateur';
+    const username = data.username || 'inconnu';
+    const bio = data.bio || '';
+  
+    container.innerHTML = `
+      <div class="profil-avatar" id="${containerId}-avatar-btn" title="Changer d'avatar">
+        <span class="profil-avatar-emoji">${avatar}</span>
+        <span class="profil-avatar-edit">✏️</span>
+      </div>
+      <div class="profil-infos">
+        <div class="profil-name">${escapeHtml(displayName)}</div>
+        <div class="profil-username">@${escapeHtml(username)}</div>
+        ${bio ? `<div class="profil-bio">${escapeHtml(bio)}</div>` : ''}
+      </div>
+    `;
+  
+    // Clic sur l'avatar → sélecteur
+    const avatarBtn = document.getElementById(`${containerId}-avatar-btn`);
+    if (avatarBtn) avatarBtn.addEventListener('click', () => openAvatarPicker(data));
+  }
+  
+  // ─── Modale : sélecteur d'avatar ───
+  function openAvatarPicker(data) {
+    const current = data.avatar || '🌙';
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-header">
+          <div class="modal-title">🖼️ Choisis ton avatar</div>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="avatar-grid">
+            ${AVATARS.map(a => `
+              <button class="avatar-choice ${a===current?'selected':''}" data-avatar="${a}">${a}</button>
+            `).join('')}
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelectorAll('.avatar-choice').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const chosen = btn.dataset.avatar;
+        try {
+          await updateDoc(doc(db, 'users', currentUser.uid), { avatar: chosen });
+          currentUserData.avatar = chosen;
+          overlay.remove();
+          refreshProfils();
+        } catch (e) { alert('❌ Erreur'); }
+      });
+    });
+  }
+  
+  // ─── Modale : sélecteur de thème ───
+  function openThemePicker() {
+    const current = localStorage.getItem('iphax_theme') || 'iphax';
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:480px;">
+        <div class="modal-header">
+          <div class="modal-title">🎨 Choisis ton thème</div>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="theme-grid">
+            ${THEMES.map(t => `
+              <div>
+                <button class="theme-choice ${t.id===current?'selected':''}" data-theme="${t.id}"
+                  style="background:linear-gradient(135deg,${t.colors[0]},${t.colors[1]},${t.colors[2]});"></button>
+                <div class="theme-label">${t.label}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelectorAll('.theme-choice').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const chosen = btn.dataset.theme;
+        applyTheme(chosen);
+        overlay.remove();
+        try {
+          await updateDoc(doc(db, 'users', currentUser.uid), { theme: chosen });
+          currentUserData.theme = chosen;
+        } catch (e) { console.warn('Thème sauvegardé localement'); }
+        refreshProfils();
+      });
+    });
+  }
+  
+  // ─── Modale : modifier le nom d'affichage ───
+  function openEditDisplayName() {
+    const current = currentUserData.displayName || '';
+    const lastChange = currentUserData.lastDisplayNameChange;
+    const jours = joursRestants(lastChange, 7);
+  
+    if (jours > 0) {
+      alert(`⏳ Tu dois attendre encore ${jours} jour${jours>1?'s':''} avant de pouvoir changer ton nom d'affichage.`);
+      return;
+    }
+  
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:480px;">
+        <div class="modal-header">
+          <div class="modal-title">✏️ Nom d'affichage</div>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Nom d'affichage (30 car. max, modifiable 1x/7j)</label>
+            <input type="text" id="edit-displayname" value="${escapeHtml(current)}" maxlength="30" placeholder="Luna 🌙">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="edit-dn-cancel">Annuler</button>
+          <button class="btn btn-primary" id="edit-dn-save">💾 Enregistrer</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#edit-dn-cancel').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector('#edit-dn-save').addEventListener('click', async () => {
+      const val = overlay.querySelector('#edit-displayname').value.trim();
+      if (!val) { alert('⚠️ Entre un nom d\'affichage.'); return; }
+      if (val.length > 30) { alert('⚠️ 30 caractères maximum.'); return; }
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          displayName: val,
+          lastDisplayNameChange: serverTimestamp()
+        });
+        currentUserData.displayName = val;
+        currentUserData.lastDisplayNameChange = { toMillis: () => Date.now() };
+        overlay.remove();
+        refreshProfils();
+      } catch (e) { alert('❌ Erreur'); }
+    });
+  }
+  
+  // ─── Modale : modifier le nom d'utilisateur ───
+  function openEditUsername() {
+    const current = currentUserData.username || '';
+    const lastChange = currentUserData.lastUsernameChange;
+    const jours = joursRestants(lastChange, 30);
+  
+    if (jours > 0) {
+      alert(`⏳ Tu dois attendre encore ${jours} jour${jours>1?'s':''} avant de pouvoir changer ton nom d'utilisateur.`);
+      return;
+    }
+  
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:480px;">
+        <div class="modal-header">
+          <div class="modal-title">✏️ Nom d'utilisateur</div>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Nom d'utilisateur (3-24 car., modifiable 1x/30j)</label>
+            <div class="field-input">
+              <span class="field-prefix">@</span>
+              <input type="text" id="edit-username" value="${escapeHtml(current)}" minlength="3" maxlength="24" pattern="^[A-Za-z][A-Za-z0-9._-]{2,23}$">
+            </div>
+            <p class="field-hint">3-24 car., commence par une lettre, autorisé : . _ -</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="edit-un-cancel">Annuler</button>
+          <button class="btn btn-primary" id="edit-un-save">💾 Enregistrer</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#edit-un-cancel').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector('#edit-un-save').addEventListener('click', async () => {
+      const val = overlay.querySelector('#edit-username').value.trim();
+      if (!/^[A-Za-z][A-Za-z0-9._-]{2,23}$/.test(val)) {
+        alert('⚠️ Nom d\'utilisateur invalide (3-24 car., commence par une lettre).');
+        return;
+      }
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          username: val,
+          lastUsernameChange: serverTimestamp()
+        });
+        currentUserData.username = val;
+        currentUserData.lastUsernameChange = { toMillis: () => Date.now() };
+        overlay.remove();
+        refreshProfils();
+      } catch (e) { alert('❌ Erreur'); }
+    });
+  }
+  
+  // ─── Modale : modifier la bio ───
+  function openEditBio() {
+    const current = currentUserData.bio || '';
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:480px;">
+        <div class="modal-header">
+          <div class="modal-title">📝 Bio</div>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Une courte description (150 car. max)</label>
+            <textarea id="edit-bio" maxlength="150" placeholder="Quelques mots sur toi…" style="min-height:100px;">${escapeHtml(current)}</textarea>
+            <div class="bio-counter" id="bio-counter">${current.length}/150</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="edit-bio-cancel">Annuler</button>
+          <button class="btn btn-primary" id="edit-bio-save">💾 Enregistrer</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#edit-bio-cancel').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  
+    const ta = overlay.querySelector('#edit-bio');
+    const counter = overlay.querySelector('#bio-counter');
+    ta.addEventListener('input', () => { counter.textContent = `${ta.value.length}/150`; });
+  
+    overlay.querySelector('#edit-bio-save').addEventListener('click', async () => {
+      const val = ta.value.trim();
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), { bio: val || null });
+        currentUserData.bio = val;
+        overlay.remove();
+        refreshProfils();
+      } catch (e) { alert('❌ Erreur'); }
+    });
+  }
+  
+  // ─── Modale : Paramètres (accessible via ⚙️) ───
+  function openSettingsModal() {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+          <div class="modal-title">⚙️ Paramètres</div>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+  
+          <div class="field">
+            <label style="font-size:14px;color:var(--text-primary);font-weight:600;">🎨 Apparence</label>
+            <button class="btn btn-ghost btn-full" id="settings-theme" style="justify-content:flex-start;">
+              🎨 Changer le thème
+            </button>
+          </div>
+  
+          <div class="field" style="margin-top:20px;">
+            <label style="font-size:14px;color:var(--text-primary);font-weight:600;">👤 Profil</label>
+            <button class="btn btn-ghost btn-full" id="settings-dn" style="justify-content:flex-start;">
+              ✏️ Modifier le nom d'affichage
+            </button>
+            <button class="btn btn-ghost btn-full" id="settings-un" style="justify-content:flex-start;margin-top:8px;">
+              👤 Modifier le nom d'utilisateur
+            </button>
+            <button class="btn btn-ghost btn-full" id="settings-bio" style="justify-content:flex-start;margin-top:8px;">
+              📝 Modifier la bio
+            </button>
+          </div>
+  
+          <div class="field" style="margin-top:20px;">
+            <label style="font-size:14px;color:var(--text-primary);font-weight:600;">🔐 Informations privées</label>
+            <div style="padding:12px;background:rgba(10,26,61,0.5);border-radius:var(--radius-sm);font-size:13px;color:var(--text-secondary);">
+              📧 ${escapeHtml(currentUserData?.email || 'non renseigné')}<br>
+              🎂 ${escapeHtml(currentUserData?.birthdate || 'non renseignée')}
+            </div>
+          </div>
+  
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="settings-logout" style="flex:1;">🚪 Déconnexion</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  
+    overlay.querySelector('#settings-theme').addEventListener('click', () => { overlay.remove(); setTimeout(openThemePicker, 150); });
+    overlay.querySelector('#settings-dn').addEventListener('click', () => { overlay.remove(); setTimeout(openEditDisplayName, 150); });
+    overlay.querySelector('#settings-un').addEventListener('click', () => { overlay.remove(); setTimeout(openEditUsername, 150); });
+    overlay.querySelector('#settings-bio').addEventListener('click', () => { overlay.remove(); setTimeout(openEditBio, 150); });
+    overlay.querySelector('#settings-logout').addEventListener('click', () => { overlay.remove(); handleLogout(); });
+  }
+  
+  // ─── Rafraîchir les profils après une modif ───
+  function refreshProfils() {
+    // Profil membre
+    const pHeader = document.getElementById('profil-header');
+    if (pHeader) renderProfilHeader('profil-header', currentUserData);
+  
+    // Profil écoutant
+    const peHeader = document.getElementById('profil-eco-header');
+    if (peHeader) renderProfilHeader('profil-eco-header', currentUserData);
+  
+    // Noms dans la barre (titre de page)
+    const pn = document.getElementById('profil-nom');
+    const pu = document.getElementById('profil-username');
+    if (pn) pn.textContent = currentUserData.displayName || 'Utilisateur';
+    if (pu) pu.textContent = '@' + (currentUserData.username || 'inconnu');
+  
+    const pen = document.getElementById('profil-eco-nom');
+    const peu = document.getElementById('profil-eco-username');
+    if (pen) pen.textContent = currentUserData.displayName || 'Utilisateur';
+    if (peu) peu.textContent = '@' + (currentUserData.username || 'inconnu');
+  }
+  
+  // ─── Bouton engrenage ⚙️ — Câbler ───
+  function setupSettingsGears() {
+    const gearMembre = document.getElementById('btn-gear');
+    if (gearMembre && !gearMembre.dataset.bound) {
+      gearMembre.dataset.bound = '1';
+      gearMembre.addEventListener('click', openSettingsModal);
+    }
+    const gearEco = document.getElementById('btn-gear-eco');
+    if (gearEco && !gearEco.dataset.bound) {
+      gearEco.dataset.bound = '1';
+      gearEco.addEventListener('click', openSettingsModal);
+    }
+  }
+  setupSettingsGears();
+  
+  // ─── Exposer pour usage externe ───
+  window.openSettingsModal = openSettingsModal;
+  window.openThemePicker = openThemePicker;
+  window.applyTheme = applyTheme;
+  window.refreshProfils = refreshProfils;
+  window.renderProfilHeader = renderProfilHeader;
+  
+  console.log('✅ Profil chargé (avatars, thèmes, modifications)');
