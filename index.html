@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <meta name="theme-color" content="#050E24" />
+    <meta
+      name="description"
+      content="Iphax — Collectif d'écoute en ligne pour les jeunes. Ici, quelqu'un t'écoute."
+    />
+    <title>Iphax — Collectif d'écoute</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- ============================================
+       ÉCRAN 1 : INTRO
+  ============================================ -->
+    <section id="screen-intro" class="screen active">
+      <div class="intro-bg">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+        <div class="stars"></div>
+      </div>
+
+      <div class="intro-content">
+        <div class="intro-logo" id="intro-logo">
+          <img src="https://i.imgur.com/B76uhb4.png" alt="Logo Iphax" />
+        </div>
+
+        <h1 class="intro-title">Iphax</h1>
+        <p class="intro-subtitle">By Moonlight studio</p>
+
+        <button class="btn btn-primary intro-btn" id="btn-continuer">
+          <span>Continuer</span>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12h14M13 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        <p class="intro-footnote">Ici, quelqu'un t'écoute 💙</p>
+      </div>
+    </section>
+
+    <!-- ============================================
+       ÉCRAN 2 : AUTH
+  ============================================ -->
+    <section id="screen-auth" class="screen">
+      <div class="auth-bg">
+        <div class="glow glow-3"></div>
+      </div>
+
+      <!-- Bulles de rôle -->
+      <div class="role-bubbles">
+        <button class="role-bubble active" data-role="membre" type="button">
+          <span class="bubble-icon">👤</span>
+          <span class="bubble-label">Membre</span>
+        </button>
+        <button class="role-bubble" data-role="ecoutant" type="button">
+          <span class="bubble-icon">🧑‍⚕️</span>
+          <span class="bubble-label">Écoutant</span>
+        </button>
+        <button class="role-bubble" data-role="admin" type="button">
+          <span class="bubble-icon">🔧</span>
+          <span class="bubble-label">Admin</span>
+        </button>
+      </div>
+
+      <div class="auth-container">
+        <div class="auth-header">
+          <div class="auth-logo-mini">
+            <img src="https://i.imgur.com/B76uhb4.png" alt="Logo Iphax" />
+          </div>
+          <h2 class="auth-title">Bienvenue sur Iphax</h2>
+          <p class="auth-subtitle" id="auth-subtitle">
+            Ici, quelqu'un t'écoute 💙
+          </p>
+        </div>
+
+        <div class="auth-tabs" role="tablist" data-active="login">
+          <button class="tab active" data-tab="login" role="tab">
+            Connexion
+          </button>
+          <button class="tab" data-tab="signup" role="tab">Inscription</button>
+          <span class="tab-indicator"></span>
+        </div>
+
+        <!-- Formulaire CONNEXION -->
+        <form id="form-login" class="auth-form active" autocomplete="on">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <div class="field-input">
+              <svg
+                class="field-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="2" y="4" width="20" height="16" rx="3" />
+                <path d="m2 7 10 7 10-7" />
+              </svg>
+              <input
+                type="email"
+                id="login-email"
+                placeholder="ton@email.com"
+                required
+                autocomplete="email"
+              />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="login-password">Mot de passe</label>
+            <div class="field-input">
+              <svg
+                class="field-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="4" y="10" width="16" height="11" rx="2.5" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+              </svg>
+              <input
+                type="password"
+                id="login-password"
+                placeholder="••••••••"
+                required
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                class="toggle-eye"
+                aria-label="Afficher le mot de passe"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+            <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full">
+            Se connecter
+          </button>
+          <p class="auth-error" id="login-error"></p>
+        </form>
+
+        <!-- Formulaire INSCRIPTION -->
+        <form id="form-signup" class="auth-form" autocomplete="off">
+          <div class="field">
+            <label for="signup-email">Email</label>
+            <div class="field-input">
+              <svg
+                class="field-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="2" y="4" width="20" height="16" rx="3" />
+                <path d="m2 7 10 7 10-7" />
+              </svg>
+              <input
+                type="email"
+                id="signup-email"
+                placeholder="ton@email.com"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="signup-username">Nom d'utilisateur</label>
+              <div class="field-input">
+                <span class="field-prefix">@</span>
+                <input
+                  type="text"
+                  id="signup-username"
+                  placeholder="luna_92"
+                  required
+                  minlength="3"
+                  maxlength="24"
+                  pattern="^[A-Za-z][A-Za-z0-9._-]{2,23}$"
+                  title="3 à 24 caractères, commence par une lettre, autorisé : . _ -"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="signup-displayname">Nom d'affichage</label>
+              <div class="field-input">
+                <svg
+                  class="field-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 21c0-4 4-7 8-7s8 3 8 7" />
+                </svg>
+                <input
+                  type="text"
+                  id="signup-displayname"
+                  placeholder="Luna 🌙"
+                  required
+                  maxlength="30"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="signup-birthdate">Date de naissance</label>
+            <div class="field-input">
+              <svg
+                class="field-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3" />
+                <path d="M3 10h18M8 3v4M16 3v4" />
+              </svg>
+              <input type="date" id="signup-birthdate" required />
+            </div>
+            <p class="field-hint">
+              Iphax est réservé aux mineurs (moins de 18 ans).
+            </p>
+          </div>
+
+          <div class="field">
+            <label for="signup-password">Mot de passe</label>
+            <div class="field-input">
+              <svg
+                class="field-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="4" y="10" width="16" height="11" rx="2.5" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+              </svg>
+              <input
+                type="password"
+                id="signup-password"
+                placeholder="Min. 8 car., 1 lettre + 1 chiffre"
+                required
+                minlength="8"
+              />
+              <button
+                type="button"
+                class="toggle-eye"
+                aria-label="Afficher le mot de passe"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full">
+            S'inscrire
+          </button>
+          <p class="auth-error" id="signup-error"></p>
+        </form>
+
+        <div class="divider"><span>ou</span></div>
+        <button type="button" class="btn btn-google" id="btn-google">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 48 48"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill="#FFC107"
+              d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 19.3-7.6 20.6-17.6.1-.9.1-1.9 0-2.9z"
+            />
+            <path
+              fill="#FF3D00"
+              d="m6.3 14.7 6.6 4.8C14.6 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 5.1 29.3 3 24 3 16.1 3 9.3 7.5 6.3 14.7z"
+            />
+            <path
+              fill="#4CAF50"
+              d="M24 45c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.3 36 26.8 37 24 37c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.2 40.5 16 45 24 45z"
+            />
+            <path
+              fill="#1976D2"
+              d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.3 5.3c-.5.4 6.7-4.9 6.7-15 0-1.3-.1-2.5-.4-3.5z"
+            />
+          </svg>
+          Continuer avec Google
+        </button>
+      </div>
+    </section>
+
+    <!-- Firebase (CDN) -->
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
+      import { getAuth } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js';
+      import { getFirestore } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
+
+      const firebaseConfig = {
+        apiKey: 'AIzaSyCwE5cumxgs8vB_6ZZM49-5qZ1hy0k5pLA',
+        authDomain: 'iphax-ac57b.firebaseapp.com',
+        projectId: 'iphax-ac57b',
+        storageBucket: 'iphax-ac57b.firebasestorage.app',
+        messagingSenderId: '598455617044',
+        appId: '1:598455617044:web:1ef068dd645bd4311f0901',
+      };
+
+      const app = initializeApp(firebaseConfig);
+      window.iphaxAuth = getAuth(app);
+      window.iphaxDb = getFirestore(app);
+
+      await import('/src/main.js');
+    </script>
+  </body>
+</html>
