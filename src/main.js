@@ -2933,3 +2933,480 @@ setTimeout(() => {
 
   console.log('✅ Bouton "Quitter" recâblé');
 }, 1500);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ★ APP ADMIN / MODÉRATEUR
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── Est-ce un rôle admin ? ───
+function estAdmin(role) {
+  return ['admin', 'moderateur'].includes(role);
+}
+function estDev(role) {
+  return ['dev', 'developpeur'].includes(role);
+}
+function aAccesAdmin(role) {
+  return estAdmin(role) || estDev(role) || role === 'fondateur' || role === 'responsable' || role === 'chef_service';
+}
+
+// ─── Navigation Admin (setup comme les autres) ───
+setupAppNavigation('app-admin');
+
+// ─── Aiguillage : ajouter l'app admin dans routeUser ───
+// (On étend la fonction en la réécrivant)
+const _oldRouteUser = routeUser;
+window.routeUser = function(data) {
+  const pn = document.getElementById('profil-nom');
+  const pu = document.getElementById('profil-username');
+  if (pn) pn.textContent = data.displayName || 'Utilisateur';
+  if (pu) pu.textContent = '@' + (data.username || 'inconnu');
+
+  const pen = document.getElementById('profil-eco-nom');
+  const peu = document.getElementById('profil-eco-username');
+  if (pen) pen.textContent = data.displayName || 'Utilisateur';
+  if (peu) peu.textContent = '@' + (data.username || 'inconnu');
+
+  if (!data.cguAccepted) { showScreen('screen-cgu'); return; }
+
+  const role = data.role || 'membre';
+
+  if (aAccesAdmin(role)) {
+    showScreen('app-admin');
+    setTimeout(() => initAdmin(), 300);
+  } else if (estEcoutant(role)) {
+    showScreen('app-ecoutant');
+    setTimeout(() => initEcoListeners(), 300);
+  } else {
+    showScreen('app-membre');
+  }
+};
+routeUser = window.routeUser;
+
+// ─── Initialisation de l'app Admin ───
+function initAdmin() {
+  // Rendu du profil admin
+  renderProfilHeader('profil-admin-header', currentUserData);
+
+  // Câbler l'engrenage admin
+  const gearAdmin = document.getElementById('btn-gear-admin');
+  if (gearAdmin && !gearAdmin.dataset.bound) {
+    gearAdmin.dataset.bound = '1';
+    gearAdmin.addEventListener('click', openSettingsModal);
+  }
+
+  // Mini-onglets Panel Admin
+  setupAdminMiniTabs('admin-panel-tabs');
+  // Mini-onglets Supervision
+  setupAdminMiniTabs('admin-sup-tabs');
+
+  // Charger les sections
+  loadAdminDemandes();
+  loadAdminMembres('');
+  loadAdminEcoutants('');
+  loadAdminConvs();
+  loadAdminSignalements();
+
+  // Recherches
+  const searchMembres = document.getElementById('admin-search-membres');
+  if (searchMembres && !searchMembres.dataset.bound) {
+    searchMembres.dataset.bound = '1';
+    searchMembres.addEventListener('input', (e) => loadAdminMembres(e.target.value));
+  }
+  const searchEcoutants = document.getElementById('admin-search-ecoutants');
+  if (searchEcoutants && !searchEcoutants.dataset.bound) {
+    searchEcoutants.dataset.bound = '1';
+    searchEcoutants.addEventListener('input', (e) => loadAdminEcoutants(e.target.value));
+  }
+  const searchUsers = document.getElementById('admin-search-users');
+  if (searchUsers && !searchUsers.dataset.bound) {
+    searchUsers.dataset.bound = '1';
+    searchUsers.addEventListener('input', (e) => loadAdminUsersSearch(e.target.value));
+  }
+
+  console.log('✅ App admin initialisée');
+}
+
+// ─── Mini-onglets admin (générique) ───
+function setupAdminMiniTabs(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const tabs = container.querySelectorAll('.mini-tab');
+  const indicator = container.querySelector('.mini-tab-indicator');
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      container.dataset.active = tab.dataset.mini;
+
+      if (indicator) {
+        const total = tabs.length;
+        indicator.style.width = `calc(${100 / total}% - ${(8 / total)}px)`;
+        indicator.style.transform = `translateX(calc(100% * ${index}))`;
+      }
+
+      // Afficher le contenu correspondant
+      const parentPage = container.closest('.page');
+      if (parentPage) {
+        parentPage.querySelectorAll('.mini-content').forEach(c => c.classList.remove('active'));
+        const content = parentPage.querySelector(`.mini-content[data-mini-content="${tab.dataset.mini}"]`);
+        if (content) content.classList.add('active');
+      }
+    });
+  });
+}
+
+// ─── Charger les demandes de publication ───
+async function loadAdminDemandes() {
+  const list = document.getElementById('admin-demandes-list');
+  if (!list) return;
+  try {
+    const q = query(collection(db, 'demandes-fil'), where('status', '==', 'pending'));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      list.innerHTML = '<p class="empty-state">Aucune demande ✨</p>';
+      return;
+    }
+    list.innerHTML = '';
+    snap.forEach(d => {
+      const data = d.data();
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <span class="card-badge">${data.anonyme ? '🎭 Anonyme' : '👤 ' + escapeHtml(data.authorName || 'Membre')}</span>
+        <h3>${escapeHtml(data.title || 'Sans titre')}</h3>
+        <p>${escapeHtml(data.content || '')}</p>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-primary btn-small" data-action="valider" data-id="${d.id}">✅ Publier</button>
+          <button class="btn btn-danger btn-small" data-action="refuser" data-id="${d.id}">❌ Refuser</button>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    list.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        if (action === 'valider') {
+          const snap2 = await getDoc(doc(db, 'demandes-fil', id));
+          if (snap2.exists()) {
+            const data = snap2.data();
+            await addDoc(collection(db, 'fil-general'), {
+              title: data.title, content: data.content,
+              anonyme: data.anonyme, authorName: data.authorName,
+              createdAt: serverTimestamp()
+            });
+          }
+          // Marquer comme traitée — mais les règles bloquent l'update
+          // On va plutôt utiliser une autre méthode
+          await deleteDoc(doc(db, 'demandes-fil', id)).catch(() => {});
+        } else {
+          await deleteDoc(doc(db, 'demandes-fil', id)).catch(() => {});
+        }
+        loadAdminDemandes();
+      });
+    });
+  } catch (e) {
+    console.warn('Erreur demandes :', e);
+    list.innerHTML = '<p class="empty-state">Impossible de charger.</p>';
+  }
+}
+
+// ─── Charger les membres ───
+async function loadAdminMembres(search) {
+  const list = document.getElementById('admin-membres-list');
+  if (!list) return;
+  try {
+    const q = query(collection(db, 'users'), limit(200));
+    const snap = await getDocs(q);
+    const users = [];
+    snap.forEach(d => {
+      const data = d.data();
+      if (data.role === 'membre') users.push({ id: d.id, ...data });
+    });
+
+    const filtered = search
+      ? users.filter(u =>
+          (u.username || '').toLowerCase().includes(search.toLowerCase()) ||
+          (u.displayName || '').toLowerCase().includes(search.toLowerCase())
+        )
+      : users;
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<p class="empty-state">Aucun membre trouvé.</p>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(u => `
+      <div class="admin-user-card" data-uid="${u.id}">
+        <div class="admin-user-avatar">${u.avatar || '👤'}</div>
+        <div class="admin-user-infos">
+          <div class="admin-user-name">${escapeHtml(u.displayName || 'Sans nom')}</div>
+          <div class="admin-user-meta">@${escapeHtml(u.username || 'inconnu')}</div>
+        </div>
+        <span class="admin-role-badge">${u.role || 'membre'}</span>
+      </div>
+    `).join('');
+  } catch (e) {
+    console.warn('Erreur membres :', e);
+    list.innerHTML = '<p class="empty-state">Impossible de charger.</p>';
+  }
+}
+
+// ─── Charger les écoutants ───
+async function loadAdminEcoutants(search) {
+  const list = document.getElementById('admin-ecoutants-list');
+  if (!list) return;
+  try {
+    const q = query(collection(db, 'users'), limit(200));
+    const snap = await getDocs(q);
+    const users = [];
+    snap.forEach(d => {
+      const data = d.data();
+      if (estEcoutant(data.role)) users.push({ id: d.id, ...data });
+    });
+
+    const filtered = search
+      ? users.filter(u =>
+          (u.username || '').toLowerCase().includes(search.toLowerCase()) ||
+          (u.displayName || '').toLowerCase().includes(search.toLowerCase())
+        )
+      : users;
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<p class="empty-state">Aucun écoutant trouvé.</p>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(u => `
+      <div class="admin-user-card" data-uid="${u.id}">
+        <div class="admin-user-avatar">${u.avatar || '🧑‍⚕️'}</div>
+        <div class="admin-user-infos">
+          <div class="admin-user-name">${escapeHtml(u.displayName || 'Sans nom')}</div>
+          <div class="admin-user-meta">@${escapeHtml(u.username || 'inconnu')}</div>
+        </div>
+        <span class="admin-role-badge">${u.role || 'ecoutant'}</span>
+      </div>
+    `).join('');
+  } catch (e) {
+    console.warn('Erreur écoutants :', e);
+    list.innerHTML = '<p class="empty-state">Impossible de charger.</p>';
+  }
+}
+
+// ─── Charger les conversations actives ───
+async function loadAdminConvs() {
+  const list = document.getElementById('admin-convs-list');
+  if (!list) return;
+  try {
+    const q = query(
+      collection(db, 'conversations'),
+      where('status', 'in', ['waiting', 'claimed']),
+      limit(100)
+    );
+    const snap = await getDocs(q);
+    const convs = [];
+    snap.forEach(d => convs.push({ id: d.id, ...d.data() }));
+
+    convs.sort((a, b) => (b.urgence || 0) - (a.urgence || 0));
+
+    if (convs.length === 0) {
+      list.innerHTML = '<p class="empty-state">Aucune conversation active ✨</p>';
+      return;
+    }
+
+    list.innerHTML = convs.map(c => {
+      const urg = c.urgence || 0;
+      const stars = '🔴'.repeat(urg) + '⚪'.repeat(5 - urg);
+      const status = c.status === 'waiting' ? '⏳ En attente' : '💚 ' + (c.claimedByName || 'En cours');
+      return `
+        <div class="conv-card ${urg >= 4 ? 'conv-urgent' : ''}">
+          <div class="conv-info">
+            <div class="conv-header-row">
+              <span class="conv-name">${escapeHtml(c.memberName || 'Membre')}</span>
+              <span class="conv-urgency">${stars}</span>
+            </div>
+            <span class="conv-username">@${escapeHtml(c.memberUsername || '')} · ${status}</span>
+            ${c.motif ? `<span class="conv-motif">🎯 ${escapeHtml(c.motif)}</span>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.warn('Erreur convs admin :', e);
+    list.innerHTML = '<p class="empty-state">Impossible de charger.</p>';
+  }
+}
+
+// ─── Charger les signalements ───
+async function loadAdminSignalements() {
+  const list = document.getElementById('admin-signalements-list');
+  if (!list) return;
+  try {
+    const q = query(collection(db, 'signalements'), where('status', '==', 'pending'));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      list.innerHTML = '<p class="empty-state">Aucun signalement ✨</p>';
+      return;
+    }
+    list.innerHTML = '';
+    snap.forEach(d => {
+      const data = d.data();
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <span class="card-badge" style="background:rgba(255,107,122,0.15);color:var(--error);">🚨 Signalement</span>
+        <h3>${escapeHtml(data.memberName || 'Membre')}</h3>
+        <p><strong>Raison :</strong> ${escapeHtml(data.raison || '')}</p>
+        <span class="card-meta">Signalé par ${escapeHtml(data.ecoutantName || 'Écoutant')}</span>
+      `;
+      list.appendChild(card);
+    });
+  } catch (e) {
+    console.warn('Erreur signalements :', e);
+    list.innerHTML = '<p class="empty-state">Impossible de charger.</p>';
+  }
+}
+
+// ─── Recherche utilisateurs (mini-onglet "Créer") ───
+async function loadAdminUsersSearch(search) {
+  const container = document.getElementById('admin-users-results');
+  if (!container) return;
+  if (!search || search.length < 2) {
+    container.innerHTML = '<p class="empty-state">Tape au moins 2 lettres</p>';
+    return;
+  }
+  try {
+    const q = query(collection(db, 'users'), limit(200));
+    const snap = await getDocs(q);
+    const results = [];
+    snap.forEach(d => {
+      const data = d.data();
+      if (
+        (data.username || '').toLowerCase().includes(search.toLowerCase()) ||
+        (data.displayName || '').toLowerCase().includes(search.toLowerCase())
+      ) {
+        results.push({ id: d.id, ...data });
+      }
+    });
+
+    if (results.length === 0) {
+      container.innerHTML = '<p class="empty-state">Aucun résultat</p>';
+      return;
+    }
+
+    container.innerHTML = results.map(u => `
+      <div class="admin-user-card" data-uid="${u.id}" data-name="${escapeHtml(u.displayName || u.username || 'User')}">
+        <div class="admin-user-avatar">${u.avatar || '👤'}</div>
+        <div class="admin-user-infos">
+          <div class="admin-user-name">${escapeHtml(u.displayName || 'Sans nom')}</div>
+          <div class="admin-user-meta">@${escapeHtml(u.username || 'inconnu')}</div>
+        </div>
+        <span class="admin-role-badge">${u.role || 'membre'}</span>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.admin-user-card').forEach(card => {
+      card.addEventListener('click', () => {
+        openAdminPrivateChat(card.dataset.uid, card.dataset.name);
+      });
+    });
+  } catch (e) {
+    console.warn(e);
+  }
+}
+
+// ─── Créer/ouvrir un chat privé admin ↔ user ───
+async function openAdminPrivateChat(targetUid, targetName) {
+  if (!currentUser) return;
+  try {
+    // On cherche une conv existante admin-<targetUid> avec type admin-user
+    const convId = 'admin_' + currentUser.uid + '_' + targetUid;
+
+    const snap = await getDoc(doc(db, 'conversations', convId));
+    if (!snap.exists()) {
+      await setDoc(doc(db, 'conversations', convId), {
+        type: 'admin-user',
+        adminId: currentUser.uid,
+        adminName: currentUserData?.displayName || 'Admin',
+        memberId: targetUid,
+        memberName: targetName || 'Utilisateur',
+        status: 'claimed',
+        createdAt: serverTimestamp(),
+        lastMessage: '(nouvelle conversation)',
+        lastMessageAt: serverTimestamp(),
+        lastMessageFrom: currentUser.uid
+      });
+    }
+
+    // Ouvrir le chat (en réutilisant la page chat-eco)
+    ecoConvId = convId;
+    openPage('app-admin', 'admin-supervision');
+    // NOTE : pour l'instant on affiche juste un message
+    alert('💬 Chat admin ↔ ' + targetName + ' ouvert.\n\nFonctionnalité complète à venir.');
+  } catch (e) {
+    console.warn('Erreur chat admin :', e);
+    alert('❌ Impossible de créer le chat.');
+  }
+}
+
+// ─── Créer une news (admin) ───
+const btnNewNews = document.getElementById('btn-admin-new-news');
+if (btnNewNews) {
+  btnNewNews.addEventListener('click', () => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+          <div class="modal-title">📰 Nouvelle news</div>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Type</label>
+            <select id="news-type" style="width:100%;padding:12px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);">
+              <option value="📰 Annonce">📰 Annonce</option>
+              <option value="🎉 Événement">🎉 Événement</option>
+              <option value="💬 Témoignage">💬 Témoignage</option>
+              <option value="🆕 Nouveau contenu">🆕 Nouveau contenu</option>
+            </select>
+          </div>
+          <div class="field" style="margin-top:14px;">
+            <label>Titre</label>
+            <input type="text" id="news-title" maxlength="100" placeholder="Titre...">
+          </div>
+          <div class="field" style="margin-top:14px;">
+            <label>Contenu</label>
+            <textarea id="news-content" placeholder="Contenu de la news..." style="min-height:140px;"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="news-cancel">Annuler</button>
+          <button class="btn btn-primary" id="news-save">Publier</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#news-cancel').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector('#news-save').addEventListener('click', async () => {
+      const type = overlay.querySelector('#news-type').value;
+      const title = overlay.querySelector('#news-title').value.trim();
+      const content = overlay.querySelector('#news-content').value.trim();
+      if (!title || !content) { alert('⚠️ Titre et contenu obligatoires'); return; }
+      try {
+        await addDoc(collection(db, 'news'), {
+          type, title, content,
+          authorName: currentUserData?.displayName || 'Admin',
+          createdAt: serverTimestamp()
+        });
+        overlay.remove();
+        alert('✅ News publiée !');
+      } catch (e) { alert('❌ Erreur'); }
+    });
+  });
+}
+
+console.log('✅ Module Admin chargé');

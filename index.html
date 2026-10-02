@@ -650,6 +650,257 @@
     <button class="nav-item" data-page="profil-eco" type="button"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
   </nav>
 </section>
+<!-- ═══ APP ADMIN / MODÉRATEUR ═══ -->
+<section id="app-admin" class="screen">
+  <div class="app-content">
+
+    <!-- NEWS ADMIN -->
+    <div class="page active" data-page="admin-news">
+      <header class="page-header page-header-flex">
+        <div>
+          <h1 class="page-title">📰 News</h1>
+          <p class="page-subtitle">Crée et gère les news du collectif</p>
+        </div>
+        <button class="btn btn-primary btn-small" id="btn-admin-new-news" type="button">➕ Créer une news</button>
+      </header>
+      <div class="feed" id="admin-news-list">
+        <p class="empty-state">Chargement…</p>
+      </div>
+    </div>
+
+    <!-- PANEL ADMIN -->
+    <div class="page" data-page="admin-panel">
+      <header class="page-header">
+        <h1 class="page-title">🔧 Panel Admin</h1>
+        <p class="page-subtitle">Gestion de la plateforme</p>
+      </header>
+
+      <div class="mini-tabs" id="admin-panel-tabs" data-active="demandes">
+        <button class="mini-tab active" data-mini="demandes" type="button">📥 Demandes</button>
+        <button class="mini-tab" data-mini="membres" type="button">👥 Membres</button>
+        <button class="mini-tab" data-mini="ecoutants" type="button">🎓 Écoutants</button>
+        <button class="mini-tab" data-mini="params" type="button">🏷️ Params</button>
+        <span class="mini-tab-indicator" style="width:calc(25% - 2px);"></span>
+      </div>
+
+      <div class="mini-content active" data-mini-content="demandes">
+        <div id="admin-demandes-list">
+          <p class="empty-state">Aucune demande pour l'instant ✨</p>
+        </div>
+      </div>
+
+      <div class="mini-content" data-mini-content="membres">
+        <input type="text" class="admin-search" id="admin-search-membres" placeholder="🔍 Rechercher un membre…">
+        <div id="admin-membres-list">
+          <p class="empty-state">Chargement…</p>
+        </div>
+      </div>
+
+      <div class="mini-content" data-mini-content="ecoutants">
+        <input type="text" class="admin-search" id="admin-search-ecoutants" placeholder="🔍 Rechercher un écoutant…">
+        <div id="admin-ecoutants-list">
+          <p class="empty-state">Chargement…</p>
+        </div>
+      </div>
+
+      <div class="mini-content" data-mini-content="params">
+        <div class="field">
+          <label>🏷️ Catégories du fil général</label>
+          <div class="admin-categories" id="admin-categories">
+            <span class="admin-cat-chip">Anxiété</span>
+            <span class="admin-cat-chip">Solitude</span>
+            <span class="admin-cat-chip">Tristesse</span>
+            <span class="admin-cat-chip">Colère</span>
+            <span class="admin-cat-chip">Famille</span>
+            <span class="admin-cat-chip">École</span>
+            <span class="admin-cat-chip">Amitié</span>
+            <span class="admin-cat-chip">Deuil</span>
+          </div>
+        </div>
+        <p class="field-hint" style="margin-top:12px;">D'autres paramètres viendront bientôt (Wysp prépare 🔨)</p>
+      </div>
+    </div>
+
+    <!-- PANEL DEV -->
+    <div class="page" data-page="admin-dev">
+      <header class="page-header">
+        <h1 class="page-title">💻 Panel Dev</h1>
+        <p class="page-subtitle">Outils techniques</p>
+      </header>
+      <div class="wysp-container">
+        <div class="wysp-wrapper">
+          <svg class="wysp" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="wyspBodyDev" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#1B3A5C"/><stop offset="100%" stop-color="#0A1A3D"/></radialGradient>
+              <radialGradient id="wyspGlowDev" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00E5FF" stop-opacity="0.6"/><stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/></radialGradient>
+            </defs>
+            <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlowDev)" opacity="0.4"/>
+            <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBodyDev)" stroke="var(--cyan)" stroke-width="1.5"/>
+            <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
+            <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
+            <circle cx="78" cy="115" r="22" fill="#FFFFFF"/><circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
+            <circle cx="78" cy="115" r="13" fill="var(--cyan)"/><circle cx="122" cy="115" r="13" fill="var(--cyan)"/>
+            <circle cx="78" cy="115" r="6" fill="#0A1A3D"/><circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
+            <circle cx="82" cy="110" r="3" fill="#FFFFFF"/><circle cx="126" cy="110" r="3" fill="#FFFFFF"/>
+            <path d="M 100 130 L 95 142 L 105 142 Z" fill="#FFB347"/>
+            <path d="M 88 155 Q 100 165 112 155" stroke="#8FA6C7" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h2 class="wysp-title">Wysp prépare le Panel Dev 🔨</h2>
+        <p class="wysp-text">Outils techniques, logs, statistiques système…<br>Wysp travaille dessus avec Moonlight et Raptor.</p>
+        <p class="wysp-soon">⏳ Bientôt disponible</p>
+      </div>
+    </div>
+
+    <!-- SUPERVISION (central) -->
+    <div class="page" data-page="admin-supervision">
+      <header class="page-header">
+        <h1 class="page-title">🎯 Supervision</h1>
+        <p class="page-subtitle">Suivi des conversations</p>
+      </header>
+
+      <div class="mini-tabs" id="admin-sup-tabs" data-active="actives">
+        <button class="mini-tab active" data-mini="actives" type="button">💬 Conversations</button>
+        <button class="mini-tab" data-mini="signalements" type="button">🚨 Signalements</button>
+        <button class="mini-tab" data-mini="creer" type="button">➕ Créer</button>
+        <span class="mini-tab-indicator" style="width:calc(33.33% - 2px);"></span>
+      </div>
+
+      <div class="mini-content active" data-mini-content="actives">
+        <div class="filters">
+          <button class="filter active" type="button">Tout</button>
+          <button class="filter" type="button">🔥 Urgence 5</button>
+          <button class="filter" type="button">⚠️ Urgence 4</button>
+        </div>
+        <div id="admin-convs-list">
+          <p class="empty-state">Chargement…</p>
+        </div>
+      </div>
+
+      <div class="mini-content" data-mini-content="signalements">
+        <div id="admin-signalements-list">
+          <p class="empty-state">Aucun signalement ✨</p>
+        </div>
+      </div>
+
+      <div class="mini-content" data-mini-content="creer">
+        <input type="text" class="admin-search" id="admin-search-users" placeholder="🔍 Rechercher un utilisateur ou un écoutant…">
+        <div id="admin-users-results">
+          <p class="empty-state">Tape un pseudo pour commencer</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILS (admin) -->
+    <div class="page" data-page="admin-fils">
+      <header class="page-header">
+        <h1 class="page-title">💭 Fils de discussion</h1>
+      </header>
+      <div class="feed">
+        <article class="card card-pinned">
+          <span class="card-badge">🌐 Fil général</span>
+          <h3>Fil général Iphax</h3>
+          <p>Gérer les posts et la modération</p>
+          <button class="btn btn-primary btn-small" type="button">Voir le fil</button>
+        </article>
+        <article class="card">
+          <span class="card-badge">👥 Fil Personnel</span>
+          <h3>Personnel Iphax</h3>
+          <p>Écrire librement entre personnels</p>
+        </article>
+        <article class="card">
+          <span class="card-badge">🛡️ Fil Staff</span>
+          <h3>Staff Iphax</h3>
+          <p>Espace de décision</p>
+        </article>
+        <button class="btn btn-primary btn-small" type="button">➕ Créer un fil thérapeutique</button>
+      </div>
+    </div>
+
+    <!-- PROFIL ADMIN -->
+    <div class="page" data-page="admin-profil">
+      <header class="page-header page-header-flex">
+        <div>
+          <h1 class="page-title">👤 Mon profil</h1>
+          <p class="page-subtitle">Ton espace admin</p>
+        </div>
+        <button class="btn-gear" id="btn-gear-admin" type="button">⚙️</button>
+      </header>
+      <div class="profil-header" id="profil-admin-header"></div>
+      <div class="section-label">📊 Mes statistiques</div>
+      <div class="stats-wysp">
+        <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="wyspBodyA" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#1B3A5C"/><stop offset="100%" stop-color="#0A1A3D"/></radialGradient>
+            <radialGradient id="wyspGlowA" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00E5FF" stop-opacity="0.6"/><stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/></radialGradient>
+          </defs>
+          <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlowA)" opacity="0.4"/>
+          <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBodyA)" stroke="var(--cyan)" stroke-width="1.5"/>
+          <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
+          <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
+          <circle cx="78" cy="115" r="22" fill="#FFFFFF"/><circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
+          <circle cx="78" cy="115" r="13" fill="var(--cyan)"/><circle cx="122" cy="115" r="13" fill="var(--cyan)"/>
+          <circle cx="78" cy="115" r="6" fill="#0A1A3D"/><circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
+          <circle cx="82" cy="110" r="3" fill="#FFFFFF"/><circle cx="126" cy="110" r="3" fill="#FFFFFF"/>
+          <path d="M 100 130 L 95 142 L 105 142 Z" fill="#FFB347"/>
+          <path d="M 88 155 Q 100 165 112 155" stroke="#8FA6C7" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+        <h3 class="stats-wysp-title">Wysp prépare tes stats 🔨</h3>
+        <p class="stats-wysp-text">Tes statistiques admin arrivent bientôt.</p>
+      </div>
+    </div>
+
+    <!-- COMING SOON -->
+    <div class="page" data-page="admin-soon">
+      <header class="page-header">
+        <h1 class="page-title">⏳ Bientôt</h1>
+        <p class="page-subtitle">Une surprise arrive…</p>
+      </header>
+      <div class="wysp-container">
+        <div class="wysp-wrapper">
+          <svg class="wysp" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlowDev)" opacity="0.4"/>
+            <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBodyDev)" stroke="var(--cyan)" stroke-width="1.5"/>
+            <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
+            <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
+            <circle cx="78" cy="115" r="22" fill="#FFFFFF"/><circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
+            <circle cx="78" cy="115" r="13" fill="var(--cyan)"/><circle cx="122" cy="115" r="13" fill="var(--cyan)"/>
+            <circle cx="78" cy="115" r="6" fill="#0A1A3D"/><circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
+          </svg>
+        </div>
+        <h2 class="wysp-title">Chut, Wysp prépare un truc 🔨</h2>
+        <p class="wysp-text">Cette section arrive bientôt.<br>Wysp et l'équipe Moonlight / Raptor travaillent dessus.</p>
+        <p class="wysp-soon">⏳ Coming soon</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BARRE DE NAVIGATION ADMIN -->
+  <nav class="bottom-nav admin-nav">
+    <button class="nav-item active" data-page="admin-news" type="button">
+      <span class="nav-icon">📰</span><span class="nav-label">News</span>
+    </button>
+    <button class="nav-item" data-page="admin-panel" type="button">
+      <span class="nav-icon">🔧</span><span class="nav-label">Admin</span>
+    </button>
+    <button class="nav-item" data-page="admin-dev" type="button">
+      <span class="nav-icon">💻</span><span class="nav-label">Dev</span>
+    </button>
+    <button class="nav-item nav-center" data-page="admin-supervision" type="button">
+      <span class="nav-icon">🎯</span><span class="nav-label">Supervision</span>
+    </button>
+    <button class="nav-item" data-page="admin-fils" type="button">
+      <span class="nav-icon">💭</span><span class="nav-label">Fils</span>
+    </button>
+    <button class="nav-item" data-page="admin-profil" type="button">
+      <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
+    </button>
+    <button class="nav-item" data-page="admin-soon" type="button">
+      <span class="nav-icon">⏳</span><span class="nav-label">Bientôt</span>
+    </button>
+  </nav>
+</section>
 
 <!-- ═══ FIREBASE ═══ -->
 <script type="module">
