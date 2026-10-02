@@ -32,12 +32,10 @@ let currentUser = null;
 let currentUserData = null;
 let authReady = false;
 
-// Membre : conversation active
 let memberConvId = null;
-let memberConvType = null; // 'ephemere' ou 'referent'
+let memberConvType = null;
 let memberChatUnsubscribe = null;
 
-// Écoutant : conversation ouverte
 let ecoConvId = null;
 let ecoChatUnsubscribe = null;
 let ecoEnAttenteUnsubscribe = null;
@@ -47,10 +45,10 @@ let ecoMesConvsUnsubscribe = null;
 // MAPPING RÔLES ↔ BULLES
 // ═══════════════════════════════════════════════════════════════════════════
 const ROLES_PAR_BULLE = {
-  membre:    ['membre'],
-  ecoutant:  ['ecoutant', 'responsable', 'chef_service'],
-  admin:     ['admin', 'moderateur'],
-  dev:       ['dev', 'developpeur'],
+  membre: ['membre'],
+  ecoutant: ['ecoutant', 'responsable', 'chef_service'],
+  admin: ['admin', 'moderateur'],
+  dev: ['dev', 'developpeur'],
   fondateur: ['fondateur']
 };
 const LABELS_ESPACES = {
@@ -78,7 +76,7 @@ function estEcoutant(role) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// HELPERS GÉNÉRAUX
+// HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -125,8 +123,8 @@ function formatDate(ts) {
 function traductError(code, rawMessage) {
   console.error('🔍 Code Firebase :', code, '| Message :', rawMessage);
   const errors = {
-    'auth/email-already-in-use': '📧 Cet email est déjà utilisé. Essaie de te connecter à la place.',
-    'auth/invalid-email': '📧 Cet email n\'est pas valide.',
+    'auth/email-already-in-use': '📧 Cet email est déjà utilisé.',
+    'auth/invalid-email': '📧 Email invalide.',
     'auth/weak-password': '🔑 Mot de passe trop faible (min. 8 car.).',
     'auth/user-not-found': '👤 Aucun compte avec cet email.',
     'auth/wrong-password': '🔑 Mot de passe incorrect.',
@@ -134,10 +132,12 @@ function traductError(code, rawMessage) {
     'auth/too-many-requests': '⏳ Trop de tentatives. Patiente.',
     'auth/network-request-failed': '📡 Problème de connexion.',
     'auth/popup-closed-by-user': '❌ Connexion Google annulée.',
+    'auth/popup-blocked': '🚫 Popup bloquée. Autorise les popups puis réessaie.',
     'auth/cancelled-popup-request': '❌ Connexion annulée.',
     'auth/unauthorized-domain': '🚫 Ce domaine n\'est pas autorisé dans Firebase.',
     'auth/operation-not-allowed': '⚙️ Méthode non activée.',
-    'permission-denied': '🔒 Tu n\'as pas la permission. Vérifie les règles Firestore.'
+    'auth/account-exists-with-different-credential': '⚠️ Un compte existe déjà avec cet email via une autre méthode.',
+    'permission-denied': '🔒 Tu n\'as pas la permission.'
   };
   return errors[code] || `⚠️ Erreur : ${code || rawMessage || 'inconnue'}`;
 }
@@ -164,13 +164,11 @@ document.getElementById('btn-continuer').addEventListener('click', async () => {
 // ROUTAGE SELON RÔLE
 // ═══════════════════════════════════════════════════════════════════════════
 function routeUser(data) {
-  // Profil membre
   const pn = document.getElementById('profil-nom');
   const pu = document.getElementById('profil-username');
   if (pn) pn.textContent = data.displayName || 'Utilisateur';
   if (pu) pu.textContent = '@' + (data.username || 'inconnu');
 
-  // Profil écoutant
   const pen = document.getElementById('profil-eco-nom');
   const peu = document.getElementById('profil-eco-username');
   if (pen) pen.textContent = data.displayName || 'Utilisateur';
@@ -184,7 +182,6 @@ function routeUser(data) {
   const role = data.role || 'membre';
   if (estEcoutant(role)) {
     showScreen('app-ecoutant');
-    // Démarrer les listeners écoutant
     setTimeout(() => initEcoListeners(), 300);
   } else {
     showScreen('app-membre');
@@ -319,7 +316,7 @@ formSignup.addEventListener('submit', async (e) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CONNEXION
+// CONNEXION EMAIL
 // ═══════════════════════════════════════════════════════════════════════════
 formLogin.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -365,71 +362,104 @@ formLogin.addEventListener('submit', async (e) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CONNEXION GOOGLE (redirect + fallback popup)
+// CONNEXION GOOGLE — Popup en priorité, redirect en fallback
 // ═══════════════════════════════════════════════════════════════════════════
 const btnGoogle = document.getElementById('btn-google');
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
+// Fonction commune pour traiter un user Google (popup ou redirect)
+async function handleGoogleUser(user, bulleChoisie) {
+  const ref = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+  let data;
+
+  if (!snap.exists()) {
+    data = {
+      uid: user.uid, email: user.email, username: null,
+      displayName: user.displayName || 'Utilisateur',
+      birthdate: null, age: null, role: 'membre', provider: 'google',
+      cguAccepted: false, createdAt: serverTimestamp()
+    };
+    await setDoc(ref, data);
+  } else {
+    data = snap.data();
+  }
+
+  const role = data.role || 'membre';
+  if (!roleCompatibleAvecBulle(role, bulleChoisie)) {
+    await signOut(auth);
+    const vraiEspace = LABELS_ESPACES[bulleDepuisRole(role)];
+    const espaceTente = LABELS_ESPACES[bulleChoisie];
+    const roleLabel = LABELS_ROLES[role] || role;
+    showScreen('screen-auth');
+    setTimeout(() => {
+      showError('login-error',
+        `🚫 Mauvais espace ! Ton compte est un compte ${roleLabel}, mais tu essaies de te connecter dans l'espace ${espaceTente}. Utilise la bulle « ${vraiEspace} ».`
+      );
+    }, 300);
+    return;
+  }
+
+  currentUser = user;
+  currentUserData = data;
+  console.log('✅ Google OK');
+  routeUser(data);
+}
+
+// CLIC sur le bouton Google
 btnGoogle.addEventListener('click', async () => {
   clearError('login-error');
   clearError('signup-error');
-  sessionStorage.setItem('iphax_bulle_choisie', window.currentRole || 'membre');
+
+  const bulleChoisie = window.currentRole || 'membre';
+  sessionStorage.setItem('iphax_bulle_choisie', bulleChoisie);
+
   try {
-    await signInWithRedirect(auth, googleProvider);
+    // ★ ESSAYER LA POPUP EN PREMIER (plus fiable que le redirect)
+    console.log('🔵 Tentative de connexion Google via POPUP…');
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    console.log('✅ Popup réussie');
+    await handleGoogleUser(user, bulleChoisie);
   } catch (error) {
-    console.error('❌ Google :', error);
+    console.warn('⚠️ Popup échouée :', error.code);
+
+    // Si la popup est bloquée ou problème d'environnement → essayer le redirect
+    if (error.code === 'auth/popup-blocked' ||
+        error.code === 'auth/operation-not-supported-in-this-environment' ||
+        error.code === 'auth/cancelled-popup-request' === false) {
+      console.log('🔵 Fallback : tentative avec REDIRECT…');
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      } catch (e2) {
+        console.error('❌ Redirect aussi échoué :', e2);
+        showError('login-error', traductError(e2.code, e2.message));
+        return;
+      }
+    }
+
+    // Autres erreurs (annulation, mauvais espace...)
     showError('login-error', traductError(error.code, error.message));
   }
 });
 
-// Vérifier le retour de Google redirect
+// ─────────────────────────────────────────────────────────────────────────
+// RETOUR DE REDIRECT (si l'utilisateur a été redirigé vers Google)
+// ─────────────────────────────────────────────────────────────────────────
 (async () => {
   try {
     const result = await getRedirectResult(auth);
     if (result && result.user) {
-      const user = result.user;
+      console.log('✅ Retour de redirect Google détecté');
       const bulleChoisie = sessionStorage.getItem('iphax_bulle_choisie') || 'membre';
       sessionStorage.removeItem('iphax_bulle_choisie');
-
-      const ref = doc(db, 'users', user.uid);
-      const snap = await getDoc(ref);
-      let data;
-      if (!snap.exists()) {
-        data = {
-          uid: user.uid, email: user.email, username: null,
-          displayName: user.displayName || 'Utilisateur',
-          birthdate: null, age: null, role: 'membre', provider: 'google',
-          cguAccepted: false, createdAt: serverTimestamp()
-        };
-        await setDoc(ref, data);
-      } else {
-        data = snap.data();
-      }
-
-      const role = data.role || 'membre';
-      if (!roleCompatibleAvecBulle(role, bulleChoisie)) {
-        await signOut(auth);
-        showScreen('screen-auth');
-        setTimeout(() => {
-          const vraiEspace = LABELS_ESPACES[bulleDepuisRole(role)];
-          const espaceTente = LABELS_ESPACES[bulleChoisie];
-          const roleLabel = LABELS_ROLES[role] || role;
-          showError('login-error',
-            `🚫 Mauvais espace ! Compte ${roleLabel}. Utilise la bulle « ${vraiEspace} ».`
-          );
-        }, 300);
-        return;
-      }
-
-      currentUser = user;
-      currentUserData = data;
-      console.log('✅ Google OK');
-      routeUser(data);
+      await handleGoogleUser(result.user, bulleChoisie);
     }
   } catch (error) {
-    console.error('❌ Google redirect :', error);
-    showScreen('screen-auth');
-    setTimeout(() => showError('login-error', traductError(error.code, error.message)), 300);
+    console.error('❌ Erreur redirect :', error);
+    // On ne bloque pas, on ne montre rien si pas de redirect en cours
   }
 })();
 
@@ -508,7 +538,6 @@ function setupAppNavigation(appId) {
       const content = app.querySelector('.app-content');
       if (content) content.scrollTop = 0;
 
-      // Si on quitte le chat, nettoyer
       if (appId === 'app-membre' && target !== 'chat' && memberChatUnsubscribe) {
         memberChatUnsubscribe(); memberChatUnsubscribe = null;
       }
@@ -532,9 +561,7 @@ function openPage(appId, pageName) {
   if (content) content.scrollTop = 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// BOUTONS RETOUR (Espace perso)
-// ═══════════════════════════════════════════════════════════════════════════
+// Boutons retour
 ['btn-back-perso', 'btn-back-perso-journal', 'btn-back-perso-objectifs', 'btn-back-perso-rappels'].forEach(id => {
   const btn = document.getElementById(id);
   if (btn) {
@@ -548,7 +575,6 @@ function openPage(appId, pageName) {
   }
 });
 
-// Bouton retour du fil général
 const btnBackFil = document.getElementById('btn-back-fil');
 if (btnBackFil) {
   btnBackFil.addEventListener('click', () => {
@@ -560,7 +586,6 @@ if (btnBackFil) {
   });
 }
 
-// Bouton retour du chat membre
 const btnBackChat = document.getElementById('btn-back-chat');
 if (btnBackChat) {
   btnBackChat.addEventListener('click', () => {
@@ -573,7 +598,6 @@ if (btnBackChat) {
   });
 }
 
-// Bouton retour du chat écoutant
 const btnBackChatEco = document.getElementById('btn-back-chat-eco');
 if (btnBackChatEco) {
   btnBackChatEco.addEventListener('click', () => {
@@ -586,7 +610,6 @@ if (btnBackChatEco) {
   });
 }
 
-// Cartes de l'espace perso
 document.querySelectorAll('[data-target]').forEach(btn => {
   btn.addEventListener('click', async () => {
     const target = btn.dataset.target;
@@ -623,12 +646,8 @@ const MOOD_COLORS = [
 let moodCurrentMonth = new Date();
 let moodData = {};
 
-function getMonthKey(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
-function getDaysInMonth(d) {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-}
+function getMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
+function getDaysInMonth(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); }
 function formatMonthTitle(d) {
   const mois = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
   return `${mois[d.getMonth()]} ${d.getFullYear()}`;
@@ -1017,7 +1036,7 @@ if (btnNewObjectif) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// RAPPELS POSITIFS
+// RAPPELS
 // ═══════════════════════════════════════════════════════════════════════════
 async function loadRappels() {
   const list = document.getElementById('rappels-list');
@@ -1088,17 +1107,12 @@ if (btnNewRappel) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ★★★★★★  SYSTÈME DE CONVERSATIONS PARTAGÉES  ★★★★★★
+// ★★★★★★  CONVERSATIONS PARTAGÉES  ★★★★★★
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ─────────────────────────────────────────────────────────────────────────
 // A) Membre : créer / récupérer une conversation
-// ─────────────────────────────────────────────────────────────────────────
 async function getOrCreateConversation(type) {
-  // type = 'ephemere' ou 'referent'
   if (!currentUser) return null;
-
-  // Chercher une conversation existante ACTIVE (waiting ou claimed) pour ce membre + type
   try {
     const q = query(
       collection(db, 'conversations'),
@@ -1108,44 +1122,34 @@ async function getOrCreateConversation(type) {
     );
     const snap = await getDocs(q);
     if (!snap.empty) {
-      // Prendre la plus récente
       const docs = [];
       snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
       docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       return docs[0];
     }
-  } catch (e) {
-    console.warn('Erreur recherche conv :', e);
-  }
+  } catch (e) { console.warn('Erreur recherche conv :', e); }
 
-  // Créer une nouvelle conversation
   try {
     const newConv = {
       memberId: currentUser.uid,
       memberName: currentUserData?.displayName || 'Membre',
       memberUsername: currentUserData?.username || 'membre',
-      status: 'waiting',
-      claimedBy: null,
-      claimedByName: null,
+      status: 'waiting', claimedBy: null, claimedByName: null,
       type: type,
-      createdAt: serverTimestamp(),
-      claimedAt: null,
-      lastMessage: '',
-      lastMessageAt: serverTimestamp(),
+      createdAt: serverTimestamp(), claimedAt: null,
+      lastMessage: '', lastMessageAt: serverTimestamp(),
       lastMessageFrom: currentUser.uid
     };
     const ref = await addDoc(collection(db, 'conversations'), newConv);
     return { id: ref.id, ...newConv };
   } catch (e) {
     console.error('Erreur création conv :', e);
-    alert('❌ Impossible de créer la conversation. Réessaie.');
+    alert('❌ Impossible de créer la conversation.');
     return null;
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
 // B) Membre : ouvrir le chat
-// ─────────────────────────────────────────────────────────────────────────
 async function openMemberChat(type) {
   memberConvType = type;
   const titleEl = document.getElementById('chat-title');
@@ -1160,10 +1164,8 @@ async function openMemberChat(type) {
   }
 
   openPage('app-membre', 'chat');
-
   const conv = await getOrCreateConversation(type === 'mon-ecoutant' ? 'referent' : 'ephemere');
   if (!conv) return;
-
   memberConvId = conv.id;
   startMemberChatListener(conv.id);
 }
@@ -1175,8 +1177,6 @@ function startMemberChatListener(convId) {
   messagesEl.innerHTML = '<p class="empty-state">Chargement...</p>';
 
   const convRef = doc(db, 'conversations', convId);
-
-  // Listener sur la conversation (pour mettre à jour le statut)
   const unsubConv = onSnapshot(convRef, (snap) => {
     if (!snap.exists()) return;
     const data = snap.data();
@@ -1185,15 +1185,11 @@ function startMemberChatListener(convId) {
       if (subEl) subEl.textContent = '⏳ En attente d\'un écoutant…';
     } else if (data.status === 'claimed') {
       if (subEl) subEl.textContent = '💚 ' + (data.claimedByName || 'Écoutant') + ' t\'écoute';
-    } else {
-      if (subEl) subEl.textContent = 'Conversation terminée';
     }
   });
 
-  // Listener sur les messages
   const msgsRef = collection(db, 'conversations', convId, 'messages');
   const q = query(msgsRef, orderBy('createdAt', 'asc'), limit(300));
-
   const unsubMsgs = onSnapshot(q, (snap) => {
     if (snap.empty) {
       messagesEl.innerHTML = '<p class="empty-state">Dis bonjour 💙</p>';
@@ -1209,14 +1205,13 @@ function startMemberChatListener(convId) {
       messagesEl.appendChild(div);
     });
     messagesEl.scrollTop = messagesEl.scrollHeight;
-  }, (err) => {
-    messagesEl.innerHTML = '<p class="empty-state">⚠️ Impossible de charger la conversation.</p>';
+  }, () => {
+    messagesEl.innerHTML = '<p class="empty-state">⚠️ Impossible de charger.</p>';
   });
 
   memberChatUnsubscribe = () => { unsubConv(); unsubMsgs(); };
 }
 
-// Envoi de message (membre)
 const memberChatForm = document.getElementById('chat-form');
 if (memberChatForm) {
   memberChatForm.addEventListener('submit', async (e) => {
@@ -1225,7 +1220,6 @@ if (memberChatForm) {
     const text = input.value.trim();
     if (!text || !currentUser || !memberConvId) return;
     input.value = '';
-
     try {
       await addDoc(collection(db, 'conversations', memberConvId, 'messages'), {
         text,
@@ -1234,7 +1228,6 @@ if (memberChatForm) {
         senderRole: 'membre',
         createdAt: serverTimestamp()
       });
-      // Mettre à jour lastMessage
       await updateDoc(doc(db, 'conversations', memberConvId), {
         lastMessage: text.substring(0, 60),
         lastMessageAt: serverTimestamp(),
@@ -1242,12 +1235,11 @@ if (memberChatForm) {
       });
     } catch (err) {
       console.error('❌ Envoi :', err);
-      alert('❌ Impossible d\'envoyer. Réessaie.');
+      alert('❌ Impossible d\'envoyer.');
     }
   });
 }
 
-// Boutons "Parler maintenant" et "Mon écoutant"
 const btnParlerMaintenant = document.getElementById('btn-parler-maintenant');
 if (btnParlerMaintenant) {
   btnParlerMaintenant.addEventListener('click', () => openMemberChat('parler-maintenant'));
@@ -1257,9 +1249,7 @@ if (btnMonEcoutant) {
   btnMonEcoutant.addEventListener('click', () => openMemberChat('mon-ecoutant'));
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// C) Écoutant : listeners pour En attente / Mes conversations
-// ─────────────────────────────────────────────────────────────────────────
+// C) Écoutant : listeners
 function initEcoListeners() {
   startEnAttenteListener();
   startMesConvsListener();
@@ -1267,23 +1257,19 @@ function initEcoListeners() {
 
 function startEnAttenteListener() {
   if (ecoEnAttenteUnsubscribe) ecoEnAttenteUnsubscribe();
-
   const q = query(
     collection(db, 'conversations'),
     where('status', '==', 'waiting'),
     orderBy('createdAt', 'asc'),
     limit(50)
   );
-
   ecoEnAttenteUnsubscribe = onSnapshot(q, (snap) => {
     const container = document.getElementById('convs-en-attente');
     const badge = document.getElementById('badge-attente');
     if (!container) return;
-
     const convs = [];
     snap.forEach(d => convs.push({ id: d.id, ...d.data() }));
 
-    // Mettre à jour le badge
     if (badge) {
       if (convs.length > 0) {
         badge.textContent = convs.length;
@@ -1297,7 +1283,6 @@ function startEnAttenteListener() {
       container.innerHTML = '<p class="empty-state">Aucune conversation en attente ✨</p>';
       return;
     }
-
     container.innerHTML = convs.map(c => `
       <div class="conv-card conv-urgent" data-conv-id="${c.id}">
         <div class="conv-info">
@@ -1308,18 +1293,13 @@ function startEnAttenteListener() {
         <button class="conv-action" data-claim-id="${c.id}">Prendre</button>
       </div>
     `).join('');
-
-    // Boutons "Prendre"
     container.querySelectorAll('[data-claim-id]').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const convId = btn.dataset.claimId;
-        await claimConversation(convId);
+        await claimConversation(btn.dataset.claimId);
       });
     });
-  }, (err) => {
-    console.error('Erreur listener attente :', err);
-  });
+  }, (err) => console.error('Erreur attente :', err));
 }
 
 async function claimConversation(convId) {
@@ -1329,22 +1309,16 @@ async function claimConversation(convId) {
     const snap = await getDoc(convRef);
     if (!snap.exists()) return;
     const data = snap.data();
-
-    // Vérifier que personne ne l'a déjà prise
     if (data.status !== 'waiting' || data.claimedBy) {
-      alert('⚠️ Cette conversation a déjà été prise par un autre écoutant.');
+      alert('⚠️ Déjà prise par un autre écoutant.');
       return;
     }
-
     await updateDoc(convRef, {
       status: 'claimed',
       claimedBy: currentUser.uid,
       claimedByName: currentUserData?.displayName || 'Écoutant',
       claimedAt: serverTimestamp()
     });
-
-    console.log('✅ Conversation prise');
-    // Ouvrir le chat écoutant automatiquement
     openEcoChat(convId);
   } catch (e) {
     console.error('Erreur claim :', e);
@@ -1354,17 +1328,14 @@ async function claimConversation(convId) {
 
 function startMesConvsListener() {
   if (ecoMesConvsUnsubscribe) ecoMesConvsUnsubscribe();
-
   const q = query(
     collection(db, 'conversations'),
     where('claimedBy', '==', currentUser.uid),
     where('status', '==', 'claimed')
   );
-
   ecoMesConvsUnsubscribe = onSnapshot(q, (snap) => {
     const container = document.getElementById('convs-mes');
     if (!container) return;
-
     const convs = [];
     snap.forEach(d => convs.push({ id: d.id, ...d.data() }));
     convs.sort((a, b) => (b.lastMessageAt?.toMillis?.() || 0) - (a.lastMessageAt?.toMillis?.() || 0));
@@ -1373,7 +1344,6 @@ function startMesConvsListener() {
       container.innerHTML = '<p class="empty-state">Aucune conversation pour l\'instant.</p>';
       return;
     }
-
     container.innerHTML = convs.map(c => `
       <div class="conv-card" data-open-conv="${c.id}">
         <div class="conv-info">
@@ -1384,27 +1354,18 @@ function startMesConvsListener() {
         <button class="conv-menu">⋯</button>
       </div>
     `).join('');
-
     container.querySelectorAll('[data-open-conv]').forEach(el => {
-      el.addEventListener('click', () => {
-        openEcoChat(el.dataset.openConv);
-      });
+      el.addEventListener('click', () => openEcoChat(el.dataset.openConv));
     });
-  }, (err) => {
-    console.error('Erreur listener mes convs :', err);
-  });
+  }, (err) => console.error('Erreur mes convs :', err));
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// D) Écoutant : ouvrir le chat
-// ─────────────────────────────────────────────────────────────────────────
+// D) Écoutant : ouvrir chat
 async function openEcoChat(convId) {
   ecoConvId = convId;
   openPage('app-ecoutant', 'chat-eco');
-
   const titleEl = document.getElementById('chat-eco-title');
   const subEl = document.getElementById('chat-eco-subtitle');
-
   try {
     const snap = await getDoc(doc(db, 'conversations', convId));
     if (snap.exists()) {
@@ -1413,7 +1374,6 @@ async function openEcoChat(convId) {
       if (subEl) subEl.textContent = '@' + (c.memberUsername || 'membre');
     }
   } catch (e) {}
-
   startEcoChatListener(convId);
 }
 
@@ -1442,12 +1402,10 @@ function startEcoChatListener(convId) {
     });
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }, (err) => {
-    console.error('Erreur chat écoutant :', err);
     messagesEl.innerHTML = '<p class="empty-state">⚠️ Impossible de charger.</p>';
   });
 }
 
-// Envoi de message (écoutant)
 const ecoChatForm = document.getElementById('chat-eco-form');
 if (ecoChatForm) {
   ecoChatForm.addEventListener('submit', async (e) => {
@@ -1456,7 +1414,6 @@ if (ecoChatForm) {
     const text = input.value.trim();
     if (!text || !currentUser || !ecoConvId) return;
     input.value = '';
-
     try {
       await addDoc(collection(db, 'conversations', ecoConvId, 'messages'), {
         text,
@@ -1477,9 +1434,7 @@ if (ecoChatForm) {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// E) Écoutant : mini-onglets Conversations
-// ─────────────────────────────────────────────────────────────────────────
+// E) Mini-onglets Conversations
 document.querySelectorAll('.mini-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const target = tab.dataset.mini;
@@ -1492,7 +1447,7 @@ document.querySelectorAll('.mini-tab').forEach(tab => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// FIL GÉNÉRAL (membre)
+// FIL GÉNÉRAL
 // ═══════════════════════════════════════════════════════════════════════════
 const btnFilGeneral = document.getElementById('btn-fil-general');
 if (btnFilGeneral) {
