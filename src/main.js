@@ -1,6 +1,6 @@
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
 // IPHAX — Logique principale
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
 
 console.log('🚀 main.js démarré');
 
@@ -10,6 +10,8 @@ const {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   onAuthStateChanged,
   updateProfile,
@@ -19,19 +21,31 @@ const {
   doc, setDoc, getDoc, updateDoc, deleteDoc,
   serverTimestamp,
   collection, addDoc,
-  query, orderBy, limit,
+  query, orderBy, where, limit,
   onSnapshot, getDocs
 } = window.fbDbFns;
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ÉTAT GLOBAL
+// ═══════════════════════════════════════════════════════════════════════════
 let currentUser = null;
 let currentUserData = null;
 let authReady = false;
-let currentChatType = null;
-let chatUnsubscribe = null;
 
-// ═══════════════════════════════════════════════════════════
-// MAPPING RÔLES ↔ BULLES DE CONNEXION
-// ═══════════════════════════════════════════════════════════
+// Membre : conversation active
+let memberConvId = null;
+let memberConvType = null; // 'ephemere' ou 'referent'
+let memberChatUnsubscribe = null;
+
+// Écoutant : conversation ouverte
+let ecoConvId = null;
+let ecoChatUnsubscribe = null;
+let ecoEnAttenteUnsubscribe = null;
+let ecoMesConvsUnsubscribe = null;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAPPING RÔLES ↔ BULLES
+// ═══════════════════════════════════════════════════════════════════════════
 const ROLES_PAR_BULLE = {
   membre:    ['membre'],
   ecoutant:  ['ecoutant', 'responsable', 'chef_service'],
@@ -39,42 +53,33 @@ const ROLES_PAR_BULLE = {
   dev:       ['dev', 'developpeur'],
   fondateur: ['fondateur']
 };
-
 const LABELS_ESPACES = {
-  membre:    'Membre',
-  ecoutant:  'Écoutant',
-  admin:     'Admin / Modérateur',
-  dev:       'Développeur',
-  fondateur: 'Fondateur'
+  membre: 'Membre', ecoutant: 'Écoutant',
+  admin: 'Admin / Modérateur', dev: 'Développeur', fondateur: 'Fondateur'
 };
-
 const LABELS_ROLES = {
-  membre:      'Membre',
-  ecoutant:    'Écoutant·e',
-  responsable: 'Responsable',
-  chef_service:'Chef de service',
-  moderateur:  'Modérateur',
-  admin:       'Administrateur',
-  dev:         'Développeur',
-  developpeur: 'Développeur',
-  fondateur:   'Fondateur'
+  membre: 'Membre', ecoutant: 'Écoutant·e',
+  responsable: 'Responsable', chef_service: 'Chef de service',
+  moderateur: 'Modérateur', admin: 'Administrateur',
+  dev: 'Développeur', developpeur: 'Développeur', fondateur: 'Fondateur'
 };
 
-// Vérifie si un rôle est compatible avec la bulle sélectionnée
 function roleCompatibleAvecBulle(role, bulle) {
-  const rolesAcceptes = ROLES_PAR_BULLE[bulle] || ['membre'];
-  return rolesAcceptes.includes(role);
+  return (ROLES_PAR_BULLE[bulle] || ['membre']).includes(role);
 }
-
-// Trouve la bulle correspondant à un rôle
 function bulleDepuisRole(role) {
   for (const [bulle, roles] of Object.entries(ROLES_PAR_BULLE)) {
     if (roles.includes(role)) return bulle;
   }
   return 'membre';
 }
+function estEcoutant(role) {
+  return role === 'ecoutant' || role === 'responsable' || role === 'chef_service';
+}
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS GÉNÉRAUX
+// ═══════════════════════════════════════════════════════════════════════════
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById(id);
@@ -82,7 +87,64 @@ function showScreen(id) {
   el.classList.add('active');
 }
 
-// ═══════════════════════════════════════════════════════════
+function showError(elId, message) {
+  const el = document.getElementById(elId);
+  if (el) el.textContent = message;
+}
+function clearError(elId) {
+  const el = document.getElementById(elId);
+  if (el) el.textContent = '';
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text == null ? '' : String(text);
+  return div.innerHTML;
+}
+
+function calculerAge(dateNaissance) {
+  const auj = new Date();
+  const naiss = new Date(dateNaissance);
+  let age = auj.getFullYear() - naiss.getFullYear();
+  const m = auj.getMonth() - naiss.getMonth();
+  if (m < 0 || (m === 0 && auj.getDate() < naiss.getDate())) age--;
+  return age;
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+function formatDate(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+}
+
+function traductError(code, rawMessage) {
+  console.error('🔍 Code Firebase :', code, '| Message :', rawMessage);
+  const errors = {
+    'auth/email-already-in-use': '📧 Cet email est déjà utilisé. Essaie de te connecter à la place.',
+    'auth/invalid-email': '📧 Cet email n\'est pas valide.',
+    'auth/weak-password': '🔑 Mot de passe trop faible (min. 8 car.).',
+    'auth/user-not-found': '👤 Aucun compte avec cet email.',
+    'auth/wrong-password': '🔑 Mot de passe incorrect.',
+    'auth/invalid-credential': '🔑 Email ou mot de passe incorrect.',
+    'auth/too-many-requests': '⏳ Trop de tentatives. Patiente.',
+    'auth/network-request-failed': '📡 Problème de connexion.',
+    'auth/popup-closed-by-user': '❌ Connexion Google annulée.',
+    'auth/cancelled-popup-request': '❌ Connexion annulée.',
+    'auth/unauthorized-domain': '🚫 Ce domaine n\'est pas autorisé dans Firebase.',
+    'auth/operation-not-allowed': '⚙️ Méthode non activée.',
+    'permission-denied': '🔒 Tu n\'as pas la permission. Vérifie les règles Firestore.'
+  };
+  return errors[code] || `⚠️ Erreur : ${code || rawMessage || 'inconnue'}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INTRO → CONTINUER
+// ═══════════════════════════════════════════════════════════════════════════
 document.getElementById('btn-continuer').addEventListener('click', async () => {
   let waited = 0;
   while (!authReady && waited < 2000) {
@@ -98,17 +160,21 @@ document.getElementById('btn-continuer').addEventListener('click', async () => {
   }
 });
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// ROUTAGE SELON RÔLE
+// ═══════════════════════════════════════════════════════════════════════════
 function routeUser(data) {
-  const profilNom = document.getElementById('profil-nom');
-  const profilUsername = document.getElementById('profil-username');
-  if (profilNom) profilNom.textContent = data.displayName || 'Utilisateur';
-  if (profilUsername) profilUsername.textContent = '@' + (data.username || 'inconnu');
+  // Profil membre
+  const pn = document.getElementById('profil-nom');
+  const pu = document.getElementById('profil-username');
+  if (pn) pn.textContent = data.displayName || 'Utilisateur';
+  if (pu) pu.textContent = '@' + (data.username || 'inconnu');
 
-  const profilEcoNom = document.getElementById('profil-eco-nom');
-  const profilEcoUsername = document.getElementById('profil-eco-username');
-  if (profilEcoNom) profilEcoNom.textContent = data.displayName || 'Utilisateur';
-  if (profilEcoUsername) profilEcoUsername.textContent = '@' + (data.username || 'inconnu');
+  // Profil écoutant
+  const pen = document.getElementById('profil-eco-nom');
+  const peu = document.getElementById('profil-eco-username');
+  if (pen) pen.textContent = data.displayName || 'Utilisateur';
+  if (peu) peu.textContent = '@' + (data.username || 'inconnu');
 
   if (!data.cguAccepted) {
     showScreen('screen-cgu');
@@ -116,14 +182,18 @@ function routeUser(data) {
   }
 
   const role = data.role || 'membre';
-  if (role === 'ecoutant' || role === 'responsable' || role === 'chef_service') {
+  if (estEcoutant(role)) {
     showScreen('app-ecoutant');
+    // Démarrer les listeners écoutant
+    setTimeout(() => initEcoListeners(), 300);
   } else {
     showScreen('app-membre');
   }
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// ONGLETS AUTH
+// ═══════════════════════════════════════════════════════════════════════════
 const tabs = document.querySelectorAll('.tab');
 const tabsContainer = document.querySelector('.auth-tabs');
 const formLogin = document.getElementById('form-login');
@@ -145,7 +215,9 @@ tabs.forEach(tab => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// BULLES DE RÔLE
+// ═══════════════════════════════════════════════════════════════════════════
 const roleBubbles = document.querySelectorAll('.role-bubble');
 const authSubtitle = document.getElementById('auth-subtitle');
 const authTitle = document.getElementById('auth-title');
@@ -182,15 +254,15 @@ roleBubbles.forEach(bubble => {
       formSignup.classList.remove('active');
     }
     window.currentRole = role;
-
-    // Effacer les erreurs quand on change de bulle
     clearError('login-error');
     clearError('signup-error');
   });
 });
 window.currentRole = 'membre';
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// ŒIL MOT DE PASSE
+// ═══════════════════════════════════════════════════════════════════════════
 document.querySelectorAll('.toggle-eye').forEach(btn => {
   btn.addEventListener('click', () => {
     const input = btn.parentElement.querySelector('input');
@@ -200,51 +272,9 @@ document.querySelectorAll('.toggle-eye').forEach(btn => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════
-function showError(elId, message) {
-  const el = document.getElementById(elId);
-  if (el) el.textContent = message;
-}
-function clearError(elId) {
-  const el = document.getElementById(elId);
-  if (el) el.textContent = '';
-}
-
-function traductError(code, rawMessage) {
-  console.error('🔍 Code Firebase :', code, '| Message :', rawMessage);
-  const errors = {
-    'auth/email-already-in-use': '📧 Cet email est déjà utilisé. Essaie de te connecter à la place.',
-    'auth/invalid-email': '📧 Cet email n\'est pas valide.',
-    'auth/weak-password': '🔑 Le mot de passe doit contenir au moins 8 caractères (dont 1 lettre et 1 chiffre).',
-    'auth/user-not-found': '👤 Aucun compte n\'existe avec cet email. Vérifie ou inscris-toi.',
-    'auth/wrong-password': '🔑 Mot de passe incorrect.',
-    'auth/invalid-credential': '🔑 Email ou mot de passe incorrect. Vérifie tes informations.',
-    'auth/too-many-requests': '⏳ Trop de tentatives. Patiente 1 minute puis réessaie.',
-    'auth/network-request-failed': '📡 Problème de connexion internet. Vérifie ton réseau.',
-    'auth/popup-closed-by-user': '❌ Tu as annulé la connexion Google.',
-    'auth/cancelled-popup-request': '❌ Connexion annulée.',
-    'auth/operation-not-allowed': '⚙️ Cette méthode de connexion n\'est pas activée.',
-    'permission-denied': '🔒 Tu n\'as pas la permission. Vérifie les règles Firestore.'
-  };
-  return errors[code] || `⚠️ Erreur : ${code || rawMessage || 'inconnue'}`;
-}
-
-function calculerAge(dateNaissance) {
-  const auj = new Date();
-  const naiss = new Date(dateNaissance);
-  let age = auj.getFullYear() - naiss.getFullYear();
-  const m = auj.getMonth() - naiss.getMonth();
-  if (m < 0 || (m === 0 && auj.getDate() < naiss.getDate())) age--;
-  return age;
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// INSCRIPTION
+// ═══════════════════════════════════════════════════════════════════════════
 formSignup.addEventListener('submit', async (e) => {
   e.preventDefault();
   clearError('signup-error');
@@ -256,13 +286,13 @@ formSignup.addEventListener('submit', async (e) => {
   const password = document.getElementById('signup-password').value;
 
   const age = calculerAge(birthdate);
-  if (age >= 18) { showError('signup-error', '❌ Iphax est réservé aux moins de 18 ans.'); return; }
-  if (age < 8) { showError('signup-error', '❌ Tu dois avoir au moins 8 ans pour t\'inscrire.'); return; }
+  if (age >= 18) { showError('signup-error', '❌ Réservé aux moins de 18 ans.'); return; }
+  if (age < 8) { showError('signup-error', '❌ Minimum 8 ans.'); return; }
   if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-    showError('signup-error', '🔑 Le mot de passe doit contenir au moins 1 lettre et 1 chiffre.'); return;
+    showError('signup-error', '🔑 1 lettre + 1 chiffre minimum.'); return;
   }
   if (!/^[A-Za-z][A-Za-z0-9._-]{2,23}$/.test(username)) {
-    showError('signup-error', '👤 Nom d\'utilisateur invalide : 3-24 caractères, commence par une lettre, autorisé . _ -'); return;
+    showError('signup-error', '👤 Nom d\'utilisateur invalide.'); return;
   }
 
   try {
@@ -288,9 +318,9 @@ formSignup.addEventListener('submit', async (e) => {
   }
 });
 
-// ═══════════════════════════════════════════════════════════
-// CONNEXION avec vérification de l'espace (bulle)
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// CONNEXION
+// ═══════════════════════════════════════════════════════════════════════════
 formLogin.addEventListener('submit', async (e) => {
   e.preventDefault();
   clearError('login-error');
@@ -302,14 +332,10 @@ formLogin.addEventListener('submit', async (e) => {
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     const user = cred.user;
-    console.log('✅ Connexion réussie');
-
-    // Charger le profil pour vérifier le rôle
     const snap = await getDoc(doc(db, 'users', user.uid));
 
     if (!snap.exists()) {
-      // Profil manquant → cas rare
-      showError('login-error', '⚠️ Ton profil est incomplet. Contacte un administrateur.');
+      showError('login-error', '⚠️ Profil incomplet. Contacte un admin.');
       await signOut(auth);
       return;
     }
@@ -317,95 +343,104 @@ formLogin.addEventListener('submit', async (e) => {
     const data = snap.data();
     const role = data.role || 'membre';
 
-    // Vérification : le rôle correspond-il à la bulle choisie ?
     if (!roleCompatibleAvecBulle(role, bulleChoisie)) {
-      // Déconnexion immédiate
       await signOut(auth);
-
       const vraiEspace = LABELS_ESPACES[bulleDepuisRole(role)];
       const espaceTente = LABELS_ESPACES[bulleChoisie];
       const roleLabel = LABELS_ROLES[role] || role;
-
       showError('login-error',
-        `🚫 Mauvais espace ! Ton compte est un compte ${roleLabel}, mais tu essaies de te connecter dans l'espace ${espaceTente}. Utilise la bulle « ${vraiEspace} » en haut à droite.`
+        `🚫 Mauvais espace ! Ton compte est un compte ${roleLabel}, mais tu essaies de te connecter dans l'espace ${espaceTente}. Utilise la bulle « ${vraiEspace} ».`
       );
       return;
     }
 
     currentUser = user;
     currentUserData = data;
+    console.log('✅ Connexion réussie');
     routeUser(data);
-
   } catch (error) {
     console.error('❌', error);
     showError('login-error', traductError(error.code, error.message));
   }
 });
 
-// ═══════════════════════════════════════════════════════════
-// CONNEXION GOOGLE avec vérification
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// CONNEXION GOOGLE (redirect + fallback popup)
+// ═══════════════════════════════════════════════════════════════════════════
 const btnGoogle = document.getElementById('btn-google');
 const googleProvider = new GoogleAuthProvider();
 
 btnGoogle.addEventListener('click', async () => {
   clearError('login-error');
   clearError('signup-error');
-
-  const bulleChoisie = window.currentRole || 'membre';
-
+  sessionStorage.setItem('iphax_bulle_choisie', window.currentRole || 'membre');
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-    const ref = doc(db, 'users', user.uid);
-    const snap = await getDoc(ref);
-
-    let data;
-    if (!snap.exists()) {
-      // Nouveau compte Google → créer profil basique
-      data = {
-        uid: user.uid, email: user.email, username: null,
-        displayName: user.displayName || 'Utilisateur',
-        birthdate: null, age: null, role: 'membre', provider: 'google',
-        cguAccepted: false, createdAt: serverTimestamp()
-      };
-      await setDoc(ref, data);
-    } else {
-      data = snap.data();
-    }
-
-    const role = data.role || 'membre';
-
-    // Vérifier l'espace
-    if (!roleCompatibleAvecBulle(role, bulleChoisie)) {
-      await signOut(auth);
-      const vraiEspace = LABELS_ESPACES[bulleDepuisRole(role)];
-      const espaceTente = LABELS_ESPACES[bulleChoisie];
-      const roleLabel = LABELS_ROLES[role] || role;
-
-      showError('login-error',
-        `🚫 Mauvais espace ! Ton compte est un compte ${roleLabel}, mais tu essaies de te connecter dans l'espace ${espaceTente}. Utilise la bulle « ${vraiEspace} » en haut à droite.`
-      );
-      return;
-    }
-
-    currentUser = user;
-    currentUserData = data;
-    console.log('✅ Connexion Google réussie');
-    routeUser(data);
+    await signInWithRedirect(auth, googleProvider);
   } catch (error) {
-    console.error('❌', error);
+    console.error('❌ Google :', error);
     showError('login-error', traductError(error.code, error.message));
   }
 });
 
-// ═══════════════════════════════════════════════════════════
+// Vérifier le retour de Google redirect
+(async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      const user = result.user;
+      const bulleChoisie = sessionStorage.getItem('iphax_bulle_choisie') || 'membre';
+      sessionStorage.removeItem('iphax_bulle_choisie');
+
+      const ref = doc(db, 'users', user.uid);
+      const snap = await getDoc(ref);
+      let data;
+      if (!snap.exists()) {
+        data = {
+          uid: user.uid, email: user.email, username: null,
+          displayName: user.displayName || 'Utilisateur',
+          birthdate: null, age: null, role: 'membre', provider: 'google',
+          cguAccepted: false, createdAt: serverTimestamp()
+        };
+        await setDoc(ref, data);
+      } else {
+        data = snap.data();
+      }
+
+      const role = data.role || 'membre';
+      if (!roleCompatibleAvecBulle(role, bulleChoisie)) {
+        await signOut(auth);
+        showScreen('screen-auth');
+        setTimeout(() => {
+          const vraiEspace = LABELS_ESPACES[bulleDepuisRole(role)];
+          const espaceTente = LABELS_ESPACES[bulleChoisie];
+          const roleLabel = LABELS_ROLES[role] || role;
+          showError('login-error',
+            `🚫 Mauvais espace ! Compte ${roleLabel}. Utilise la bulle « ${vraiEspace} ».`
+          );
+        }, 300);
+        return;
+      }
+
+      currentUser = user;
+      currentUserData = data;
+      console.log('✅ Google OK');
+      routeUser(data);
+    }
+  } catch (error) {
+    console.error('❌ Google redirect :', error);
+    showScreen('screen-auth');
+    setTimeout(() => showError('login-error', traductError(error.code, error.message)), 300);
+  }
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CGU
+// ═══════════════════════════════════════════════════════════════════════════
 const cguText = document.getElementById('cgu-text');
 const cguCheckbox = document.getElementById('cgu-checkbox');
 const cguCheckLabel = document.getElementById('cgu-check-label');
 const btnAcceptCgu = document.getElementById('btn-accept-cgu');
 const btnRefuseCgu = document.getElementById('btn-refuse-cgu');
-
 let cguUnlocked = false;
 
 if (cguText) {
@@ -418,18 +453,15 @@ if (cguText) {
     }
   });
 }
-
 if (cguCheckbox) {
   cguCheckbox.addEventListener('change', () => {
     btnAcceptCgu.disabled = !cguCheckbox.checked;
   });
 }
-
 if (btnRefuseCgu) {
   btnRefuseCgu.addEventListener('click', () => {
     signOut(auth).then(() => {
-      currentUser = null;
-      currentUserData = null;
+      currentUser = null; currentUserData = null;
       showScreen('screen-intro');
     });
     if (cguCheckbox) {
@@ -441,27 +473,24 @@ if (btnRefuseCgu) {
     }
   });
 }
-
 if (btnAcceptCgu) {
   btnAcceptCgu.addEventListener('click', async () => {
     if (!currentUser) return;
     try {
       await updateDoc(doc(db, 'users', currentUser.uid), {
-        cguAccepted: true,
-        cguAcceptedAt: serverTimestamp(),
-        cguVersion: '1.0'
+        cguAccepted: true, cguAcceptedAt: serverTimestamp(), cguVersion: '1.0'
       });
       currentUserData.cguAccepted = true;
-      console.log('✅ CGU acceptées');
       routeUser(currentUserData);
     } catch (error) {
-      console.error('❌ CGU :', error);
-      alert('❌ Erreur lors de l\'enregistrement des CGU.\n\n' + (error.message || error));
+      alert('❌ Erreur : ' + error.message);
     }
   });
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// NAVIGATION DES APPS
+// ═══════════════════════════════════════════════════════════════════════════
 function setupAppNavigation(appId) {
   const app = document.getElementById(appId);
   if (!app) return;
@@ -478,6 +507,14 @@ function setupAppNavigation(appId) {
       if (page) page.classList.add('active');
       const content = app.querySelector('.app-content');
       if (content) content.scrollTop = 0;
+
+      // Si on quitte le chat, nettoyer
+      if (appId === 'app-membre' && target !== 'chat' && memberChatUnsubscribe) {
+        memberChatUnsubscribe(); memberChatUnsubscribe = null;
+      }
+      if (appId === 'app-ecoutant' && target !== 'chat-eco' && ecoChatUnsubscribe) {
+        ecoChatUnsubscribe(); ecoChatUnsubscribe = null;
+      }
     });
   });
 }
@@ -495,7 +532,9 @@ function openPage(appId, pageName) {
   if (content) content.scrollTop = 0;
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// BOUTONS RETOUR (Espace perso)
+// ═══════════════════════════════════════════════════════════════════════════
 ['btn-back-perso', 'btn-back-perso-journal', 'btn-back-perso-objectifs', 'btn-back-perso-rappels'].forEach(id => {
   const btn = document.getElementById(id);
   if (btn) {
@@ -509,18 +548,7 @@ function openPage(appId, pageName) {
   }
 });
 
-const btnBackChat = document.getElementById('btn-back-chat');
-if (btnBackChat) {
-  btnBackChat.addEventListener('click', () => {
-    if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
-    openPage('app-membre', 'ecouter');
-    const app = document.getElementById('app-membre');
-    app.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const ecouterTab = app.querySelector('.nav-item[data-page="ecouter"]');
-    if (ecouterTab) ecouterTab.classList.add('active');
-  });
-}
-
+// Bouton retour du fil général
 const btnBackFil = document.getElementById('btn-back-fil');
 if (btnBackFil) {
   btnBackFil.addEventListener('click', () => {
@@ -532,6 +560,33 @@ if (btnBackFil) {
   });
 }
 
+// Bouton retour du chat membre
+const btnBackChat = document.getElementById('btn-back-chat');
+if (btnBackChat) {
+  btnBackChat.addEventListener('click', () => {
+    if (memberChatUnsubscribe) { memberChatUnsubscribe(); memberChatUnsubscribe = null; }
+    openPage('app-membre', 'ecouter');
+    const app = document.getElementById('app-membre');
+    app.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const ecouterTab = app.querySelector('.nav-item[data-page="ecouter"]');
+    if (ecouterTab) ecouterTab.classList.add('active');
+  });
+}
+
+// Bouton retour du chat écoutant
+const btnBackChatEco = document.getElementById('btn-back-chat-eco');
+if (btnBackChatEco) {
+  btnBackChatEco.addEventListener('click', () => {
+    if (ecoChatUnsubscribe) { ecoChatUnsubscribe(); ecoChatUnsubscribe = null; }
+    openPage('app-ecoutant', 'conversations');
+    const app = document.getElementById('app-ecoutant');
+    app.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const convTab = app.querySelector('.nav-item[data-page="conversations"]');
+    if (convTab) convTab.classList.add('active');
+  });
+}
+
+// Cartes de l'espace perso
 document.querySelectorAll('[data-target]').forEach(btn => {
   btn.addEventListener('click', async () => {
     const target = btn.dataset.target;
@@ -543,39 +598,40 @@ document.querySelectorAll('[data-target]').forEach(btn => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// MOOD TRACKER
+// ═══════════════════════════════════════════════════════════════════════════
 const MOOD_ELEMENTS = [
-  { id: 'humeur',      label: '😊 Humeur' },
-  { id: 'sommeil',     label: '😴 Sommeil' },
-  { id: 'energie',     label: '⚡ Énergie' },
-  { id: 'anxiete',     label: '😰 Anxiété' },
-  { id: 'appetit',     label: '🍽️ Appétit' },
+  { id: 'humeur', label: '😊 Humeur' },
+  { id: 'sommeil', label: '😴 Sommeil' },
+  { id: 'energie', label: '⚡ Énergie' },
+  { id: 'anxiete', label: '😰 Anxiété' },
+  { id: 'appetit', label: '🍽️ Appétit' },
   { id: 'sociabilite', label: '👥 Sociabilité' },
-  { id: 'depression',  label: '🌧️ Dépression' }
+  { id: 'depression', label: '🌧️ Dépression' }
 ];
-
 const MOOD_COLORS = [
-  { name: 'Excellent',  hex: '#0F2551' },
-  { name: 'Très bien',  hex: '#1B7A4D' },
-  { name: 'Bien',       hex: '#A8E6CF' },
-  { name: 'Moyen',      hex: '#FFD93D' },
-  { name: 'Bof',        hex: '#FF9F45' },
-  { name: 'Mal',        hex: '#E04A5A' },
-  { name: 'Très mal',   hex: '#7A1525' }
+  { name: 'Excellent', hex: '#0F2551' },
+  { name: 'Très bien', hex: '#1B7A4D' },
+  { name: 'Bien', hex: '#A8E6CF' },
+  { name: 'Moyen', hex: '#FFD93D' },
+  { name: 'Bof', hex: '#FF9F45' },
+  { name: 'Mal', hex: '#E04A5A' },
+  { name: 'Très mal', hex: '#7A1525' }
 ];
 
 let moodCurrentMonth = new Date();
 let moodData = {};
 
-function getMonthKey(date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+function getMonthKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
-function getDaysInMonth(date) {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+function getDaysInMonth(d) {
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
 }
-function formatMonthTitle(date) {
+function formatMonthTitle(d) {
   const mois = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-  return `${mois[date.getMonth()]} ${date.getFullYear()}`;
+  return `${mois[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function renderMoodLegend() {
@@ -593,15 +649,12 @@ function renderMoodTable() {
   const table = document.getElementById('mood-table');
   const title = document.getElementById('mood-month-title');
   if (!table || !title) return;
-
   title.textContent = formatMonthTitle(moodCurrentMonth);
 
   const days = getDaysInMonth(moodCurrentMonth);
   const today = new Date();
-  const isCurrentMonth = (
-    today.getFullYear() === moodCurrentMonth.getFullYear() &&
-    today.getMonth() === moodCurrentMonth.getMonth()
-  );
+  const isCurrentMonth = today.getFullYear() === moodCurrentMonth.getFullYear() &&
+                         today.getMonth() === moodCurrentMonth.getMonth();
 
   let thead = '<thead><tr><th>Élément</th>';
   for (let d = 1; d <= days; d++) {
@@ -609,8 +662,8 @@ function renderMoodTable() {
     const dow = date.getDay();
     const isWeekend = dow === 0 || dow === 6;
     const isToday = isCurrentMonth && today.getDate() === d;
-    const classes = [isWeekend ? 'weekend' : '', isToday ? 'today' : ''].filter(Boolean).join(' ');
-    thead += `<th class="${classes}">${d}</th>`;
+    const cls = [isWeekend ? 'weekend' : '', isToday ? 'today' : ''].filter(Boolean).join(' ');
+    thead += `<th class="${cls}">${d}</th>`;
   }
   thead += '</tr></thead>';
 
@@ -618,7 +671,6 @@ function renderMoodTable() {
   MOOD_ELEMENTS.forEach(el => {
     tbody += `<tr><th>${el.label}</th>`;
     for (let d = 1; d <= days; d++) {
-      const date = new Date(moodCurrentMonth.getFullYear(), moodCurrentMonth.getMonth(), d);
       const isToday = isCurrentMonth && today.getDate() === d;
       const colorIdx = moodData[d] && moodData[d][el.id] != null ? moodData[d][el.id] : -1;
       const bgColor = colorIdx >= 0 ? MOOD_COLORS[colorIdx].hex : 'transparent';
@@ -630,11 +682,8 @@ function renderMoodTable() {
   tbody += '</tbody>';
 
   table.innerHTML = thead + tbody;
-
   table.querySelectorAll('.mood-cell').forEach(cell => {
-    cell.addEventListener('click', () => {
-      openMoodPicker(parseInt(cell.dataset.day, 10), cell.dataset.el);
-    });
+    cell.addEventListener('click', () => openMoodPicker(parseInt(cell.dataset.day, 10), cell.dataset.el));
   });
 }
 
@@ -644,25 +693,16 @@ async function loadMoodData() {
   try {
     const snap = await getDoc(doc(db, 'users', currentUser.uid, 'moods', monthKey));
     moodData = snap.exists() ? (snap.data().cells || {}) : {};
-  } catch (e) {
-    console.warn('Erreur chargement moods :', e);
-    moodData = {};
-  }
+  } catch (e) { moodData = {}; }
 }
 
 async function saveMoodData() {
   if (!currentUser) return;
   const monthKey = getMonthKey(moodCurrentMonth);
   try {
-    await setDoc(
-      doc(db, 'users', currentUser.uid, 'moods', monthKey),
-      { cells: moodData, updatedAt: serverTimestamp() },
-      { merge: true }
-    );
-  } catch (e) {
-    console.error('Erreur save moods :', e);
-    alert('❌ Impossible d\'enregistrer. ' + (e.code === 'permission-denied' ? 'Vérifie tes permissions.' : e.message));
-  }
+    await setDoc(doc(db, 'users', currentUser.uid, 'moods', monthKey),
+      { cells: moodData, updatedAt: serverTimestamp() }, { merge: true });
+  } catch (e) { alert('❌ Impossible d\'enregistrer.'); }
 }
 
 async function changeMonth(delta) {
@@ -698,8 +738,7 @@ function openMoodPicker(day, elementId) {
         <button class="mood-btn-clear">Effacer</button>
         <button class="mood-btn-cancel">Annuler</button>
       </div>
-    </div>
-  `;
+    </div>`;
   document.body.appendChild(overlay);
 
   overlay.querySelectorAll('.mood-color-btn').forEach(btn => {
@@ -707,22 +746,16 @@ function openMoodPicker(day, elementId) {
       const idx = parseInt(btn.dataset.idx, 10);
       if (!moodData[day]) moodData[day] = {};
       moodData[day][elementId] = idx;
-      overlay.remove();
-      renderMoodTable();
-      await saveMoodData();
+      overlay.remove(); renderMoodTable(); await saveMoodData();
     });
   });
-
   overlay.querySelector('.mood-btn-clear').addEventListener('click', async () => {
     if (moodData[day]) {
       delete moodData[day][elementId];
       if (Object.keys(moodData[day]).length === 0) delete moodData[day];
     }
-    overlay.remove();
-    renderMoodTable();
-    await saveMoodData();
+    overlay.remove(); renderMoodTable(); await saveMoodData();
   });
-
   overlay.querySelector('.mood-btn-cancel').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 }
@@ -732,67 +765,57 @@ const btnMoodNext = document.getElementById('mood-next');
 if (btnMoodPrev) btnMoodPrev.addEventListener('click', () => changeMonth(-1));
 if (btnMoodNext) btnMoodNext.addEventListener('click', () => changeMonth(+1));
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// JOURNAL INTIME
+// ═══════════════════════════════════════════════════════════════════════════
 let journalCache = [];
 
 async function loadJournal() {
   const list = document.getElementById('journal-list');
   if (!list || !currentUser) return;
-
   try {
     const colRef = collection(db, 'users', currentUser.uid, 'journal');
     const q = query(colRef, orderBy('createdAt', 'desc'), limit(50));
     const snap = await getDocs(q);
-
     journalCache = [];
-    snap.forEach(docSnap => {
-      journalCache.push({ id: docSnap.id, ...docSnap.data() });
-    });
+    snap.forEach(d => journalCache.push({ id: d.id, ...d.data() }));
 
     if (journalCache.length === 0) {
       list.innerHTML = '<p class="empty-state">Aucune note pour l\'instant. Écris ta première 💙</p>';
       return;
     }
-
     list.innerHTML = journalCache.map(entry => {
       const date = entry.createdAt?.toDate ? entry.createdAt.toDate() : new Date();
       const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
       const preview = (entry.content || '').substring(0, 180);
-      const moodEmoji = entry.moodEmoji || '';
       const shared = entry.shared ? 'shared' : 'private';
       const sharedLabel = entry.shared ? '🔓 Partagé' : '🔒 Privé';
-
       return `
         <div class="journal-entry" data-id="${entry.id}">
           <div class="journal-entry-header">
             <span class="journal-entry-date">${dateStr}</span>
-            <span class="journal-entry-mood">${moodEmoji}</span>
+            <span class="journal-entry-mood">${entry.moodEmoji || ''}</span>
           </div>
           <div class="journal-entry-title">${escapeHtml(entry.title || 'Sans titre')}</div>
           <div class="journal-entry-preview">${escapeHtml(preview)}${preview.length >= 180 ? '…' : ''}</div>
           <span class="journal-entry-badge ${shared}">${sharedLabel}</span>
-        </div>
-      `;
+        </div>`;
     }).join('');
-
     list.querySelectorAll('.journal-entry').forEach(el => {
       el.addEventListener('click', () => openJournalEntry(el.dataset.id));
     });
   } catch (e) {
-    console.error('Erreur chargement journal :', e);
-    list.innerHTML = '<p class="empty-state">⚠️ Erreur de chargement. Réessaie plus tard.</p>';
+    list.innerHTML = '<p class="empty-state">⚠️ Erreur de chargement.</p>';
   }
 }
 
 function openJournalEntry(id) {
   const entry = journalCache.find(e => e.id === id);
   if (!entry) return;
-
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   const date = entry.createdAt?.toDate ? entry.createdAt.toDate() : new Date();
   const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
   overlay.innerHTML = `
     <div class="modal">
       <div class="modal-header">
@@ -809,156 +832,127 @@ function openJournalEntry(id) {
         <button class="btn btn-danger" id="journal-delete-btn">🗑️ Supprimer</button>
         <button class="btn btn-ghost" id="journal-close-btn">Fermer</button>
       </div>
-    </div>
-  `;
+    </div>`;
   document.body.appendChild(overlay);
-
   overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
   overlay.querySelector('#journal-close-btn').addEventListener('click', () => overlay.remove());
   overlay.querySelector('#journal-delete-btn').addEventListener('click', async () => {
-    if (!confirm('Supprimer cette note ? Cette action est irréversible.')) return;
+    if (!confirm('Supprimer cette note ?')) return;
     try {
       await deleteDoc(doc(db, 'users', currentUser.uid, 'journal', id));
-      overlay.remove();
-      await loadJournal();
-    } catch (e) {
-      console.error('Erreur suppression :', e);
-      alert('❌ Impossible de supprimer. ' + (e.code === 'permission-denied' ? 'Vérifie tes permissions.' : e.message));
-    }
+      overlay.remove(); await loadJournal();
+    } catch (e) { alert('❌ Erreur'); }
   });
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 }
 
 const btnNewJournal = document.getElementById('btn-new-journal');
 if (btnNewJournal) {
-  btnNewJournal.addEventListener('click', () => openJournalForm());
-}
-
-function openJournalForm() {
-  let selectedPrivacy = 'private';
-  let selectedMood = '';
-  const MOOD_EMOJIS = ['😢', '😔', '😐', '🙂', '😄', '😰', '😡', '😴', '🥰', '🤔'];
-
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">📔 Nouvelle note</div>
-        <button class="modal-close">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="field">
-          <label>Confidentialité</label>
-          <div class="journal-privacy-choice">
-            <button type="button" class="journal-privacy-option active" data-privacy="private">
-              <span class="privacy-icon">🔒</span>
-              <span class="privacy-label">Privé</span>
-            </button>
-            <button type="button" class="journal-privacy-option" data-privacy="shared">
-              <span class="privacy-icon">🔓</span>
-              <span class="privacy-label">Partagé avec mes écoutants</span>
-            </button>
+  btnNewJournal.addEventListener('click', () => {
+    let selectedPrivacy = 'private';
+    let selectedMood = '';
+    const MOOD_EMOJIS = ['😢','😔','😐','🙂','😄','😰','😡','😴','🥰','🤔'];
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">📔 Nouvelle note</div>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Confidentialité</label>
+            <div class="journal-privacy-choice">
+              <button type="button" class="journal-privacy-option active" data-privacy="private">
+                <span class="privacy-icon">🔒</span><span class="privacy-label">Privé</span>
+              </button>
+              <button type="button" class="journal-privacy-option" data-privacy="shared">
+                <span class="privacy-icon">🔓</span><span class="privacy-label">Partagé</span>
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Humeur (facultatif)</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              ${MOOD_EMOJIS.map(e => `<button type="button" class="mood-emoji-btn" data-emoji="${e}" style="width:40px;height:40px;border-radius:10px;background:rgba(10,26,61,0.6);border:1.5px solid var(--border);font-size:22px;cursor:pointer;">${e}</button>`).join('')}
+            </div>
+          </div>
+          <div class="field">
+            <label>Titre</label>
+            <input type="text" id="journal-title" placeholder="Un titre..." maxlength="80">
+          </div>
+          <div class="field">
+            <label>Ton ressenti</label>
+            <textarea id="journal-content" placeholder="Écris librement..."></textarea>
           </div>
         </div>
-        <div class="field">
-          <label>Humeur du moment (facultatif)</label>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;">
-            ${MOOD_EMOJIS.map(e => `<button type="button" class="mood-emoji-btn" data-emoji="${e}" style="width:40px;height:40px;border-radius:10px;background:rgba(10,26,61,0.6);border:1.5px solid var(--border);font-size:22px;cursor:pointer;transition:all 0.2s;">${e}</button>`).join('')}
-          </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="journal-cancel">Annuler</button>
+          <button class="btn btn-primary" id="journal-save">💾 Enregistrer</button>
         </div>
-        <div class="field">
-          <label>Titre</label>
-          <input type="text" id="journal-title" placeholder="Un titre court..." maxlength="80">
-        </div>
-        <div class="field">
-          <label>Ton ressenti</label>
-          <textarea id="journal-content" placeholder="Écris librement..."></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" id="journal-cancel">Annuler</button>
-        <button class="btn btn-primary" id="journal-save">💾 Enregistrer</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-
-  overlay.querySelectorAll('.journal-privacy-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      overlay.querySelectorAll('.journal-privacy-option').forEach(o => o.classList.remove('active'));
-      opt.classList.add('active');
-      selectedPrivacy = opt.dataset.privacy;
-    });
-  });
-
-  overlay.querySelectorAll('.mood-emoji-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      overlay.querySelectorAll('.mood-emoji-btn').forEach(b => b.style.borderColor = 'var(--border)');
-      if (selectedMood === btn.dataset.emoji) {
-        selectedMood = '';
-        btn.style.borderColor = 'var(--border)';
-      } else {
-        selectedMood = btn.dataset.emoji;
-        btn.style.borderColor = 'var(--cyan)';
-      }
-    });
-  });
-
-  overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
-  overlay.querySelector('#journal-cancel').addEventListener('click', () => overlay.remove());
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-
-  overlay.querySelector('#journal-save').addEventListener('click', async () => {
-    const title = overlay.querySelector('#journal-title').value.trim();
-    const content = overlay.querySelector('#journal-content').value.trim();
-    if (!content) { alert('✍️ Écris quelque chose avant d\'enregistrer.'); return; }
-
-    try {
-      await addDoc(collection(db, 'users', currentUser.uid, 'journal'), {
-        title: title || 'Sans titre',
-        content,
-        shared: selectedPrivacy === 'shared',
-        moodEmoji: selectedMood,
-        createdAt: serverTimestamp()
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelectorAll('.journal-privacy-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        overlay.querySelectorAll('.journal-privacy-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        selectedPrivacy = opt.dataset.privacy;
       });
-      overlay.remove();
-      await loadJournal();
-    } catch (e) {
-      console.error('Erreur save note :', e);
-      alert('❌ Impossible d\'enregistrer. ' + (e.code === 'permission-denied' ? 'Vérifie tes permissions.' : e.message));
-    }
+    });
+    overlay.querySelectorAll('.mood-emoji-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        overlay.querySelectorAll('.mood-emoji-btn').forEach(b => b.style.borderColor = 'var(--border)');
+        if (selectedMood === btn.dataset.emoji) {
+          selectedMood = ''; btn.style.borderColor = 'var(--border)';
+        } else {
+          selectedMood = btn.dataset.emoji; btn.style.borderColor = 'var(--cyan)';
+        }
+      });
+    });
+    overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#journal-cancel').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector('#journal-save').addEventListener('click', async () => {
+      const title = overlay.querySelector('#journal-title').value.trim();
+      const content = overlay.querySelector('#journal-content').value.trim();
+      if (!content) { alert('✍️ Écris quelque chose'); return; }
+      try {
+        await addDoc(collection(db, 'users', currentUser.uid, 'journal'), {
+          title: title || 'Sans titre', content,
+          shared: selectedPrivacy === 'shared', moodEmoji: selectedMood,
+          createdAt: serverTimestamp()
+        });
+        overlay.remove(); await loadJournal();
+      } catch (e) { alert('❌ Erreur'); }
+    });
   });
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// OBJECTIFS
+// ═══════════════════════════════════════════════════════════════════════════
 let objectifsCache = [];
 
 async function loadObjectifs() {
   const list = document.getElementById('objectifs-list');
   if (!list || !currentUser) return;
-
   try {
     const colRef = collection(db, 'users', currentUser.uid, 'objectifs');
     const q = query(colRef, orderBy('createdAt', 'desc'), limit(100));
     const snap = await getDocs(q);
-
     objectifsCache = [];
     snap.forEach(d => objectifsCache.push({ id: d.id, ...d.data() }));
-
     if (objectifsCache.length === 0) {
       list.innerHTML = '<p class="empty-state">Aucun objectif pour l\'instant.</p>';
       return;
     }
-
     list.innerHTML = objectifsCache.map(o => `
       <div class="objectif-item ${o.done ? 'done' : ''}" data-id="${o.id}">
         <button class="objectif-check" data-id="${o.id}"></button>
         <span class="objectif-text">${escapeHtml(o.text)}</span>
         <button class="objectif-delete" data-id="${o.id}">🗑️</button>
-      </div>
-    `).join('');
-
+      </div>`).join('');
     list.querySelectorAll('.objectif-check').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -968,10 +962,9 @@ async function loadObjectifs() {
         try {
           await updateDoc(doc(db, 'users', currentUser.uid, 'objectifs', id), { done: !item.done });
           await loadObjectifs();
-        } catch (e) { console.error(e); alert('❌ Erreur : ' + (e.code === 'permission-denied' ? 'Permissions' : e.message)); }
+        } catch (e) { console.error(e); }
       });
     });
-
     list.querySelectorAll('.objectif-delete').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -979,13 +972,10 @@ async function loadObjectifs() {
         try {
           await deleteDoc(doc(db, 'users', currentUser.uid, 'objectifs', btn.dataset.id));
           await loadObjectifs();
-        } catch (e) { console.error(e); alert('❌ Erreur : ' + (e.code === 'permission-denied' ? 'Permissions' : e.message)); }
+        } catch (e) { console.error(e); }
       });
     });
-  } catch (e) {
-    console.error('Erreur objectifs :', e);
-    list.innerHTML = '<p class="empty-state">⚠️ Erreur de chargement. Réessaie plus tard.</p>';
-  }
+  } catch (e) { list.innerHTML = '<p class="empty-state">⚠️ Erreur de chargement.</p>'; }
 }
 
 const btnNewObjectif = document.getElementById('btn-new-objectif');
@@ -1009,67 +999,54 @@ if (btnNewObjectif) {
           <button class="btn btn-ghost" id="obj-cancel">Annuler</button>
           <button class="btn btn-primary" id="obj-save">Ajouter</button>
         </div>
-      </div>
-    `;
+      </div>`;
     document.body.appendChild(overlay);
-
     overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
     overlay.querySelector('#obj-cancel').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     overlay.querySelector('#obj-save').addEventListener('click', async () => {
       const text = overlay.querySelector('#objectif-text').value.trim();
-      if (!text) { alert('✍️ Écris ton objectif !'); return; }
+      if (!text) { alert('✍️ Écris ton objectif'); return; }
       try {
-        await addDoc(collection(db, 'users', currentUser.uid, 'objectifs'), {
-          text, done: false, createdAt: serverTimestamp()
-        });
-        overlay.remove();
-        await loadObjectifs();
-      } catch (e) { console.error(e); alert('❌ Erreur : ' + (e.code === 'permission-denied' ? 'Permissions' : e.message)); }
+        await addDoc(collection(db, 'users', currentUser.uid, 'objectifs'),
+          { text, done: false, createdAt: serverTimestamp() });
+        overlay.remove(); await loadObjectifs();
+      } catch (e) { alert('❌ Erreur'); }
     });
   });
 }
 
-// ═══════════════════════════════════════════════════════════
-let rappelsCache = [];
-
+// ═══════════════════════════════════════════════════════════════════════════
+// RAPPELS POSITIFS
+// ═══════════════════════════════════════════════════════════════════════════
 async function loadRappels() {
   const list = document.getElementById('rappels-list');
   if (!list || !currentUser) return;
-
   try {
     const colRef = collection(db, 'users', currentUser.uid, 'rappels');
     const q = query(colRef, orderBy('createdAt', 'desc'), limit(100));
     const snap = await getDocs(q);
-
-    rappelsCache = [];
-    snap.forEach(d => rappelsCache.push({ id: d.id, ...d.data() }));
-
-    if (rappelsCache.length === 0) {
+    const rappels = [];
+    snap.forEach(d => rappels.push({ id: d.id, ...d.data() }));
+    if (rappels.length === 0) {
       list.innerHTML = '<p class="empty-state">Aucun rappel pour l\'instant.</p>';
       return;
     }
-
-    list.innerHTML = rappelsCache.map(r => `
+    list.innerHTML = rappels.map(r => `
       <div class="rappel-item">
         <div class="rappel-text">« ${escapeHtml(r.text)} »</div>
         <button class="rappel-delete" data-id="${r.id}">🗑️</button>
-      </div>
-    `).join('');
-
+      </div>`).join('');
     list.querySelectorAll('.rappel-delete').forEach(btn => {
       btn.addEventListener('click', async () => {
         if (!confirm('Supprimer ce rappel ?')) return;
         try {
           await deleteDoc(doc(db, 'users', currentUser.uid, 'rappels', btn.dataset.id));
           await loadRappels();
-        } catch (e) { console.error(e); alert('❌ Erreur : ' + (e.code === 'permission-denied' ? 'Permissions' : e.message)); }
+        } catch (e) { console.error(e); }
       });
     });
-  } catch (e) {
-    console.error('Erreur rappels :', e);
-    list.innerHTML = '<p class="empty-state">⚠️ Erreur de chargement. Réessaie plus tard.</p>';
-  }
+  } catch (e) { list.innerHTML = '<p class="empty-state">⚠️ Erreur de chargement.</p>'; }
 }
 
 const btnNewRappel = document.getElementById('btn-new-rappel');
@@ -1093,123 +1070,430 @@ if (btnNewRappel) {
           <button class="btn btn-ghost" id="rap-cancel">Annuler</button>
           <button class="btn btn-primary" id="rap-save">Ajouter</button>
         </div>
-      </div>
-    `;
+      </div>`;
     document.body.appendChild(overlay);
-
     overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
     overlay.querySelector('#rap-cancel').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     overlay.querySelector('#rap-save').addEventListener('click', async () => {
       const text = overlay.querySelector('#rappel-text').value.trim();
-      if (!text) { alert('✍️ Écris ton rappel !'); return; }
+      if (!text) { alert('✍️ Écris ton rappel'); return; }
       try {
-        await addDoc(collection(db, 'users', currentUser.uid, 'rappels'), {
-          text, createdAt: serverTimestamp()
-        });
-        overlay.remove();
-        await loadRappels();
-      } catch (e) { console.error(e); alert('❌ Erreur : ' + (e.code === 'permission-denied' ? 'Permissions' : e.message)); }
+        await addDoc(collection(db, 'users', currentUser.uid, 'rappels'),
+          { text, createdAt: serverTimestamp() });
+        overlay.remove(); await loadRappels();
+      } catch (e) { alert('❌ Erreur'); }
     });
   });
 }
 
-// ═══════════════════════════════════════════════════════════
-function openChat(type) {
-  currentChatType = type;
-  openPage('app-membre', 'chat');
+// ═══════════════════════════════════════════════════════════════════════════
+// ★★★★★★  SYSTÈME DE CONVERSATIONS PARTAGÉES  ★★★★★★
+// ═══════════════════════════════════════════════════════════════════════════
 
-  const chatTitle = document.getElementById('chat-title');
-  const chatSubtitle = document.getElementById('chat-subtitle');
+// ─────────────────────────────────────────────────────────────────────────
+// A) Membre : créer / récupérer une conversation
+// ─────────────────────────────────────────────────────────────────────────
+async function getOrCreateConversation(type) {
+  // type = 'ephemere' ou 'referent'
+  if (!currentUser) return null;
 
-  if (type === 'mon-ecoutant') {
-    if (chatTitle) chatTitle.textContent = '👤 Mon écoutant';
-    if (chatSubtitle) chatSubtitle.textContent = 'Écoutant référent permanent';
-  } else {
-    if (chatTitle) chatTitle.textContent = '💬 Parler maintenant';
-    if (chatSubtitle) chatSubtitle.textContent = 'Écoutant disponible';
+  // Chercher une conversation existante ACTIVE (waiting ou claimed) pour ce membre + type
+  try {
+    const q = query(
+      collection(db, 'conversations'),
+      where('memberId', '==', currentUser.uid),
+      where('type', '==', type),
+      where('status', 'in', ['waiting', 'claimed'])
+    );
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      // Prendre la plus récente
+      const docs = [];
+      snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      return docs[0];
+    }
+  } catch (e) {
+    console.warn('Erreur recherche conv :', e);
   }
 
-  startChatListener(type);
+  // Créer une nouvelle conversation
+  try {
+    const newConv = {
+      memberId: currentUser.uid,
+      memberName: currentUserData?.displayName || 'Membre',
+      memberUsername: currentUserData?.username || 'membre',
+      status: 'waiting',
+      claimedBy: null,
+      claimedByName: null,
+      type: type,
+      createdAt: serverTimestamp(),
+      claimedAt: null,
+      lastMessage: '',
+      lastMessageAt: serverTimestamp(),
+      lastMessageFrom: currentUser.uid
+    };
+    const ref = await addDoc(collection(db, 'conversations'), newConv);
+    return { id: ref.id, ...newConv };
+  } catch (e) {
+    console.error('Erreur création conv :', e);
+    alert('❌ Impossible de créer la conversation. Réessaie.');
+    return null;
+  }
 }
 
-function startChatListener(type) {
-  if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
-  if (!currentUser) return;
+// ─────────────────────────────────────────────────────────────────────────
+// B) Membre : ouvrir le chat
+// ─────────────────────────────────────────────────────────────────────────
+async function openMemberChat(type) {
+  memberConvType = type;
+  const titleEl = document.getElementById('chat-title');
+  const subEl = document.getElementById('chat-subtitle');
 
+  if (type === 'mon-ecoutant') {
+    if (titleEl) titleEl.textContent = '👤 Mon écoutant';
+    if (subEl) subEl.textContent = 'Écoutant référent permanent';
+  } else {
+    if (titleEl) titleEl.textContent = '💬 Parler maintenant';
+    if (subEl) subEl.textContent = 'En attente d\'un écoutant…';
+  }
+
+  openPage('app-membre', 'chat');
+
+  const conv = await getOrCreateConversation(type === 'mon-ecoutant' ? 'referent' : 'ephemere');
+  if (!conv) return;
+
+  memberConvId = conv.id;
+  startMemberChatListener(conv.id);
+}
+
+function startMemberChatListener(convId) {
+  if (memberChatUnsubscribe) { memberChatUnsubscribe(); memberChatUnsubscribe = null; }
   const messagesEl = document.getElementById('chat-messages');
   if (!messagesEl) return;
-
   messagesEl.innerHTML = '<p class="empty-state">Chargement...</p>';
 
-  const chatId = `${currentUser.uid}_${type}`;
-  const colRef = collection(db, 'chats', chatId, 'messages');
-  const q = query(colRef, orderBy('createdAt', 'asc'), limit(200));
+  const convRef = doc(db, 'conversations', convId);
 
-  chatUnsubscribe = onSnapshot(q, (snap) => {
+  // Listener sur la conversation (pour mettre à jour le statut)
+  const unsubConv = onSnapshot(convRef, (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const subEl = document.getElementById('chat-subtitle');
+    if (data.status === 'waiting') {
+      if (subEl) subEl.textContent = '⏳ En attente d\'un écoutant…';
+    } else if (data.status === 'claimed') {
+      if (subEl) subEl.textContent = '💚 ' + (data.claimedByName || 'Écoutant') + ' t\'écoute';
+    } else {
+      if (subEl) subEl.textContent = 'Conversation terminée';
+    }
+  });
+
+  // Listener sur les messages
+  const msgsRef = collection(db, 'conversations', convId, 'messages');
+  const q = query(msgsRef, orderBy('createdAt', 'asc'), limit(300));
+
+  const unsubMsgs = onSnapshot(q, (snap) => {
     if (snap.empty) {
-      messagesEl.innerHTML = '<p class="empty-state">Aucun message pour l\'instant. Dis bonjour 💙</p>';
+      messagesEl.innerHTML = '<p class="empty-state">Dis bonjour 💙</p>';
       return;
     }
-
     messagesEl.innerHTML = '';
-    snap.forEach(docSnap => {
-      const msg = docSnap.data();
+    snap.forEach(d => {
+      const msg = d.data();
       const isMe = msg.senderId === currentUser.uid;
-      const time = msg.createdAt?.toDate ? msg.createdAt.toDate().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
-
       const div = document.createElement('div');
       div.className = 'chat-msg ' + (isMe ? 'me' : 'them');
-      div.innerHTML = `${escapeHtml(msg.text)}<span class="chat-msg-time">${time}</span>`;
+      div.innerHTML = `${escapeHtml(msg.text)}<span class="chat-msg-time">${formatTime(msg.createdAt)}</span>`;
       messagesEl.appendChild(div);
     });
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }, (err) => {
-    console.error('Erreur chat listener :', err);
-    messagesEl.innerHTML = '<p class="empty-state">⚠️ Impossible de charger la conversation. Réessaie plus tard.</p>';
+    messagesEl.innerHTML = '<p class="empty-state">⚠️ Impossible de charger la conversation.</p>';
   });
+
+  memberChatUnsubscribe = () => { unsubConv(); unsubMsgs(); };
 }
 
-const chatForm = document.getElementById('chat-form');
-if (chatForm) {
-  chatForm.addEventListener('submit', async (e) => {
+// Envoi de message (membre)
+const memberChatForm = document.getElementById('chat-form');
+if (memberChatForm) {
+  memberChatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
-    if (!text || !currentUser || !currentChatType) return;
-
+    if (!text || !currentUser || !memberConvId) return;
     input.value = '';
 
     try {
-      const chatId = `${currentUser.uid}_${currentChatType}`;
-      await addDoc(collection(db, 'chats', chatId, 'messages'), {
+      await addDoc(collection(db, 'conversations', memberConvId, 'messages'), {
         text,
         senderId: currentUser.uid,
-        senderName: currentUserData?.displayName || 'Utilisateur',
+        senderName: currentUserData?.displayName || 'Membre',
+        senderRole: 'membre',
         createdAt: serverTimestamp()
       });
+      // Mettre à jour lastMessage
+      await updateDoc(doc(db, 'conversations', memberConvId), {
+        lastMessage: text.substring(0, 60),
+        lastMessageAt: serverTimestamp(),
+        lastMessageFrom: currentUser.uid
+      });
     } catch (err) {
-      console.error('❌ Erreur envoi message :', err);
-      if (err.code === 'permission-denied') {
-        alert('🔒 Impossible d\'envoyer ton message.\n\nVérifie que les règles Firestore sont bien à jour (autoriser les utilisateurs connectés à écrire dans /chats).');
-      } else {
-        alert('❌ Erreur d\'envoi.\n\n' + (err.message || err));
-      }
+      console.error('❌ Envoi :', err);
+      alert('❌ Impossible d\'envoyer. Réessaie.');
     }
   });
 }
 
+// Boutons "Parler maintenant" et "Mon écoutant"
 const btnParlerMaintenant = document.getElementById('btn-parler-maintenant');
 if (btnParlerMaintenant) {
-  btnParlerMaintenant.addEventListener('click', () => openChat('parler-maintenant'));
+  btnParlerMaintenant.addEventListener('click', () => openMemberChat('parler-maintenant'));
 }
-
 const btnMonEcoutant = document.getElementById('btn-mon-ecoutant');
 if (btnMonEcoutant) {
-  btnMonEcoutant.addEventListener('click', () => openChat('mon-ecoutant'));
+  btnMonEcoutant.addEventListener('click', () => openMemberChat('mon-ecoutant'));
 }
 
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────────────────
+// C) Écoutant : listeners pour En attente / Mes conversations
+// ─────────────────────────────────────────────────────────────────────────
+function initEcoListeners() {
+  startEnAttenteListener();
+  startMesConvsListener();
+}
+
+function startEnAttenteListener() {
+  if (ecoEnAttenteUnsubscribe) ecoEnAttenteUnsubscribe();
+
+  const q = query(
+    collection(db, 'conversations'),
+    where('status', '==', 'waiting'),
+    orderBy('createdAt', 'asc'),
+    limit(50)
+  );
+
+  ecoEnAttenteUnsubscribe = onSnapshot(q, (snap) => {
+    const container = document.getElementById('convs-en-attente');
+    const badge = document.getElementById('badge-attente');
+    if (!container) return;
+
+    const convs = [];
+    snap.forEach(d => convs.push({ id: d.id, ...d.data() }));
+
+    // Mettre à jour le badge
+    if (badge) {
+      if (convs.length > 0) {
+        badge.textContent = convs.length;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    if (convs.length === 0) {
+      container.innerHTML = '<p class="empty-state">Aucune conversation en attente ✨</p>';
+      return;
+    }
+
+    container.innerHTML = convs.map(c => `
+      <div class="conv-card conv-urgent" data-conv-id="${c.id}">
+        <div class="conv-info">
+          <span class="conv-name">${escapeHtml(c.memberName || 'Membre')} <small style="opacity:0.5;font-weight:400;">@${escapeHtml(c.memberUsername || '')}</small></span>
+          <span class="conv-msg">${escapeHtml(c.lastMessage || 'Nouvelle conversation')}</span>
+          <span class="conv-msg" style="opacity:0.5;font-size:10px;">${formatDate(c.createdAt)} ${formatTime(c.createdAt)}</span>
+        </div>
+        <button class="conv-action" data-claim-id="${c.id}">Prendre</button>
+      </div>
+    `).join('');
+
+    // Boutons "Prendre"
+    container.querySelectorAll('[data-claim-id]').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const convId = btn.dataset.claimId;
+        await claimConversation(convId);
+      });
+    });
+  }, (err) => {
+    console.error('Erreur listener attente :', err);
+  });
+}
+
+async function claimConversation(convId) {
+  if (!currentUser) return;
+  try {
+    const convRef = doc(db, 'conversations', convId);
+    const snap = await getDoc(convRef);
+    if (!snap.exists()) return;
+    const data = snap.data();
+
+    // Vérifier que personne ne l'a déjà prise
+    if (data.status !== 'waiting' || data.claimedBy) {
+      alert('⚠️ Cette conversation a déjà été prise par un autre écoutant.');
+      return;
+    }
+
+    await updateDoc(convRef, {
+      status: 'claimed',
+      claimedBy: currentUser.uid,
+      claimedByName: currentUserData?.displayName || 'Écoutant',
+      claimedAt: serverTimestamp()
+    });
+
+    console.log('✅ Conversation prise');
+    // Ouvrir le chat écoutant automatiquement
+    openEcoChat(convId);
+  } catch (e) {
+    console.error('Erreur claim :', e);
+    alert('❌ Impossible de prendre cette conversation.');
+  }
+}
+
+function startMesConvsListener() {
+  if (ecoMesConvsUnsubscribe) ecoMesConvsUnsubscribe();
+
+  const q = query(
+    collection(db, 'conversations'),
+    where('claimedBy', '==', currentUser.uid),
+    where('status', '==', 'claimed')
+  );
+
+  ecoMesConvsUnsubscribe = onSnapshot(q, (snap) => {
+    const container = document.getElementById('convs-mes');
+    if (!container) return;
+
+    const convs = [];
+    snap.forEach(d => convs.push({ id: d.id, ...d.data() }));
+    convs.sort((a, b) => (b.lastMessageAt?.toMillis?.() || 0) - (a.lastMessageAt?.toMillis?.() || 0));
+
+    if (convs.length === 0) {
+      container.innerHTML = '<p class="empty-state">Aucune conversation pour l\'instant.</p>';
+      return;
+    }
+
+    container.innerHTML = convs.map(c => `
+      <div class="conv-card" data-open-conv="${c.id}">
+        <div class="conv-info">
+          <span class="conv-name">${escapeHtml(c.memberName || 'Membre')} <small style="opacity:0.5;font-weight:400;">@${escapeHtml(c.memberUsername || '')}</small></span>
+          <span class="conv-msg">${escapeHtml(c.lastMessage || 'Nouvelle conversation')}</span>
+          <span class="conv-msg" style="opacity:0.5;font-size:10px;">${formatTime(c.lastMessageAt)}</span>
+        </div>
+        <button class="conv-menu">⋯</button>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('[data-open-conv]').forEach(el => {
+      el.addEventListener('click', () => {
+        openEcoChat(el.dataset.openConv);
+      });
+    });
+  }, (err) => {
+    console.error('Erreur listener mes convs :', err);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// D) Écoutant : ouvrir le chat
+// ─────────────────────────────────────────────────────────────────────────
+async function openEcoChat(convId) {
+  ecoConvId = convId;
+  openPage('app-ecoutant', 'chat-eco');
+
+  const titleEl = document.getElementById('chat-eco-title');
+  const subEl = document.getElementById('chat-eco-subtitle');
+
+  try {
+    const snap = await getDoc(doc(db, 'conversations', convId));
+    if (snap.exists()) {
+      const c = snap.data();
+      if (titleEl) titleEl.textContent = '💬 ' + (c.memberName || 'Membre');
+      if (subEl) subEl.textContent = '@' + (c.memberUsername || 'membre');
+    }
+  } catch (e) {}
+
+  startEcoChatListener(convId);
+}
+
+function startEcoChatListener(convId) {
+  if (ecoChatUnsubscribe) { ecoChatUnsubscribe(); ecoChatUnsubscribe = null; }
+  const messagesEl = document.getElementById('chat-eco-messages');
+  if (!messagesEl) return;
+  messagesEl.innerHTML = '<p class="empty-state">Chargement...</p>';
+
+  const msgsRef = collection(db, 'conversations', convId, 'messages');
+  const q = query(msgsRef, orderBy('createdAt', 'asc'), limit(300));
+
+  ecoChatUnsubscribe = onSnapshot(q, (snap) => {
+    if (snap.empty) {
+      messagesEl.innerHTML = '<p class="empty-state">Aucun message pour l\'instant.</p>';
+      return;
+    }
+    messagesEl.innerHTML = '';
+    snap.forEach(d => {
+      const msg = d.data();
+      const isMe = msg.senderId === currentUser.uid;
+      const div = document.createElement('div');
+      div.className = 'chat-msg ' + (isMe ? 'me' : 'them');
+      div.innerHTML = `${escapeHtml(msg.text)}<span class="chat-msg-time">${formatTime(msg.createdAt)}</span>`;
+      messagesEl.appendChild(div);
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }, (err) => {
+    console.error('Erreur chat écoutant :', err);
+    messagesEl.innerHTML = '<p class="empty-state">⚠️ Impossible de charger.</p>';
+  });
+}
+
+// Envoi de message (écoutant)
+const ecoChatForm = document.getElementById('chat-eco-form');
+if (ecoChatForm) {
+  ecoChatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('chat-eco-input');
+    const text = input.value.trim();
+    if (!text || !currentUser || !ecoConvId) return;
+    input.value = '';
+
+    try {
+      await addDoc(collection(db, 'conversations', ecoConvId, 'messages'), {
+        text,
+        senderId: currentUser.uid,
+        senderName: currentUserData?.displayName || 'Écoutant',
+        senderRole: 'ecoutant',
+        createdAt: serverTimestamp()
+      });
+      await updateDoc(doc(db, 'conversations', ecoConvId), {
+        lastMessage: text.substring(0, 60),
+        lastMessageAt: serverTimestamp(),
+        lastMessageFrom: currentUser.uid
+      });
+    } catch (err) {
+      console.error('❌ Envoi écoutant :', err);
+      alert('❌ Impossible d\'envoyer.');
+    }
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// E) Écoutant : mini-onglets Conversations
+// ─────────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.mini-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.mini;
+    document.querySelectorAll('.mini-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.mini-content').forEach(c => c.classList.remove('active'));
+    const content = document.querySelector(`.mini-content[data-mini-content="${target}"]`);
+    if (content) content.classList.add('active');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FIL GÉNÉRAL (membre)
+// ═══════════════════════════════════════════════════════════════════════════
 const btnFilGeneral = document.getElementById('btn-fil-general');
 if (btnFilGeneral) {
   btnFilGeneral.addEventListener('click', async () => {
@@ -1221,42 +1505,32 @@ if (btnFilGeneral) {
 async function loadFilGeneral() {
   const feed = document.getElementById('fil-general-feed');
   if (!feed) return;
-
   try {
-    const colRef = collection(db, 'fil-general');
-    const q = query(colRef, orderBy('createdAt', 'desc'), limit(50));
+    const q = query(collection(db, 'fil-general'), orderBy('createdAt', 'desc'), limit(50));
     const snap = await getDocs(q);
-
     if (snap.empty) {
       feed.innerHTML = '<p class="empty-state">Aucun post pour l\'instant.</p>';
       return;
     }
-
     feed.innerHTML = '';
-    snap.forEach(docSnap => {
-      const post = docSnap.data();
-      const date = post.createdAt?.toDate ? post.createdAt.toDate() : new Date();
-      const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
-
+    snap.forEach(d => {
+      const post = d.data();
       const article = document.createElement('article');
       article.className = 'card';
       article.innerHTML = `
         <span class="card-badge">${post.anonyme ? '🎭 Anonyme' : '👤 ' + escapeHtml(post.authorName || 'Membre')}</span>
         <h3>${escapeHtml(post.title || 'Sans titre')}</h3>
         <p>${escapeHtml(post.content || '')}</p>
-        <span class="card-meta">${dateStr}</span>
-      `;
+        <span class="card-meta">${formatDate(post.createdAt)}</span>`;
       feed.appendChild(article);
     });
-  } catch (e) {
-    console.error('Erreur fil général :', e);
-    feed.innerHTML = '<p class="empty-state">⚠️ Impossible de charger le fil. Réessaie plus tard.</p>';
-  }
+  } catch (e) { feed.innerHTML = '<p class="empty-state">⚠️ Erreur.</p>'; }
 }
 
 const btnDemandeFil = document.getElementById('btn-demande-fil');
 if (btnDemandeFil) {
   btnDemandeFil.addEventListener('click', () => {
+    let anonyme = true;
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.innerHTML = `
@@ -1267,15 +1541,13 @@ if (btnDemandeFil) {
         </div>
         <div class="modal-body">
           <div class="field">
-            <label>Anonyme ou non ?</label>
+            <label>Anonyme ?</label>
             <div class="journal-privacy-choice">
               <button type="button" class="journal-privacy-option active" data-anon="true">
-                <span class="privacy-icon">🎭</span>
-                <span class="privacy-label">Anonyme</span>
+                <span class="privacy-icon">🎭</span><span class="privacy-label">Anonyme</span>
               </button>
               <button type="button" class="journal-privacy-option" data-anon="false">
-                <span class="privacy-icon">👤</span>
-                <span class="privacy-label">Avec mon pseudo</span>
+                <span class="privacy-icon">👤</span><span class="privacy-label">Avec mon pseudo</span>
               </button>
             </div>
           </div>
@@ -1287,17 +1559,13 @@ if (btnDemandeFil) {
             <label>Ton message</label>
             <textarea id="fil-content" placeholder="Témoignage, mot gentil, conseil..." style="min-height:140px;"></textarea>
           </div>
-          <p class="field-hint">📩 Ta demande sera envoyée à un admin/modérateur pour validation.</p>
         </div>
         <div class="modal-footer">
           <button class="btn btn-ghost" id="fil-cancel">Annuler</button>
-          <button class="btn btn-primary" id="fil-send">Envoyer la demande</button>
+          <button class="btn btn-primary" id="fil-send">Envoyer</button>
         </div>
-      </div>
-    `;
+      </div>`;
     document.body.appendChild(overlay);
-
-    let anonyme = true;
     overlay.querySelectorAll('.journal-privacy-option').forEach(opt => {
       opt.addEventListener('click', () => {
         overlay.querySelectorAll('.journal-privacy-option').forEach(o => o.classList.remove('active'));
@@ -1305,72 +1573,63 @@ if (btnDemandeFil) {
         anonyme = opt.dataset.anon === 'true';
       });
     });
-
     overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
     overlay.querySelector('#fil-cancel').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-
     overlay.querySelector('#fil-send').addEventListener('click', async () => {
       const title = overlay.querySelector('#fil-title').value.trim();
       const content = overlay.querySelector('#fil-content').value.trim();
-      if (!content) { alert('✍️ Écris ton message 💙'); return; }
-
+      if (!content) { alert('✍️ Écris ton message'); return; }
       try {
         await addDoc(collection(db, 'demandes-fil'), {
           authorId: currentUser.uid,
           authorName: currentUserData?.displayName || 'Utilisateur',
-          anonyme,
-          title: title || 'Sans titre',
-          content,
-          status: 'pending',
-          createdAt: serverTimestamp()
+          anonyme, title: title || 'Sans titre', content,
+          status: 'pending', createdAt: serverTimestamp()
         });
         overlay.remove();
-        alert('✅ Ta demande a été envoyée ! Elle sera examinée par un modérateur.');
-      } catch (e) {
-        console.error(e);
-        alert('❌ Impossible d\'envoyer ta demande. Réessaie plus tard.');
-      }
+        alert('✅ Ta demande a été envoyée !');
+      } catch (e) { alert('❌ Impossible d\'envoyer.'); }
     });
   });
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// DÉCONNEXION
+// ═══════════════════════════════════════════════════════════════════════════
 function handleLogout() {
   if (!confirm('Se déconnecter d\'Iphax ?')) return;
   signOut(auth).then(() => {
-    currentUser = null;
-    currentUserData = null;
-    if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
+    currentUser = null; currentUserData = null;
+    if (memberChatUnsubscribe) { memberChatUnsubscribe(); memberChatUnsubscribe = null; }
+    if (ecoChatUnsubscribe) { ecoChatUnsubscribe(); ecoChatUnsubscribe = null; }
+    if (ecoEnAttenteUnsubscribe) { ecoEnAttenteUnsubscribe(); ecoEnAttenteUnsubscribe = null; }
+    if (ecoMesConvsUnsubscribe) { ecoMesConvsUnsubscribe(); ecoMesConvsUnsubscribe = null; }
     showScreen('screen-intro');
   });
 }
-
 const btnLogout = document.getElementById('btn-logout');
 if (btnLogout) btnLogout.addEventListener('click', handleLogout);
-
 const btnLogoutEco = document.getElementById('btn-logout-eco');
 if (btnLogoutEco) btnLogoutEco.addEventListener('click', handleLogout);
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTH STATE
+// ═══════════════════════════════════════════════════════════════════════════
 onAuthStateChanged(auth, async (user) => {
   authReady = true;
-
   if (user) {
     currentUser = user;
-    console.log('👤 Utilisateur connecté :', user.uid);
+    console.log('👤 Connecté :', user.uid);
     try {
       const snap = await getDoc(doc(db, 'users', user.uid));
       if (snap.exists()) {
         currentUserData = snap.data();
         console.log('📋 Profil chargé');
       }
-    } catch (e) {
-      console.warn('Impossible de charger le profil :', e);
-    }
+    } catch (e) { console.warn('Erreur profil :', e); }
   } else {
-    currentUser = null;
-    currentUserData = null;
+    currentUser = null; currentUserData = null;
     console.log('👋 Non connecté');
   }
 });
