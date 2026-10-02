@@ -2897,3 +2897,569 @@ body[data-theme="sunset"] {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   THÈMES — Grille de couleurs (fix taille)
+   ═══════════════════════════════════════════════════════════ */
+   .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+  
+  .theme-grid > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .theme-choice {
+    width: 100%;
+    height: 60px;
+    min-height: 60px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all 0.25s var(--ease);
+    padding: 0;
+    position: relative;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  
+  .theme-choice:hover {
+    transform: translateY(-3px);
+    border-color: var(--text-secondary);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+  
+  .theme-choice.selected {
+    border-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35),
+                0 6px 20px rgba(0, 0, 0, 0.5);
+    transform: scale(1.05);
+  }
+  
+  .theme-choice.selected::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+    font-size: 22px;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  
+  .theme-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  @media (max-width: 500px) {
+    .theme-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .theme-choice {
+      height: 50px;
+      min-height: 50px;
+    }
+  }
+
+/* ═══════════════════════════════════════════════════════════
+   ★ THÈME GLOBAL — Force toutes les couleurs à suivre le thème
+   ═══════════════════════════════════════════════════════════ */
+
+/* Boutons principaux */
+.btn-primary,
+.btn-hero,
+.nav-center,
+.tab-indicator,
+.conv-action,
+.chat-send-btn,
+.cgu-check input:checked + .cgu-check-box,
+.objectif-item.done .objectif-check,
+.role-bubble.active {
+  background: var(--gradient-iphax) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--border-focus) !important;
+}
+
+/* Textes en couleur accent */
+.page-title,
+.auth-title,
+.intro-title,
+.card-badge,
+.field-prefix,
+.forgot-link:hover,
+.tab.active {
+  color: var(--cyan) !important;
+}
+.card-badge {
+  background: var(--border-focus) !important;
+  color: #FFFFFF !important;
+}
+
+/* Icônes et SVG inline (wysp, logo, etc.) */
+svg [stroke="#00E5FF"],
+svg [stroke="var(--cyan)"] {
+  stroke: var(--cyan) !important;
+}
+svg [fill="#00E5FF"],
+svg [fill="var(--cyan)"] {
+  fill: var(--cyan) !important;
+}
+.wysp,
+.wysp-container svg,
+.stats-wysp svg {
+  filter: drop-shadow(0 0 24px var(--border-focus)) !important;
+}
+
+/* Logo Iphax */
+.intro-logo,
+.auth-logo-mini {
+  filter: drop-shadow(0 0 30px var(--border-focus)) !important;
+}
+
+/* Bordures accent */
+.card-pinned {
+  border-left: 3px solid var(--cyan) !important;
+  background: linear-gradient(135deg, var(--border-focus), var(--bg-card)) !important;
+}
+.rappel-item {
+  border: 1px solid var(--border-focus) !important;
+  background: linear-gradient(135deg, var(--border-focus), var(--bg-card)) !important;
+}
+.modal {
+  border-color: var(--border-focus) !important;
+}
+.field-input:focus-within,
+.chat-input-bar input:focus {
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 4px var(--border-focus) !important;
+}
+
+/* Champs focus */
+.field-input:focus-within .field-icon {
+  color: var(--cyan) !important;
+}
+
+/* Nav active */
+.nav-item.active {
+  color: var(--cyan) !important;
+}
+
+/* Statuts / pastilles */
+.conv-pastille {
+  background: var(--cyan) !important;
+  box-shadow: 0 0 10px var(--border-focus) !important;
+}
+
+/* Urgence rouge reste rouge */
+.conv-urgent,
+.mood-btn-clear,
+.btn-danger {
+  /* ne pas toucher */
+}
+
+/* Graphiques de couleurs fixes (mood tracker) */
+.mood-legend-dot,
+.mood-color-btn {
+  /* ne pas toucher - ce sont les couleurs d'humeur */
+}
+
+/* Bouton Continuer intro */
+.intro-btn {
+  background: var(--gradient-iphax) !important;
+}
+
+/* Éléments en dégradé */
+.tab-indicator,
+.nav-center,
+.btn-primary,
+.btn-hero {
+  background: var(--gradient-iphax) !important;
+}
+
+/* Barre glissante des onglets */
+.tab-indicator,
+.mini-tab-indicator,
+.filter-indicator {
+  background: var(--gradient-iphax) !important;
+  box-shadow: 0 4px 16px var(--border-focus) !important;
+}
+
+/* Chat messages envoyés */
+.chat-msg.me {
+  background: var(--gradient-iphax) !important;
+}
+
+/* Statut profil "en ligne" */
+.profil-avatar {
+  background: var(--gradient-iphax) !important;
+  border-color: var(--border-focus) !important;
+}
+.profil-avatar:hover {
+  box-shadow: 0 0 24px var(--border-focus) !important;
+}
+.profil-avatar-edit {
+  background: var(--gradient-iphax) !important;
+}
+
+/* Sélection textes */
+::selection {
+  background: var(--cyan) !important;
+  color: #FFFFFF;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ★ THÈME — OVERRIDE FORCÉ (v2)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Labels de section */
+.section-label,
+.mini-tab,
+.filter,
+.tab {
+  color: var(--text-secondary) !important;
+}
+.section-label {
+  color: var(--cyan) !important;
+}
+.mini-tab.active,
+.filter.active,
+.tab.active {
+  color: #FFFFFF !important;
+}
+
+/* Barre de navigation */
+.nav-item {
+  color: var(--text-muted) !important;
+}
+.nav-item.active {
+  color: var(--cyan) !important;
+}
+.nav-item.active .nav-icon {
+  filter: drop-shadow(0 0 8px var(--cyan)) !important;
+}
+
+/* Icônes SVG inline qui étaient en dur */
+svg:not(.field-icon):not([fill]):not([stroke]) {
+  /* ne pas toucher */
+}
+
+/* Tous les SVG avec stroke par défaut dans la nav */
+.nav-icon {
+  color: inherit !important;
+}
+
+/* Bouton engrenage */
+.btn-gear {
+  border-color: var(--border) !important;
+}
+.btn-gear:hover {
+  border-color: var(--border-focus) !important;
+  background: var(--border-focus) !important;
+  color: var(--cyan) !important;
+}
+
+/* Wysp et mascottes */
+.wysp ellipse[stroke],
+.stats-wysp ellipse[stroke] {
+  stroke: var(--cyan) !important;
+}
+.wysp path[stroke],
+.stats-wysp path[stroke] {
+  stroke: var(--cyan) !important;
+}
+.wysp circle[fill="#00E5FF"],
+.stats-wysp circle[fill="#00E5FF"] {
+  fill: var(--cyan) !important;
+}
+
+/* Titres avec dégradé blanc — gardent leur blanc, c'est OK */
+/* Mais les sous-titres deviennent accent */
+.auth-subtitle,
+.page-subtitle {
+  color: var(--text-secondary) !important;
+}
+
+/* Stats Wysp container bordure */
+.stats-wysp {
+  border-color: var(--border-focus) !important;
+}
+.stats-wysp-title {
+  color: var(--cyan) !important;
+}
+
+/* Mini onglets indicateur */
+.mini-tab-indicator,
+.tab-indicator,
+.filter-indicator {
+  background: var(--gradient-iphax) !important;
+}
+
+/* Le sélecteur de thème lui-même ne doit pas changer */
+.theme-choice {
+  /* couleurs fixes, ne pas toucher */
+}
+
+/* Le mood tracker garde ses 7 couleurs fixes */
+.mood-legend-dot,
+.mood-color-btn {
+  /* ne pas toucher */
+}
+
+/* Le rouge, orange, jaune d'urgence dans le chat restent */
+.conv-urgency,
+.urgence-btn,
+.card-badge.event,
+.card-badge.testi,
+.card-badge.content {
+  /* ne pas toucher */
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   ★ FOND DÉGRADÉ — Version INTENSE (couleurs fortes)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Fond de base */
+body {
+  background: radial-gradient(ellipse at 50% 0%,
+    color-mix(in srgb, var(--cyan) 35%, #050E24) 0%,
+    color-mix(in srgb, var(--blue) 25%, #050E24) 45%,
+    #050E24 100%) !important;
+}
+
+/* Écran INTRO */
+#screen-intro {
+  background: radial-gradient(ellipse at 50% 40%,
+    color-mix(in srgb, var(--cyan) 55%, #050E24) 0%,
+    color-mix(in srgb, var(--blue) 35%, #050E24) 50%,
+    #050E24 100%) !important;
+}
+
+/* Écran AUTH */
+#screen-auth {
+  background: radial-gradient(ellipse at 50% 0%,
+    color-mix(in srgb, var(--cyan) 50%, #050E24) 0%,
+    color-mix(in srgb, var(--blue) 30%, #050E24) 45%,
+    #050E24 100%) !important;
+}
+
+/* Écran CGU */
+#screen-cgu {
+  background: radial-gradient(ellipse at 50% 0%,
+    color-mix(in srgb, var(--cyan) 50%, #050E24) 0%,
+    color-mix(in srgb, var(--blue) 30%, #050E24) 45%,
+    #050E24 100%) !important;
+}
+
+/* App MEMBRE + ÉCOUTANT */
+#app-membre,
+#app-ecoutant {
+  background: radial-gradient(ellipse at 50% 0%,
+    color-mix(in srgb, var(--cyan) 45%, #050E24) 0%,
+    color-mix(in srgb, var(--blue) 25%, #050E24) 55%,
+    #050E24 100%) !important;
+}
+
+/* Halos lumineux — plus forts */
+.glow-1 {
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--cyan) 100%, transparent) 0%,
+    transparent 70%) !important;
+  opacity: 0.6 !important;
+}
+.glow-2 {
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--blue) 100%, transparent) 0%,
+    transparent 70%) !important;
+  opacity: 0.6 !important;
+}
+.glow-3 {
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--blue) 100%, transparent) 0%,
+    transparent 70%) !important;
+  opacity: 0.5 !important;
+}
+
+/* Cartes — plus lumineuses avec la teinte du thème */
+.card,
+.grid-card,
+.grid-card-static,
+.conv-card,
+.journal-entry,
+.objectif-item,
+.rappel-item,
+.profil-header,
+.stats-wysp,
+.mini-tabs,
+.filters {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--cyan) 12%, rgba(15, 37, 81, 0.6)) 0%,
+    rgba(15, 37, 81, 0.5) 100%) !important;
+  border-color: var(--border-focus) !important;
+}
+
+/* Inputs */
+.field-input,
+.chat-input-bar input,
+.modal-body textarea,
+.modal-body input[type="text"] {
+  background: color-mix(in srgb, var(--cyan) 8%, rgba(10, 26, 61, 0.9)) !important;
+}
+
+/* Modal */
+.modal {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--cyan) 12%, rgba(15, 37, 81, 0.98)) 0%,
+    color-mix(in srgb, var(--blue) 8%, rgba(10, 26, 61, 0.98)) 100%) !important;
+}
+
+/* Barre de navigation */
+.bottom-nav {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--cyan) 10%, rgba(5, 14, 36, 0.95)) 0%,
+    rgba(5, 14, 36, 0.98) 100%) !important;
+}
+
+/* CGU container */
+.cgu-container {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--cyan) 10%, rgba(10, 26, 61, 0.6)) 0%,
+    rgba(10, 26, 61, 0.55) 100%) !important;
+}
+
+/* Menu popup conversation */
+.conv-menu-popup {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--cyan) 15%, rgba(15, 37, 81, 0.99)) 0%,
+    color-mix(in srgb, var(--blue) 10%, rgba(10, 26, 61, 0.99)) 100%) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MOOD VIEWER (écoutant voit le mood de son écouté)
+   ═══════════════════════════════════════════════════════════ */
+   .chat-eco-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  
+  .btn-see-mood {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    background: rgba(0, 229, 255, 0.1);
+    border: 1.5px solid var(--border-focus);
+    border-radius: var(--radius-sm);
+    color: var(--cyan);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s var(--ease);
+    white-space: nowrap;
+  }
+  .btn-see-mood:hover {
+    background: var(--border-focus);
+    color: #FFFFFF;
+  }
+  
+  .mood-viewer-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .mood-view-periods,
+  .mood-view-modes {
+    display: flex;
+    gap: 4px;
+    background: rgba(10, 26, 61, 0.6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 4px;
+  }
+  .mood-period-btn,
+  .mood-mode-btn {
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.25s var(--ease);
+    white-space: nowrap;
+  }
+  .mood-period-btn.active,
+  .mood-mode-btn.active {
+    background: var(--gradient-iphax);
+    color: #FFFFFF;
+  }
+  
+  .mood-view-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    padding: 10px 14px;
+    background: rgba(10, 26, 61, 0.5);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+  }
+  .mood-view-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .mood-view-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  
+  .mood-view-chart {
+    background: rgba(10, 26, 61, 0.4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    overflow-x: auto;
+  }
+  .mood-chart-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    min-width: 400px;
+  }
+  
+  @media (max-width: 600px) {
+    .mood-viewer-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .mood-view-periods,
+    .mood-view-modes {
+      justify-content: center;
+    }
+    .btn-see-mood { padding: 8px 10px; font-size: 11px; }
+  }
