@@ -1579,3 +1579,4 @@ document.addEventListener('click', (e) => {
   if (typeof openSettingsModal === 'function') openSettingsModal();
   else console.warn('openSettingsModal introuvable');
 });
+window.openSettings = openSettingsModal;
