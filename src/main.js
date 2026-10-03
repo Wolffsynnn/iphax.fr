@@ -69,7 +69,15 @@ const ELEMENT_COLORS = ['#FFD93D','#A78BFA','#FF9F45','#E04A5A','#3DDC97','#00E5
 const MOTIFS = ['Anxiété','Solitude','Tristesse','Colère','Harcèlement','Famille','École','Amitié','Amour','Deuil','Autre'];
 const CONV_CATEGORIES = ['Anxiété','Solitude','Tristesse','Colère','Famille','École','Amitié','Deuil','Autre'];
 const AVATARS = ['🌙','⭐','✨','🌌','🌠','🦉','🐱','🐶','🦊','🐰','🐼','🦋','🌸','🌺','🌻','🍀','💙','🎧','🎨','📚'];
-const THEMES = [{id:'iphax',label:'Iphax',colors:['#00E5FF','#0099FF','#0057C9']},{id:'violet',label:'Violet',colors:['#A78BFA','#7C3AED','#5B21B6']},{id:'rose',label:'Rose',colors:['#F472B6','#DB2777','#9D174D']},{id:'emeraude',label:'Émeraude',colors:['#3DDC97','#059669','#065F46']},{id:'sunset',label:'Sunset',colors:['#FB923C','#EA580C','#9A3412']}];
+const THEMES = [
+  { id:'iphax',  label:'Bleu',    colors:['#00E5FF','#0099FF','#0057C9'] },
+  { id:'vert',   label:'Vert',    colors:['#2BB673','#38D18A','#1F8A57'] },
+  { id:'rouge',  label:'Rouge',   colors:['#E04A5A','#EE6577','#B23344'] },
+  { id:'rose',   label:'Rose',    colors:['#F472B6','#F98FCB','#C4488F'] },
+  { id:'violet', label:'Violet',  colors:['#A78BFA','#BFA4FB','#7C5CE0'] },
+  { id:'jaune',  label:'Jaune',   colors:['#E5B800','#F5CC2E','#B08D00'] },
+  { id:'orange', label:'Orange',  colors:['#F2874A','#FF9E62','#C46228'] }
+];
 const REACTIONS_EMOJIS = ['👍','❤️','😢','😂','🔥','🎉','😮','😡'];
 
 // ═══════════════════════════════════════════════════════════════════════════
