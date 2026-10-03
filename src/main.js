@@ -3360,38 +3360,6 @@ console.log('✅ Module Admin chargé');
 
 let adminNewsUnsubscribe = null;
 
-// ─── Charger les News en temps réel ───
-function loadAdminNews() {
-  const list = document.getElementById('admin-news-list');
-  if (!list) return;
-
-  if (adminNewsUnsubscribe) adminNewsUnsubscribe();
-
-  const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'), limit(50));
-  adminNewsUnsubscribe = onSnapshot(q, (snap) => {
-    if (snap.empty) {
-      list.innerHTML = '<p class="empty-state">Aucune news pour l\'instant. Clique sur "Créer une news" ✨</p>';
-      return;
-    }
-    list.innerHTML = '';
-    snap.forEach(d => {
-      const n = d.data();
-      const article = document.createElement('article');
-      article.className = 'card';
-      article.innerHTML = `
-        <span class="card-badge">${escapeHtml(n.type || '📰 Info')}</span>
-        <h3>${escapeHtml(n.title || 'Sans titre')}</h3>
-        <p>${escapeHtml(n.content || '')}</p>
-        <span class="card-meta">Par ${escapeHtml(n.authorName || 'Admin')} • ${formatDate(n.createdAt)}</span>
-      `;
-      list.appendChild(article);
-    });
-  }, (err) => {
-    console.warn('Erreur news :', err);
-    list.innerHTML = '<p class="empty-state">Erreur de chargement.</p>';
-  });
-}
-
 // ─── Bouton "Créer une news" ───
 function openCreateNewsModal() {
   const overlay = document.createElement('div');
