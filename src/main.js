@@ -667,7 +667,9 @@ function initEcoutant() {
   $('chat-eco-form')?.addEventListener('submit', sendEcoMessage, { once: true });
   loadFilsList('eco');
   const bp = $('btn-proposer-post-eco');
-if (bp && !bp.dataset.bound) { bp.dataset.bound = '1'; bp.addEventListener('click', () => openFil('general', 'eco')); }
+  if (bp && !bp.dataset.bound) { bp.dataset.bound = '1'; bp.addEventListener('click', () => openFil('general', 'eco')); }
+}
+
 function startAttenteListener() {
   if (unsubEcoAttente) unsubEcoAttente();
   const q = query(collection(db, 'conversations'), where('status', '==', 'waiting'));
@@ -797,7 +799,6 @@ async function markConvAsRead(convId) {
   if (!currentUser) return;
   try { await updateDoc(doc(db, 'conversations', convId), { lastReadAt: serverTimestamp() }); } catch (e) {}
 }
-
 // MENU ⋯
 document.addEventListener('click', e => {
   const btn = e.target.closest('.conv-menu'); if (!btn) return;
@@ -1474,13 +1475,13 @@ function loadAdminDemandes() {
     }));
   });
 }
+
 async function loadAdminMembres(search) {
   const c = $('admin-membres-list'); if (!c) return;
   try {
     const snap = await getDocs(query(collection(db, 'users'), limit(200)));
     const u = []; snap.forEach(d => { const data = d.data(); if (data.role === 'membre') u.push({ id: d.id, ...data }); });
-    const f = search ? u.filter(x => (x.username||'').toLowerCase().includes(search.toLowerCase()) || (x.displayName||'').toLowerCase().includes(search.toLowerCase()))
-    : u;
+    const f = search ? u.filter(x => (x.username||'').toLowerCase().includes(search.toLowerCase()) || (x.displayName||'').toLowerCase().includes(search.toLowerCase())) : u;
     if (f.length === 0) { c.innerHTML = '<p class="empty-state">Aucun membre.</p>'; return; }
     c.innerHTML = f.map(x => `<div class="admin-user-card" data-uid="${x.id}"><div class="admin-user-avatar">${x.avatar || '👤'}</div><div class="admin-user-infos"><div class="admin-user-name">${escapeHtml(x.displayName || 'Sans nom')}</div><div class="admin-user-meta">@${escapeHtml(x.username || 'inconnu')}</div></div><span class="admin-role-badge">${x.role || 'membre'}</span></div>`).join('');
   } catch (e) { c.innerHTML = '<p class="empty-state">Impossible de charger.</p>'; }
@@ -1567,7 +1568,7 @@ onAuthStateChanged(auth, async user => {
 // ═══════════════════════════════════════════════════════════════════════════
 setupFilsButtons();
 console.log('✅ main.js chargé et prêt');
-}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // ENGRENAGES PARAMÈTRES — binding global délégué (toujours actif)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1579,4 +1580,13 @@ document.addEventListener('click', (e) => {
   if (typeof openSettingsModal === 'function') openSettingsModal();
   else console.warn('openSettingsModal introuvable');
 });
+
 window.openSettings = openSettingsModal;
+
+window.testGear = function() {
+  if (typeof openSettingsModal === 'function') {
+    openSettingsModal();
+  } else {
+    alert('❌ openSettingsModal N\'EXISTE PAS dans main.js');
+  }
+};
