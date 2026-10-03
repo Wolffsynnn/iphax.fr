@@ -3562,3 +3562,146 @@ body {
   font-weight: 700;
   text-transform: uppercase;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FILS DE DISCUSSION — Style Discord embed + réactions
+   ═══════════════════════════════════════════════════════════ */
+
+   .fil-members-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+  }
+  .fil-members-btn {
+    padding: 8px 14px;
+    background: rgba(10, 26, 61, 0.6);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s var(--ease);
+  }
+  .fil-members-btn:hover {
+    border-color: var(--border-focus);
+    color: var(--cyan);
+  }
+  
+  .fil-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .fil-post {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    transition: all 0.25s var(--ease);
+    position: relative;
+  }
+  .fil-post:hover {
+    border-color: var(--border-focus);
+    box-shadow: var(--shadow-card);
+  }
+  
+  .fil-post-bar {
+    width: 4px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    align-self: stretch;
+  }
+  
+  .fil-post-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  
+  .fil-post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .fil-post-author {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 13px;
+  }
+  
+  .fil-post-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 2px 0;
+  }
+  .fil-post-message {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .fil-post-footer {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 4px;
+  }
+  
+  .fil-post-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .fil-react-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 9px;
+    background: rgba(10, 26, 61, 0.6);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+    font-family: inherit;
+    color: var(--text-secondary);
+  }
+  .fil-react-btn:hover {
+    border-color: var(--border-focus);
+    transform: scale(1.08);
+  }
+  .fil-react-btn.active {
+    background: var(--border-focus);
+    border-color: transparent;
+    color: #FFFFFF;
+  }
+  .fil-react-count {
+    font-size: 11px;
+    font-weight: 700;
+  }
+  
+  .fil-delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    transition: color 0.2s;
+  }
+  .fil-delete-btn:hover { color: var(--error); }

@@ -3633,3 +3633,118 @@ setInterval(() => {
 }, 1000);
 
 console.log('✅ News admin (delete) + News écoutant (sync) chargés');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ★ FILS DE DISCUSSION — Écoutant + Admin
+// ═══════════════════════════════════════════════════════════════════════════
+
+const FILS_DISPONIBLES = [
+  { id: 'general',   name: '🌐 Fil général',   type: 'public',     roles: 'all' },
+  { id: 'personnel', name: '👥 Fil Personnel', type: 'personnel',  roles: ['ecoutant','responsable','chef_service','moderateur','admin','dev','developpeur','fondateur'] },
+  { id: 'staff',     name: '🛡️ Fil Staff',     type: 'staff',      roles: ['moderateur','admin','dev','developpeur','fondateur'] }
+];
+
+const REACTIONS_EMOJIS = ['❤️','🥰','💪','🙏','🤗','✨','💙','🫂','🌟','😊'];
+
+// ─── Rendu d'un post style Discord embed ───
+function renderPost(post, container, prefix) {
+  const color = post.color || '#00E5FF';
+  const date = post.createdAt?.toDate ? post.createdAt.toDate() : new Date();
+  const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const isOwner = post.authorId === currentUser?.uid;
+
+  const article = document.createElement('div');
+  article.className = 'fil-post';
+  article.dataset.postId = post.id;
+
+  const reactionsHtml = REACTIONS_EMOJIS.map(e => {
+    const count = (post.reactions && post.reactions[e]) ? Object.keys(post.reactions[e]).length : 0;
+    const active = post.reactions && post.reactions[e] && post.reactions[e][currentUser?.uid];
+    return `<button class="fil-react-btn ${active ? 'active' : ''}" data-emoji="${e}" type="button">
+      ${e}<span class="fil-react-count">${count > 0 ? count : ''}</span>
+    </button>`;
+  }).join('');
+
+  article.innerHTML = `
+    <div class="fil-post-bar" style="background:${color};"></div>
+    <div class="fil-post-content">
+      <div class="fil-post-header">
+        <span class="fil-post-author">${escapeHtml(post.authorName || 'Anonyme')}</span>
+        <span>${dateStr}</span>
+      </div>
+      ${post.title ? `<div class="fil-post-title">${escapeHtml(post.title)}</div>` : ''}
+      <div class="fil-post-message">${escapeHtml(post.message || '')}</div>
+      ${post.footer ? `<div class="fil-post-footer">${escapeHtml(post.footer)}</div>` : ''}
+      <div class="fil-post-actions">
+        ${reactionsHtml}
+        ${isOwner ? `<button class="fil-delete-btn" type="button" title="Supprimer">🗑️</button>` : ''}
+      </div>
+    </div>
+  `;
+
+  // Câbler les réactions
+  article.querySelectorAll('.fil-react-btn').forEach(btn => {
+    btn.addEventListener('click', () => toggleReaction(post.id, btn.dataset.emoji));
+  });
+
+  // Câbler le bouton supprimer
+  const delBtn = article.querySelector('.fil-delete-btn');
+  if (delBtn) {
+    delBtn.addEventListener('click', async () => {
+      if (!confirm('Supprimer ce post ?')) return;
+      try {
+        await deleteDoc(doc(db, 'fils', currentFilId, 'posts', post.id));
+      } catch (e) { alert('❌ Erreur'); }
+    });
+  }
+
+  container.appendChild(article);
+}
+
+// ─── Toggle une réaction ───
+async function toggleReaction(postId, emoji) {
+  if (!currentUser || !currentFilId) return;
+  try {
+    const postRef = doc(db, 'fils', currentFilId, 'posts', postId);
+    const snap = await getDoc(postRef);
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const reactions = data.reactions || {};
+    const emojiReact = reactions[emoji] || {};
+    if (emojiReact[currentUser.uid]) {
+      delete emojiReact[currentUser.uid];
+    } else {
+      emojiReact[currentUser.uid] = true;
+    }
+    reactions[emoji] = emojiReact;
+    await updateDoc(postRef, { reactions });
+  } catch (e) { console.error('Erreur réaction :', e); }
+}
+
+// ─── Câbler les boutons "Écrire un post" ───
+setInterval(() => {
+  const btnEco = document.getElementById('btn-fil-eco-new-post');
+  if (btnEco && !btnEco.dataset.bound) {
+    btnEco.dataset.bound = '1';
+    btnEco.addEventListener('click', () => openCreatePostModal('eco'));
+  }
+  const btnAdmin = document.getElementById('btn-fil-admin-new-post');
+  if (btnAdmin && !btnAdmin.dataset.bound) {
+    btnAdmin.dataset.bound = '1';
+    btnAdmin.addEventListener('click', () => openCreatePostModal('admin'));
+  }
+
+  // Rendu de la liste des fils quand on est sur la page
+  const pageFilsEco = document.querySelector('#app-ecoutant .page[data-page="fils"].active');
+  if (pageFilsEco && !pageFilsEco.dataset.rendered) {
+    pageFilsEco.dataset.rendered = '1';
+    renderFilsList('eco');
+  }
+  const pageFilsAdmin = document.querySelector('#app-admin .page[data-page="admin-fils"].active');
+  if (pageFilsAdmin && !pageFilsAdmin.dataset.rendered) {
+    pageFilsAdmin.dataset.rendered = '1';
+    renderFilsList('admin');
+  }
+}, 1000);
+
+console.log('✅ Fils de discussion chargés');
