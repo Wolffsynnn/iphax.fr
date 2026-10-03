@@ -3056,13 +3056,6 @@ function setupAdminMiniTabs(containerId) {
   });
 }
 
-// ─── Charger les demandes de publication ───
-// ─── Charger les demandes de publication ───
-async function loadAdminDemandes() {
-  const list = document.getElementById('admin-demandes-list');
-  ...
-}
-
 // ─── Charger les membres ───
 async function loadAdminMembres(search) {
   const list = document.getElementById('admin-membres-list');
