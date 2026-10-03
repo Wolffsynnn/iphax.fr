@@ -3410,3 +3410,189 @@ if (btnNewNews) {
 }
 
 console.log('✅ Module Admin chargé');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ★ ADMIN — News en temps réel + boutons qui marchent
+// ═══════════════════════════════════════════════════════════════════════════
+
+let adminNewsUnsubscribe = null;
+
+// ─── Charger les News en temps réel ───
+function loadAdminNews() {
+  const list = document.getElementById('admin-news-list');
+  if (!list) return;
+
+  if (adminNewsUnsubscribe) adminNewsUnsubscribe();
+
+  const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'), limit(50));
+  adminNewsUnsubscribe = onSnapshot(q, (snap) => {
+    if (snap.empty) {
+      list.innerHTML = '<p class="empty-state">Aucune news pour l\'instant. Clique sur "Créer une news" ✨</p>';
+      return;
+    }
+    list.innerHTML = '';
+    snap.forEach(d => {
+      const n = d.data();
+      const article = document.createElement('article');
+      article.className = 'card';
+      article.innerHTML = `
+        <span class="card-badge">${escapeHtml(n.type || '📰 Info')}</span>
+        <h3>${escapeHtml(n.title || 'Sans titre')}</h3>
+        <p>${escapeHtml(n.content || '')}</p>
+        <span class="card-meta">Par ${escapeHtml(n.authorName || 'Admin')} • ${formatDate(n.createdAt)}</span>
+      `;
+      list.appendChild(article);
+    });
+  }, (err) => {
+    console.warn('Erreur news :', err);
+    list.innerHTML = '<p class="empty-state">Erreur de chargement.</p>';
+  });
+}
+
+// ─── Bouton "Créer une news" ───
+function openCreateNewsModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title">📰 Nouvelle news</div>
+        <button class="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>Type</label>
+          <select id="news-type" style="width:100%;padding:12px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);font-family:inherit;">
+            <option value="📰 Annonce">📰 Annonce</option>
+            <option value="🎉 Événement">🎉 Événement</option>
+            <option value="💬 Témoignage">💬 Témoignage</option>
+            <option value="🆕 Nouveau contenu">🆕 Nouveau contenu</option>
+            <option value="📌 Épinglé">📌 Épinglé</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label>Titre</label>
+          <input type="text" id="news-title" maxlength="100" placeholder="Titre...">
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label>Contenu</label>
+          <textarea id="news-content" placeholder="Contenu de la news..." style="min-height:140px;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="news-cancel">Annuler</button>
+        <button class="btn btn-primary" id="news-save">Publier</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+  overlay.querySelector('#news-cancel').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#news-save').addEventListener('click', async () => {
+    const type = overlay.querySelector('#news-type').value;
+    const title = overlay.querySelector('#news-title').value.trim();
+    const content = overlay.querySelector('#news-content').value.trim();
+    if (!title || !content) { alert('⚠️ Titre et contenu obligatoires'); return; }
+    try {
+      await addDoc(collection(db, 'news'), {
+        type, title, content,
+        authorName: currentUserData?.displayName || 'Admin',
+        createdAt: serverTimestamp()
+      });
+      overlay.remove();
+      // Pas besoin de recharger : onSnapshot s'en occupe
+    } catch (e) {
+      console.error(e);
+      alert('❌ Erreur : ' + (e.message || 'réessaie.'));
+    }
+  });
+}
+
+// ─── Demandes : Accepter / Refuser (temps réel) ───
+let adminDemandesUnsubscribe = null;
+
+function loadAdminDemandes() {
+  const list = document.getElementById('admin-demandes-list');
+  if (!list) return;
+
+  if (adminDemandesUnsubscribe) adminDemandesUnsubscribe();
+
+  const q = query(collection(db, 'demandes-fil'), orderBy('createdAt', 'desc'));
+  adminDemandesUnsubscribe = onSnapshot(q, (snap) => {
+    if (snap.empty) {
+      list.innerHTML = '<p class="empty-state">Aucune demande ✨</p>';
+      return;
+    }
+    list.innerHTML = '';
+    snap.forEach(d => {
+      const data = d.data();
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <span class="card-badge">${data.anonyme ? '🎭 Anonyme' : '👤 ' + escapeHtml(data.authorName || 'Membre')}</span>
+        <h3>${escapeHtml(data.title || 'Sans titre')}</h3>
+        <p>${escapeHtml(data.content || '')}</p>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-primary btn-small" data-action="valider" data-id="${d.id}">✅ Publier</button>
+          <button class="btn btn-danger btn-small" data-action="refuser" data-id="${d.id}">❌ Refuser</button>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    list.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        btn.disabled = true;
+        btn.textContent = '⏳...';
+        try {
+          if (action === 'valider') {
+            const snap2 = await getDoc(doc(db, 'demandes-fil', id));
+            if (snap2.exists()) {
+              const data = snap2.data();
+              await addDoc(collection(db, 'fil-general'), {
+                title: data.title, content: data.content,
+                anonyme: data.anonyme, authorName: data.authorName,
+                createdAt: serverTimestamp()
+              });
+            }
+          }
+          await deleteDoc(doc(db, 'demandes-fil', id));
+          // onSnapshot va rafraîchir automatiquement
+        } catch (e) {
+          console.error('Erreur action demande :', e);
+          alert('❌ Erreur : ' + (e.message || 'réessaie.'));
+          btn.disabled = false;
+        }
+      });
+    });
+  }, (err) => {
+    console.warn('Erreur demandes :', err);
+    list.innerHTML = '<p class="empty-state">Impossible de charger.</p>';
+  });
+}
+
+// ─── Rebind des boutons au démarrage de l'admin ───
+setInterval(() => {
+  // Bouton "Créer une news"
+  const btnNews = document.getElementById('btn-admin-new-news');
+  if (btnNews && !btnNews.dataset.bound) {
+    btnNews.dataset.bound = '1';
+    btnNews.addEventListener('click', openCreateNewsModal);
+  }
+
+  // Si on est sur la page news admin et que la liste est vide, charger
+  const newsList = document.getElementById('admin-news-list');
+  if (newsList && newsList.innerHTML.includes('Chargement') && !adminNewsUnsubscribe) {
+    loadAdminNews();
+  }
+
+  // Si on est sur la page demandes admin et que rien n'est chargé, charger
+  const demList = document.getElementById('admin-demandes-list');
+  if (demList && demList.innerHTML.includes('Impossible') && !adminDemandesUnsubscribe) {
+    loadAdminDemandes();
+  }
+}, 1000);
+
+console.log('✅ Admin news + demandes chargés');
