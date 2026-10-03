@@ -2998,3 +2998,119 @@
 .fil-react-plus:hover { border-color: var(--border-focus); color: var(--accent); }
 .fil-comment-btn:hover { border-color: var(--border-focus); color: var(--accent); }
 .fil-delete-btn:hover { border-color: var(--error); color: var(--error); }
+/* ═══════════════════════════════════════════════════════════
+   FIL DÉTAIL — Layout pleine hauteur + bouton collé en bas
+   ═══════════════════════════════════════════════════════════ */
+
+   #app-membre .page[data-page="fil-detail"],
+   #app-ecoutant .page[data-page="fil-detail-eco"],
+   #app-admin .page[data-page="fil-detail-admin"] {
+     flex-direction: column;
+     min-height: calc(100vh - 160px);
+   }
+   
+   #app-membre .page[data-page="fil-detail"].active,
+   #app-ecoutant .page[data-page="fil-detail-eco"].active,
+   #app-admin .page[data-page="fil-detail-admin"].active {
+     display: flex;
+   }
+   
+   /* Les messages prennent tout l'espace dispo */
+   .fil-posts {
+     flex: 1;
+   }
+   
+   /* La barre du bas est poussée tout en bas */
+   .fil-bottom-bar {
+     margin-top: auto;
+     padding-top: 16px;
+     padding-bottom: calc(16px + env(safe-area-inset-bottom));
+     background: var(--bg-night, #050E24);
+     position: sticky;
+     bottom: 0;
+     z-index: 5;
+   }
+   /* ═══════════════════════════════════════════════════════════
+   NOTIFICATIONS — Remplace les alert() natifs
+   ═══════════════════════════════════════════════════════════ */
+#iphax-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 380px;
+}
+
+.iphax-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(15, 37, 81, 0.98), rgba(10, 26, 61, 0.98));
+  border: 1.5px solid var(--border-focus, rgba(0,229,255,0.55));
+  border-left: 4px solid var(--accent, #00E5FF);
+  border-radius: var(--radius-md, 14px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(0, 229, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: var(--text-primary, #FFFFFF);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  animation: iphaxToastIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+#iphax-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 380px;
+}
+.iphax-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(15, 37, 81, 0.98), rgba(10, 26, 61, 0.98));
+  border: 1.5px solid var(--border-focus, rgba(0,229,255,0.55));
+  border-left: 4px solid var(--accent, #00E5FF);
+  border-radius: var(--radius-md, 14px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  color: var(--text-primary, #FFFFFF);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  animation: iphaxToastIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: pointer;
+}
+.iphax-toast.iphax-toast-out { animation: iphaxToastOut 0.25s forwards; }
+.iphax-toast-icon { font-size: 20px; flex-shrink: 0; }
+.iphax-toast-content { flex: 1; min-width: 0; }
+.iphax-toast-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.iphax-toast-msg { font-size: 13px; color: var(--text-secondary, #8FA6C7); }
+.iphax-toast-success { border-left-color: #3DDC97; }
+.iphax-toast-error { border-left-color: #FF6B7A; }
+.iphax-toast-warning { border-left-color: #FFB347; }
+.iphax-toast-info { border-left-color: var(--accent, #00E5FF); }
+@keyframes iphaxToastIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes iphaxToastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(40px); }
+}
+@media (max-width: 600px) {
+  #iphax-toast-container { top: 12px; right: 12px; left: 12px; max-width: none; }
+}
