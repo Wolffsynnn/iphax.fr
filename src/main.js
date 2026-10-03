@@ -3509,24 +3509,24 @@ setInterval(() => {
 console.log('✅ Admin news + demandes chargés');
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ADMIN NEWS — Sans index composite (fix erreur)
+// ★ NEWS — Suppression (admin) + Affichage temps réel (écoutant)
 // ═══════════════════════════════════════════════════════════════════════════
-let adminNewsUnsubscribe2 = null;
+
+// ─── ADMIN : listener news avec bouton supprimer ───
+let _adminNewsUnsub_v2 = null;
 
 function loadAdminNews() {
   const list = document.getElementById('admin-news-list');
   if (!list) return;
 
-  if (adminNewsUnsubscribe2) adminNewsUnsubscribe2();
+  if (_adminNewsUnsub_v2) _adminNewsUnsub_v2();
 
-  // ⚠️ Sans orderBy, pas besoin d'index
   const q = query(collection(db, 'news'), limit(50));
 
-  adminNewsUnsubscribe2 = onSnapshot(q, (snap) => {
+  _adminNewsUnsub_v2 = onSnapshot(q, (snap) => {
     const news = [];
     snap.forEach(d => news.push({ id: d.id, ...d.data() }));
 
-    // Tri côté client
     news.sort((a, b) => {
       const ta = a.createdAt?.toMillis?.() || 0;
       const tb = b.createdAt?.toMillis?.() || 0;
@@ -3543,21 +3543,93 @@ function loadAdminNews() {
       const article = document.createElement('article');
       article.className = 'card';
       article.innerHTML = `
-        <span class="card-badge">${escapeHtml(n.type || '📰 Info')}</span>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+          <span class="card-badge">${escapeHtml(n.type || '📰 Info')}</span>
+          <button class="news-delete-btn" data-id="${n.id}" title="Supprimer" style="background:transparent;border:none;color:var(--error);cursor:pointer;font-size:16px;padding:2px 6px;">🗑️</button>
+        </div>
         <h3>${escapeHtml(n.title || 'Sans titre')}</h3>
         <p>${escapeHtml(n.content || '')}</p>
         <span class="card-meta">Par ${escapeHtml(n.authorName || 'Admin')} • ${formatDate(n.createdAt)}</span>
       `;
       list.appendChild(article);
     });
+
+    // Câbler les boutons supprimer
+    list.querySelectorAll('.news-delete-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer cette news ?')) return;
+        try {
+          await deleteDoc(doc(db, 'news', btn.dataset.id));
+          // onSnapshot va rafraîchir automatiquement
+        } catch (e) {
+          console.error(e);
+          alert('❌ Erreur : ' + (e.message || 'réessaie.'));
+        }
+      });
+    });
   }, (err) => {
-    console.error('❌ Erreur news :', err);
+    console.error('❌ Erreur news admin :', err);
     list.innerHTML = '<p class="empty-state">Erreur : ' + (err.code || err.message) + '</p>';
   });
 }
 
-// Forcer le rechargement des news quand on entre dans l'app admin
-setTimeout(() => {
-  const list = document.getElementById('admin-news-list');
-  if (list) loadAdminNews();
-}, 2000);
+// ─── ÉCOUTANT : afficher les news en temps réel ───
+let _ecoNewsUnsub = null;
+
+function startEcoutantNewsListener() {
+  const container = document.getElementById('news-eco-dynamic');
+  if (!container) return;
+
+  if (_ecoNewsUnsub) _ecoNewsUnsub();
+
+  const q = query(collection(db, 'news'), limit(50));
+
+  _ecoNewsUnsub = onSnapshot(q, (snap) => {
+    const news = [];
+    snap.forEach(d => news.push({ id: d.id, ...d.data() }));
+
+    news.sort((a, b) => {
+      const ta = a.createdAt?.toMillis?.() || 0;
+      const tb = b.createdAt?.toMillis?.() || 0;
+      return tb - ta;
+    });
+
+    if (news.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = '';
+    news.forEach(n => {
+      const article = document.createElement('article');
+      article.className = 'card';
+      article.innerHTML = `
+        <span class="card-badge">${escapeHtml(n.type || '📰 Info')}</span>
+        <h3>${escapeHtml(n.title || 'Sans titre')}</h3>
+        <p>${escapeHtml(n.content || '')}</p>
+        <span class="card-meta">Par ${escapeHtml(n.authorName || 'Admin')} • ${formatDate(n.createdAt)}</span>
+      `;
+      container.appendChild(article);
+    });
+  }, (err) => {
+    console.warn('Erreur news écoutant :', err);
+  });
+}
+
+// ─── Lancer le listener news écoutant quand on est sur la page ───
+setInterval(() => {
+  const ecoNewsPage = document.getElementById('news-eco-dynamic');
+  if (ecoNewsPage && !_ecoNewsUnsub) {
+    startEcoutantNewsListener();
+  }
+}, 1000);
+
+// ─── Recharger les news admin quand on entre sur la page ───
+setInterval(() => {
+  const adminList = document.getElementById('admin-news-list');
+  if (adminList && !_adminNewsUnsub_v2) {
+    loadAdminNews();
+  }
+}, 1000);
+
+console.log('✅ News admin (delete) + News écoutant (sync) chargés');
