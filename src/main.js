@@ -1812,6 +1812,14 @@ async function loadDevUsers(search) {
             roleChangedBy: currentUser.uid,
             roleChangedByName: currentUserData?.displayName || 'Dev'
           });
+
+          // Log automatique
+          await logAction(
+            'role',
+            `<strong>${escapeHtml(currentUserData?.displayName || 'Dev')}</strong> a changé le rôle de <strong>@${escapeHtml(sel.closest('.admin-user-card')?.querySelector('.admin-user-meta')?.textContent?.replace('@','') || 'utilisateur')}</strong> : ${LABELS_ROLES[oldRole] || oldRole} → <strong>${LABELS_ROLES[newRole] || newRole}</strong>`,
+            { targetUid: uid, oldRole, newRole }
+          );
+
           sel.dataset.oldRole = newRole;
           notify(`Rôle mis à jour : ${LABELS_ROLES[newRole] || newRole}`, 'success');
         } catch (e) {
