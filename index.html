@@ -442,15 +442,41 @@
       </div>
     </div>
 
-    <!-- ═══ FIL DÉTAIL (membre) — NOUVEAU ═══ -->
-    <div class="page" data-page="fil-detail">
-      <header class="page-header page-header-flex">
-        <div>
-          <h1 class="page-title" id="fil-detail-title">Fil</h1>
-          <p class="page-subtitle" id="fil-detail-subtitle">…</p>
+        <!-- ═══ FIL DÉTAIL (membre) ═══ -->
+        <div class="page" data-page="fil-detail">
+          <header class="page-header page-header-flex">
+            <div>
+              <h1 class="page-title" id="fil-detail-title">Fil</h1>
+              <p class="page-subtitle" id="fil-detail-subtitle">…</p>
+            </div>
+            <button class="btn-gear" id="btn-back-fil-detail" type="button">←</button>
+          </header>
+    
+          <!-- Embed du fil -->
+          <div class="fil-embed" id="fil-detail-embed" data-color="#00E5FF">
+            <div class="fil-embed-bar"></div>
+            <div class="fil-embed-body">
+              <h3 class="fil-embed-title" id="fil-detail-embed-title">Titre du fil</h3>
+              <div class="fil-embed-meta">
+                <span class="fil-embed-author" id="fil-detail-embed-author">@auteur</span>
+                <span class="fil-embed-theme" id="fil-detail-embed-theme">Thème</span>
+                <span class="fil-embed-date" id="fil-detail-embed-date">Date</span>
+              </div>
+              <p class="fil-embed-desc" id="fil-detail-embed-desc">Description…</p>
+              <p class="fil-embed-footer" id="fil-detail-embed-footer">mini-texte</p>
+            </div>
+          </div>
+    
+          <!-- Messages (chat continu) -->
+          <div class="fil-posts" id="fil-posts">
+            <p class="empty-state">Aucun message pour l'instant.</p>
+          </div>
+    
+          <!-- Bouton "Envoyer une demande" en bas fixe -->
+          <div class="fil-bottom-bar">
+            <button class="btn btn-primary btn-full" id="btn-fil-demande" type="button">✍️ Envoyer une demande</button>
+          </div>
         </div>
-        <button class="btn-gear" id="btn-back-fil-detail" type="button">←</button>
-      </header>
 
       <!-- Embed du fil avec barre colorée -->
       <div class="fil-embed" id="fil-detail-embed" data-color="#00E5FF">
@@ -637,42 +663,38 @@
       </div>
     </div>
 
-    <!-- ═══ FIL DÉTAIL (écoutant) — DÉPLACÉ ICI ═══ -->
-    <div class="page" data-page="fil-detail-eco">
-      <header class="page-header page-header-flex">
-        <div>
-          <h1 class="page-title" id="fil-detail-eco-title">Fil</h1>
-          <p class="page-subtitle" id="fil-detail-eco-subtitle">…</p>
-        </div>
-        <button class="btn-gear" id="btn-back-fils-eco" type="button">←</button>
-      </header>
-
-      <div class="fil-embed" id="fil-detail-eco-embed" data-color="#00E5FF">
-        <div class="fil-embed-bar"></div>
-        <div class="fil-embed-body">
-          <h3 class="fil-embed-title" id="fil-eco-embed-title">Titre du fil</h3>
-          <div class="fil-embed-meta">
-            <span class="fil-embed-author" id="fil-eco-embed-author">@auteur</span>
-            <span class="fil-embed-theme" id="fil-eco-embed-theme">Thème</span>
-            <span class="fil-embed-date" id="fil-eco-embed-date">Date</span>
+        <!-- ═══ FIL DÉTAIL (écoutant) ═══ -->
+        <div class="page" data-page="fil-detail-eco">
+          <header class="page-header page-header-flex">
+            <div>
+              <h1 class="page-title" id="fil-detail-eco-title">Fil</h1>
+              <p class="page-subtitle" id="fil-detail-eco-subtitle">…</p>
+            </div>
+            <button class="btn-gear" id="btn-back-fils-eco" type="button">←</button>
+          </header>
+    
+          <div class="fil-embed" id="fil-detail-eco-embed" data-color="#00E5FF">
+            <div class="fil-embed-bar"></div>
+            <div class="fil-embed-body">
+              <h3 class="fil-embed-title" id="fil-eco-embed-title">Titre du fil</h3>
+              <div class="fil-embed-meta">
+                <span class="fil-embed-author" id="fil-eco-embed-author">@auteur</span>
+                <span class="fil-embed-theme" id="fil-eco-embed-theme">Thème</span>
+                <span class="fil-embed-date" id="fil-eco-embed-date">Date</span>
+              </div>
+              <p class="fil-embed-desc" id="fil-eco-embed-desc">Description…</p>
+              <p class="fil-embed-footer" id="fil-eco-embed-footer">mini-texte</p>
+            </div>
           </div>
-          <p class="fil-embed-desc" id="fil-eco-embed-desc">Description…</p>
-          <p class="fil-embed-footer" id="fil-eco-embed-footer">mini-texte</p>
+    
+          <div class="fil-posts" id="fil-eco-posts">
+            <p class="empty-state">Aucun message pour l'instant.</p>
+          </div>
+    
+          <div class="fil-bottom-bar">
+            <button class="btn btn-primary btn-full" id="btn-fil-eco-demande" type="button">✍️ Envoyer une demande</button>
+          </div>
         </div>
-      </div>
-
-      <div class="fil-members-bar">
-        <button class="fil-members-btn" id="fil-members-eco-btn" type="button">
-          👥 <span id="fil-members-eco-count">0</span> membres
-        </button>
-      </div>
-
-      <button class="btn btn-primary btn-full" id="btn-fil-eco-new-post" type="button">✍️ Écrire un post</button>
-
-      <div class="fil-posts" id="fil-eco-posts">
-        <p class="empty-state">Aucun post pour l'instant.</p>
-      </div>
-    </div>
 
     <!-- PROFIL ÉCOUTANT -->
     <div class="page" data-page="profil-eco">
@@ -861,45 +883,41 @@
       </div>
     </div>
 
-    <!-- ═══ FIL DÉTAIL (admin) — DÉPLACÉ ICI ═══ -->
-    <div class="page" data-page="fil-detail-admin">
-      <header class="page-header page-header-flex">
-        <div>
-          <h1 class="page-title" id="fil-detail-admin-title">Fil</h1>
-          <p class="page-subtitle" id="fil-detail-admin-subtitle">…</p>
-        </div>
-        <div class="fil-header-actions">
-          <button class="btn-add-member" id="btn-add-member-admin" type="button" title="Ajouter un membre">➕</button>
-          <button class="btn-gear" id="btn-back-fils-admin" type="button">←</button>
-        </div>
-      </header>
-
-      <div class="fil-embed" id="fil-detail-admin-embed" data-color="#00E5FF">
-        <div class="fil-embed-bar"></div>
-        <div class="fil-embed-body">
-          <h3 class="fil-embed-title" id="fil-admin-embed-title">Titre du fil</h3>
-          <div class="fil-embed-meta">
-            <span class="fil-embed-author" id="fil-admin-embed-author">@auteur</span>
-            <span class="fil-embed-theme" id="fil-admin-embed-theme">Thème</span>
-            <span class="fil-embed-date" id="fil-admin-embed-date">Date</span>
+        <!-- ═══ FIL DÉTAIL (admin) ═══ -->
+        <div class="page" data-page="fil-detail-admin">
+          <header class="page-header page-header-flex">
+            <div>
+              <h1 class="page-title" id="fil-detail-admin-title">Fil</h1>
+              <p class="page-subtitle" id="fil-detail-admin-subtitle">…</p>
+            </div>
+            <div class="fil-header-actions">
+              <button class="btn-add-member" id="btn-add-member-admin" type="button" title="Ajouter un membre">➕</button>
+              <button class="btn-gear" id="btn-back-fils-admin" type="button">←</button>
+            </div>
+          </header>
+    
+          <div class="fil-embed" id="fil-detail-admin-embed" data-color="#00E5FF">
+            <div class="fil-embed-bar"></div>
+            <div class="fil-embed-body">
+              <h3 class="fil-embed-title" id="fil-admin-embed-title">Titre du fil</h3>
+              <div class="fil-embed-meta">
+                <span class="fil-embed-author" id="fil-admin-embed-author">@auteur</span>
+                <span class="fil-embed-theme" id="fil-admin-embed-theme">Thème</span>
+                <span class="fil-embed-date" id="fil-admin-embed-date">Date</span>
+              </div>
+              <p class="fil-embed-desc" id="fil-admin-embed-desc">Description…</p>
+              <p class="fil-embed-footer" id="fil-admin-embed-footer">mini-texte</p>
+            </div>
           </div>
-          <p class="fil-embed-desc" id="fil-admin-embed-desc">Description…</p>
-          <p class="fil-embed-footer" id="fil-admin-embed-footer">mini-texte</p>
+    
+          <div class="fil-posts" id="fil-admin-posts">
+            <p class="empty-state">Aucun message pour l'instant.</p>
+          </div>
+    
+          <div class="fil-bottom-bar">
+            <button class="btn btn-primary btn-full" id="btn-fil-admin-message" type="button">✍️ Envoyer un message</button>
+          </div>
         </div>
-      </div>
-
-      <div class="fil-members-bar">
-        <button class="fil-members-btn" id="fil-members-admin-btn" type="button">
-          👥 <span id="fil-members-admin-count">0</span> membres
-        </button>
-      </div>
-
-      <button class="btn btn-primary btn-full" id="btn-fil-admin-new-post" type="button">✍️ Écrire un post</button>
-
-      <div class="fil-posts" id="fil-admin-posts">
-        <p class="empty-state">Aucun post pour l'instant.</p>
-      </div>
-    </div>
 
     <!-- PROFIL ADMIN -->
     <div class="page" data-page="admin-profil">

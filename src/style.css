@@ -2914,3 +2914,87 @@
     .cgu-container { max-width: 800px; }
     .bottom-nav { max-width: 800px; }
   }
+  /* Barre du bas fixe dans un fil */
+.fil-bottom-bar {
+  position: sticky;
+  bottom: 0;
+  padding: 12px 0;
+  background: linear-gradient(180deg, transparent, var(--bg-night) 30%);
+  margin-top: 16px;
+}
+
+/* Post dans un fil = mini-embed avec barre colorée */
+.fil-post {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.fil-post-bar {
+  width: 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.fil-post-content { flex: 1; min-width: 0; }
+
+.fil-post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.fil-post-author { font-weight: 700; color: var(--text-primary); font-size: 13px; }
+.fil-post-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 4px 0; }
+.fil-post-message { font-size: 14px; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+.fil-post-footer { font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+
+.fil-post-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.fil-react-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  background: rgba(10, 26, 61, 0.6);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  font-family: inherit;
+  color: var(--text-secondary);
+}
+.fil-react-btn:hover { border-color: var(--border-focus); transform: scale(1.08); }
+.fil-react-btn.active { background: var(--border-focus); border-color: transparent; color: #FFFFFF; }
+.fil-react-count { font-size: 11px; font-weight: 700; }
+
+.fil-react-plus, .fil-comment-btn, .fil-delete-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s var(--ease);
+}
+.fil-react-plus:hover { border-color: var(--border-focus); color: var(--accent); }
+.fil-comment-btn:hover { border-color: var(--border-focus); color: var(--accent); }
+.fil-delete-btn:hover { border-color: var(--error); color: var(--error); }
