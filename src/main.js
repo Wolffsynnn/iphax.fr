@@ -3539,3 +3539,57 @@ setInterval(() => {
 }, 1000);
 
 console.log('✅ Admin news + demandes chargés');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ADMIN NEWS — Sans index composite (fix erreur)
+// ═══════════════════════════════════════════════════════════════════════════
+let adminNewsUnsubscribe2 = null;
+
+function loadAdminNews() {
+  const list = document.getElementById('admin-news-list');
+  if (!list) return;
+
+  if (adminNewsUnsubscribe2) adminNewsUnsubscribe2();
+
+  // ⚠️ Sans orderBy, pas besoin d'index
+  const q = query(collection(db, 'news'), limit(50));
+
+  adminNewsUnsubscribe2 = onSnapshot(q, (snap) => {
+    const news = [];
+    snap.forEach(d => news.push({ id: d.id, ...d.data() }));
+
+    // Tri côté client
+    news.sort((a, b) => {
+      const ta = a.createdAt?.toMillis?.() || 0;
+      const tb = b.createdAt?.toMillis?.() || 0;
+      return tb - ta;
+    });
+
+    if (news.length === 0) {
+      list.innerHTML = '<p class="empty-state">Aucune news pour l\'instant. Clique sur "Créer une news" ✨</p>';
+      return;
+    }
+
+    list.innerHTML = '';
+    news.forEach(n => {
+      const article = document.createElement('article');
+      article.className = 'card';
+      article.innerHTML = `
+        <span class="card-badge">${escapeHtml(n.type || '📰 Info')}</span>
+        <h3>${escapeHtml(n.title || 'Sans titre')}</h3>
+        <p>${escapeHtml(n.content || '')}</p>
+        <span class="card-meta">Par ${escapeHtml(n.authorName || 'Admin')} • ${formatDate(n.createdAt)}</span>
+      `;
+      list.appendChild(article);
+    });
+  }, (err) => {
+    console.error('❌ Erreur news :', err);
+    list.innerHTML = '<p class="empty-state">Erreur : ' + (err.code || err.message) + '</p>';
+  });
+}
+
+// Forcer le rechargement des news quand on entre dans l'app admin
+setTimeout(() => {
+  const list = document.getElementById('admin-news-list');
+  if (list) loadAdminNews();
+}, 2000);
