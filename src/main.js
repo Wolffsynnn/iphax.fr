@@ -667,9 +667,7 @@ function initEcoutant() {
   $('chat-eco-form')?.addEventListener('submit', sendEcoMessage, { once: true });
   loadFilsList('eco');
   const bp = $('btn-proposer-post-eco');
-  if (bp && !bp.dataset.bound) { bp.dataset.bound = '1'; bp.addEventListener('click', () => openDemandePostModal('general')); }
-  initProfilUI();
-}
+if (bp && !bp.dataset.bound) { bp.dataset.bound = '1'; bp.addEventListener('click', () => openFil('general', 'eco')); }
 function startAttenteListener() {
   if (unsubEcoAttente) unsubEcoAttente();
   const q = query(collection(db, 'conversations'), where('status', '==', 'waiting'));
@@ -1569,3 +1567,4 @@ onAuthStateChanged(auth, async user => {
 // ═══════════════════════════════════════════════════════════════════════════
 setupFilsButtons();
 console.log('✅ main.js chargé et prêt');
+}
