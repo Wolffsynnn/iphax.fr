@@ -1426,6 +1426,7 @@ function initAdmin() {
   loadFilsList('admin');
     // Panel Dev — chargement initial
     loadDevStats();
+    bindDevTabs();
 
     const devSearch = $('dev-search-users');
     if (devSearch && !devSearch.dataset.bound) {
@@ -1824,5 +1825,122 @@ async function loadDevUsers(search) {
 
   } catch (e) {
     c.innerHTML = '<p class="empty-state">⚠️ Erreur de recherche.</p>';
+  }
+}
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL DEV — LOGS
+// ═══════════════════════════════════════════════════════════════════════════
+
+let unsubDevLogs = null;
+let devLogsCache = [];
+let devLogsFilter = 'all';
+
+const DEV_LOG_ICONS = {
+  role: '👥',
+  delete: '🗑️',
+  signalement: '🚨',
+  conversation: '💬',
+  cgu: '📜'
+};
+
+async function logAction(type, text, extra = {}) {
+  // type = 'role' | 'delete' | 'signalement' | 'conversation' | 'cgu'
+  try {
+    await addDoc(collection(db, 'logs'), {
+      type,
+      text,
+      ...extra,
+      authorId: currentUser?.uid || 'system',
+      authorName: currentUserData?.displayName || 'Système',
+      createdAt: serverTimestamp()
+    });
+  } catch (e) {
+    console.warn('Impossible d\'écrire le log :', e);
+  }
+}
+
+function loadDevLogs() {
+  const c = $('dev-logs-list');
+  if (!c) return;
+
+  if (unsubDevLogs) { unsubDevLogs(); unsubDevLogs = null; }
+
+  c.innerHTML = '<p class="empty-state">Chargement…</p>';
+
+  const q = query(collection(db, 'logs'), orderBy('createdAt', 'desc'), limit(200));
+  unsubDevLogs = onSnapshot(q, snap => {
+    devLogsCache = [];
+    snap.forEach(d => devLogsCache.push({ id: d.id, ...d.data() }));
+    renderDevLogs();
+  }, err => {
+    c.innerHTML = '<p class="empty-state">⚠️ Impossible de charger les logs.<br><small style="opacity:0.7;">Vérifie les règles Firestore pour la collection "logs".</small></p>';
+  });
+}
+
+function renderDevLogs() {
+  const c = $('dev-logs-list');
+  if (!c) return;
+
+  const filtered = devLogsFilter === 'all'
+    ? devLogsCache
+    : devLogsCache.filter(l => l.type === devLogsFilter);
+
+  if (filtered.length === 0) {
+    c.innerHTML = '<p class="empty-state">Aucun log pour l\'instant.</p>';
+    return;
+  }
+
+  c.innerHTML = filtered.map(l => {
+    const icon = DEV_LOG_ICONS[l.type] || '📝';
+    const date = toDate(l.createdAt);
+    const ds = date
+      ? date.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+      : '';
+    return `
+      <div class="dev-log">
+        <div class="dev-log-icon">${icon}</div>
+        <div class="dev-log-body">
+          <div class="dev-log-text">${l.text || ''}</div>
+          <div class="dev-log-meta">${escapeHtml(l.authorName || 'Système')} • ${ds}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL DEV — BINDING DES SOUS-ONGLETS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function bindDevTabs() {
+  const tabs = document.querySelectorAll('#dev-tabs .mini-tab');
+  tabs.forEach(tab => {
+    if (tab.dataset.boundDev) return;
+    tab.dataset.boundDev = '1';
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.mini;
+      if (target === 'dashboard')    loadDevStats();
+      if (target === 'logs')         loadDevLogs();
+      if (target === 'signalements') loadDevSignalements();
+      if (target === 'roles') {
+        const c = $('dev-users-list');
+        if (c && !c.querySelector('.admin-user-card')) {
+          c.innerHTML = '<p class="empty-state">Tape un pseudo pour commencer</p>';
+        }
+      }
+    });
+  });
+
+  // Filtres des logs
+  const filtersBox = $('dev-log-filters');
+  if (filtersBox && !filtersBox.dataset.bound) {
+    filtersBox.dataset.bound = '1';
+    filtersBox.querySelectorAll('.filter').forEach(f => {
+      f.addEventListener('click', () => {
+        filtersBox.querySelectorAll('.filter').forEach(x => x.classList.remove('active'));
+        f.classList.add('active');
+        devLogsFilter = f.dataset.logFilter || 'all';
+        renderDevLogs();
+      });
+    });
   }
 }
