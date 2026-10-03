@@ -1400,7 +1400,7 @@ $('btn-logout-eco')?.addEventListener('click', handleLogout);
 // ═══════════════════════════════════════════════════════════════════════════
 function initAdmin() {
   initProfilUI(); setupFilsButtons();
-  ['admin-panel-tabs','admin-sup-tabs'].forEach(id => {
+  ['admin-panel-tabs','admin-sup-tabs','dev-tabs'].forEach(id => {
     const c = $(id); if (!c || c.dataset.bound) return; c.dataset.bound = '1';
     const tabs = c.querySelectorAll('.mini-tab'), ind = c.querySelector('.mini-tab-indicator');
     tabs.forEach((t, i) => t.addEventListener('click', () => {
@@ -1424,6 +1424,14 @@ function initAdmin() {
   const bn = $('btn-admin-new-news');
   if (bn && !bn.dataset.bound) { bn.dataset.bound = '1'; bn.addEventListener('click', openCreateNewsModal); }
   loadFilsList('admin');
+    // Panel Dev — chargement initial
+    loadDevStats();
+
+    const devSearch = $('dev-search-users');
+    if (devSearch && !devSearch.dataset.bound) {
+      devSearch.dataset.bound = '1';
+      devSearch.addEventListener('input', e => loadDevUsers(e.target.value));
+    }
 }
 function openCreateNewsModal() {
   const ov = openModal(`<div class="modal" style="max-width:520px;"><div class="modal-header"><div class="modal-title">📰 Nouvelle news</div><button class="modal-close">×</button></div><div class="modal-body"><div class="field"><label>Type</label><select id="nt" style="width:100%;padding:12px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);font-family:inherit;"><option value="📰 Annonce">📰 Annonce</option><option value="🎉 Événement">🎉 Événement</option><option value="💬 Témoignage">💬 Témoignage</option><option value="🆕 Nouveau contenu">🆕 Nouveau contenu</option><option value="📌 Épinglé">📌 Épinglé</option></select></div><div class="field" style="margin-top:14px;"><label>Titre</label><input type="text" id="nti" maxlength="100"></div><div class="field" style="margin-top:14px;"><label>Contenu</label><textarea id="nc" style="min-height:140px;"></textarea></div></div><div class="modal-footer"><button class="btn btn-ghost modal-close">Annuler</button><button class="btn btn-primary" id="ns">Publier</button></div></div>`);
