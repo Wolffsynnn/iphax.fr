@@ -1598,3 +1598,223 @@ window.testGear = function() {
     alert('❌ openSettingsModal N\'EXISTE PAS dans main.js');
   }
 };
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL DEV — DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function loadDevStats() {
+  const c = $('dev-stats');
+  if (!c) return;
+  c.innerHTML = '<p class="empty-state">Chargement…</p>';
+
+  try {
+    // Récupère tout en parallèle
+    const [usersSnap, convsSnap, newsSnap, sigSnap, demandesSnap] = await Promise.all([
+      getDocs(query(collection(db, 'users'), limit(500))),
+      getDocs(query(collection(db, 'conversations'), limit(500))),
+      getDocs(query(collection(db, 'news'), limit(500))),
+      getDocs(query(collection(db, 'signalements'), limit(500))),
+      getDocs(query(collection(db, 'demandes-fil'), limit(500)))
+    ]);
+
+    // Compte les utilisateurs par rôle
+    let nbMembres = 0, nbEcoutants = 0, nbAdmins = 0, nbDevs = 0, nbFondateurs = 0;
+    usersSnap.forEach(d => {
+      const r = d.data().role || 'membre';
+      if (r === 'membre') nbMembres++;
+      else if (estEcoutant(r)) nbEcoutants++;
+      else if (estAdmin(r)) nbAdmins++;
+      else if (estDev(r)) nbDevs++;
+      else if (r === 'fondateur') nbFondateurs++;
+    });
+
+    // Compte les conversations
+    let convWaiting = 0, convClaimed = 0, convResolved = 0;
+    convsSnap.forEach(d => {
+      const s = d.data().status;
+      if (s === 'waiting') convWaiting++;
+      else if (s === 'claimed') convClaimed++;
+      else if (s === 'resolved') convResolved++;
+    });
+
+    // Compte les signalements en attente
+    let sigPending = 0;
+    sigSnap.forEach(d => { if (d.data().status === 'pending') sigPending++; });
+
+    // Compte les demandes en attente
+    let demPending = 0;
+    demandesSnap.forEach(d => { if (d.data().status === 'pending') demPending++; });
+
+    const totalUsers = usersSnap.size;
+    const totalConvs = convsSnap.size;
+
+    c.innerHTML = `
+      <div class="dev-stat-card">
+        <div class="dev-stat-icon">👥</div>
+        <div class="dev-stat-value">${totalUsers}</div>
+        <div class="dev-stat-label">Utilisateurs</div>
+      </div>
+
+      <div class="dev-stat-card">
+        <div class="dev-stat-icon">💬</div>
+        <div class="dev-stat-value">${totalConvs}</div>
+        <div class="dev-stat-label">Conversations</div>
+      </div>
+
+      <div class="dev-stat-card">
+        <div class="dev-stat-icon">🧑‍⚕️</div>
+        <div class="dev-stat-value">${nbEcoutants}</div>
+        <div class="dev-stat-label">Écoutants</div>
+      </div>
+
+      <div class="dev-stat-card">
+        <div class="dev-stat-icon">🔥</div>
+        <div class="dev-stat-value">${convWaiting}</div>
+        <div class="dev-stat-label">En attente</div>
+      </div>
+
+      <div class="dev-stat-card">
+        <div class="dev-stat-icon">🚨</div>
+        <div class="dev-stat-value">${sigPending}</div>
+        <div class="dev-stat-label">Signalements</div>
+      </div>
+
+      <div class="dev-stat-card">
+        <div class="dev-stat-icon">📥</div>
+        <div class="dev-stat-value">${demPending}</div>
+        <div class="dev-stat-label">Demandes</div>
+      </div>
+
+      <div class="dev-stat-card">
+        <div class="dev-stat-icon">📰</div>
+        <div class="dev-stat-value">${newsSnap.size}</div>
+        <div class="dev-stat-label">News publiées</div>
+      </div>
+
+      <div class="dev-stat-card">
+        <div class="dev-stat-icon">✅</div>
+        <div class="dev-stat-value">${convResolved}</div>
+        <div class="dev-stat-label">Convs résolues</div>
+      </div>
+    `;
+  } catch (e) {
+    console.error(e);
+    c.innerHTML = '<p class="empty-state">⚠️ Impossible de charger les stats.</p>';
+  }
+}
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL DEV — GESTION DES RÔLES
+// ═══════════════════════════════════════════════════════════════════════════
+
+const DEV_ROLES_LIST = [
+  { id: 'membre',      label: '👤 Membre' },
+  { id: 'ecoutant',    label: '🧑‍⚕️ Écoutant' },
+  { id: 'responsable', label: '🎓 Responsable' },
+  { id: 'chef_service',label: '🏅 Chef de service' },
+  { id: 'moderateur',  label: '🛡️ Modérateur' },
+  { id: 'admin',       label: '🔧 Admin' },
+  { id: 'dev',         label: '💻 Dev' },
+  { id: 'fondateur',   label: '👑 Fondateur' }
+];
+
+function peutChangerRoles() {
+  const r = currentUserData?.role;
+  return r === 'fondateur' || estDev(r);
+}
+
+async function loadDevUsers(search) {
+  const c = $('dev-users-list');
+  if (!c) return;
+
+  if (!peutChangerRoles()) {
+    c.innerHTML = '<p class="empty-state">🚫 Accès réservé aux Devs / Fondateurs.</p>';
+    return;
+  }
+
+  if (!search || search.length < 2) {
+    c.innerHTML = '<p class="empty-state">Tape au moins 2 lettres</p>';
+    return;
+  }
+
+  c.innerHTML = '<p class="empty-state">Recherche…</p>';
+
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), limit(300)));
+    const s = search.toLowerCase();
+    const found = [];
+    snap.forEach(d => {
+      const data = d.data();
+      if ((data.username || '').toLowerCase().includes(s) ||
+          (data.displayName || '').toLowerCase().includes(s)) {
+        found.push({ id: d.id, ...data });
+      }
+    });
+
+    if (found.length === 0) {
+      c.innerHTML = '<p class="empty-state">Aucun résultat</p>';
+      return;
+    }
+
+    c.innerHTML = found.map(u => {
+      const isMe = u.id === currentUser.uid;
+      const options = DEV_ROLES_LIST.map(r =>
+        `<option value="${r.id}" ${u.role === r.id ? 'selected' : ''}>${r.label}</option>`
+      ).join('');
+
+      return `
+        <div class="admin-user-card">
+          <div class="admin-user-avatar">${u.avatar || '👤'}</div>
+          <div class="admin-user-infos">
+            <div class="admin-user-name">${escapeHtml(u.displayName || 'Sans nom')}</div>
+            <div class="admin-user-meta">@${escapeHtml(u.username || 'inconnu')}</div>
+          </div>
+          <div class="dev-user-actions">
+            <select class="dev-role-select" data-uid="${u.id}" data-old-role="${u.role || 'membre'}" ${isMe ? 'disabled title="Impossible de modifier ton propre rôle"' : ''}>
+              ${options}
+            </select>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Binding du changement de rôle
+    c.querySelectorAll('.dev-role-select').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        const uid = sel.dataset.uid;
+        const oldRole = sel.dataset.oldRole;
+        const newRole = sel.value;
+
+        if (newRole === oldRole) return;
+
+        const ok = confirm(
+          `Changer le rôle de cet utilisateur ?\n\n` +
+          `${LABELS_ROLES[oldRole] || oldRole} → ${LABELS_ROLES[newRole] || newRole}`
+        );
+        if (!ok) {
+          sel.value = oldRole;
+          return;
+        }
+
+        sel.disabled = true;
+        try {
+          await updateDoc(doc(db, 'users', uid), {
+            role: newRole,
+            roleChangedAt: serverTimestamp(),
+            roleChangedBy: currentUser.uid,
+            roleChangedByName: currentUserData?.displayName || 'Dev'
+          });
+          sel.dataset.oldRole = newRole;
+          notify(`Rôle mis à jour : ${LABELS_ROLES[newRole] || newRole}`, 'success');
+        } catch (e) {
+          sel.value = oldRole;
+          notify('Erreur : ' + e.message, 'error');
+        } finally {
+          sel.disabled = false;
+        }
+      });
+    });
+
+  } catch (e) {
+    c.innerHTML = '<p class="empty-state">⚠️ Erreur de recherche.</p>';
+  }
+}

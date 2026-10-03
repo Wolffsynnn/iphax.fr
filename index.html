@@ -1613,11 +1613,6 @@
 
 
       <div class="feed">
-
-        <button
-          class="btn-create-news"
-          id="btn-create-news-eco"
-          type="button"
         >
           ➕ Créer une news
         </button>
@@ -2438,43 +2433,115 @@
     <div class="page" data-page="admin-dev">
 
       <header class="page-header">
-
-        <h1 class="page-title">
-          💻 Panel Dev
-        </h1>
-
-        <p class="page-subtitle">
-          Outils techniques
-        </p>
-
+        <h1 class="page-title">💻 Panel Dev</h1>
+        <p class="page-subtitle">Outils techniques</p>
       </header>
 
+      <div
+        class="mini-tabs"
+        id="dev-tabs"
+        data-active="dashboard"
+      >
+        <button class="mini-tab active" data-mini="dashboard" type="button">
+          📊 Dashboard
+        </button>
+        <button class="mini-tab" data-mini="roles" type="button">
+          👥 Rôles
+        </button>
+        <button class="mini-tab" data-mini="logs" type="button">
+          📜 Logs
+        </button>
+        <button class="mini-tab" data-mini="signalements" type="button">
+          🚨 Signalements
+        </button>
+        <button class="mini-tab" data-mini="outils" type="button">
+          ⚙️ Outils
+        </button>
 
-      <div class="wysp-container">
+        <span class="mini-tab-indicator" style="width:calc(20% - 2px);"></span>
+      </div>
 
-        <div class="wysp-wrapper">
+      <!-- SOUS-ONGLET 1 : DASHBOARD -->
+      <div class="mini-content active" data-mini-content="dashboard">
+        <div id="dev-stats" class="dev-stats">
+          <p class="empty-state">Chargement…</p>
+        </div>
+      </div>
 
-          <svg
-            class="wysp"
-            viewBox="0 0 200 240"
-          >
-            <use href="#wysp-icon"/>
-          </svg>
+      <!-- SOUS-ONGLET 2 : RÔLES -->
+      <div class="mini-content" data-mini-content="roles">
+        <input
+          type="text"
+          class="admin-search"
+          id="dev-search-users"
+          placeholder="🔍 Rechercher un utilisateur…"
+        >
+        <div id="dev-users-list">
+          <p class="empty-state">Tape un pseudo pour commencer</p>
+        </div>
+      </div>
+
+      <!-- SOUS-ONGLET 3 : LOGS -->
+      <div class="mini-content" data-mini-content="logs">
+        <div class="filters" id="dev-log-filters">
+          <button class="filter active" data-log-filter="all" type="button">Tout</button>
+          <button class="filter" data-log-filter="role" type="button">Rôles</button>
+          <button class="filter" data-log-filter="delete" type="button">Suppressions</button>
+          <button class="filter" data-log-filter="signalement" type="button">Signalements</button>
+          <button class="filter" data-log-filter="conversation" type="button">Conversations</button>
+          <button class="filter" data-log-filter="cgu" type="button">CGU</button>
+        </div>
+        <div id="dev-logs-list">
+          <p class="empty-state">Chargement…</p>
+        </div>
+      </div>
+
+      <!-- SOUS-ONGLET 4 : SIGNALEMENTS -->
+      <div class="mini-content" data-mini-content="signalements">
+        <div id="dev-signalements-list">
+          <p class="empty-state">Chargement…</p>
+        </div>
+      </div>
+
+      <!-- SOUS-ONGLET 5 : OUTILS -->
+      <div class="mini-content" data-mini-content="outils">
+        <div class="dev-tools">
+
+          <div class="dev-tool-card">
+            <div class="dev-tool-icon">🧹</div>
+            <div class="dev-tool-info">
+              <h3>Vider le cache local</h3>
+              <p>Supprime le thème et les préférences locales.</p>
+            </div>
+            <button class="btn btn-ghost btn-small" id="dev-clear-cache" type="button">Lancer</button>
+          </div>
+
+          <div class="dev-tool-card">
+            <div class="dev-tool-icon">🔄</div>
+            <div class="dev-tool-info">
+              <h3>Recharger l'application</h3>
+              <p>Force le rechargement complet de la page.</p>
+            </div>
+            <button class="btn btn-ghost btn-small" id="dev-reload" type="button">Lancer</button>
+          </div>
+
+          <div class="dev-tool-card">
+            <div class="dev-tool-icon">📦</div>
+            <div class="dev-tool-info">
+              <h3>Version de l'app</h3>
+              <p id="dev-version-text">—</p>
+            </div>
+          </div>
+
+          <div class="dev-tool-card">
+            <div class="dev-tool-icon">🔥</div>
+            <div class="dev-tool-info">
+              <h3>État Firebase</h3>
+              <p id="dev-firebase-status">Vérification…</p>
+            </div>
+          </div>
 
         </div>
-
-        <h2 class="wysp-title">
-          Wysp prépare le Panel Dev 🔨
-        </h2>
-
-        <p class="wysp-text">
-          Outils techniques, logs, statistiques système…
-        </p>
-
-        <p class="wysp-soon">
-          ⏳ Bientôt disponible
-        </p>
-
       </div>
 
     </div>
