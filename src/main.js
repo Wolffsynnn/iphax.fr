@@ -3057,60 +3057,10 @@ function setupAdminMiniTabs(containerId) {
 }
 
 // ─── Charger les demandes de publication ───
+// ─── Charger les demandes de publication ───
 async function loadAdminDemandes() {
   const list = document.getElementById('admin-demandes-list');
-  if (!list) return;
-  try {
-    const q = query(collection(db, 'demandes-fil'), where('status', '==', 'pending'));
-    const snap = await getDocs(q);
-    if (snap.empty) {
-      list.innerHTML = '<p class="empty-state">Aucune demande ✨</p>';
-      return;
-    }
-    list.innerHTML = '';
-    snap.forEach(d => {
-      const data = d.data();
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `
-        <span class="card-badge">${data.anonyme ? '🎭 Anonyme' : '👤 ' + escapeHtml(data.authorName || 'Membre')}</span>
-        <h3>${escapeHtml(data.title || 'Sans titre')}</h3>
-        <p>${escapeHtml(data.content || '')}</p>
-        <div style="display:flex;gap:8px;margin-top:12px;">
-          <button class="btn btn-primary btn-small" data-action="valider" data-id="${d.id}">✅ Publier</button>
-          <button class="btn btn-danger btn-small" data-action="refuser" data-id="${d.id}">❌ Refuser</button>
-        </div>
-      `;
-      list.appendChild(card);
-    });
-
-    list.querySelectorAll('[data-action]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.dataset.id;
-        const action = btn.dataset.action;
-        if (action === 'valider') {
-          const snap2 = await getDoc(doc(db, 'demandes-fil', id));
-          if (snap2.exists()) {
-            const data = snap2.data();
-            await addDoc(collection(db, 'fil-general'), {
-              title: data.title, content: data.content,
-              anonyme: data.anonyme, authorName: data.authorName,
-              createdAt: serverTimestamp()
-            });
-          }
-          // Marquer comme traitée — mais les règles bloquent l'update
-          // On va plutôt utiliser une autre méthode
-          await deleteDoc(doc(db, 'demandes-fil', id)).catch(() => {});
-        } else {
-          await deleteDoc(doc(db, 'demandes-fil', id)).catch(() => {});
-        }
-        loadAdminDemandes();
-      });
-    });
-  } catch (e) {
-    console.warn('Erreur demandes :', e);
-    list.innerHTML = '<p class="empty-state">Impossible de charger.</p>';
-  }
+  ...
 }
 
 // ─── Charger les membres ───
