@@ -1841,3 +1841,1101 @@ function startEcoNewsListener(containerId) {
 }
 
 console.log('✅ main.js v3 — Partie 1/2 chargée');
+// ═══════════════════════════════════════════════════════════════════════════
+// PARTIE 2/2 — Profil + Thèmes + Paramètres + FILS + Admin + Auth state
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── Appliquer le thème ───
+function applyTheme(themeId) {
+  document.body.dataset.theme = themeId || 'iphax';
+  try { localStorage.setItem('iphax_theme', themeId || 'iphax'); } catch (e) {}
+}
+applyTheme(localStorage.getItem('iphax_theme') || 'iphax');
+
+function joursRestants(lastChangeTs, cooldownJours) {
+  if (!lastChangeTs) return 0;
+  const last = lastChangeTs.toMillis ? lastChangeTs.toMillis() : new Date(lastChangeTs).getTime();
+  const diffMs = (cooldownJours * 24 * 60 * 60 * 1000) - (Date.now() - last);
+  if (diffMs <= 0) return 0;
+  return Math.ceil(diffMs / (24 * 60 * 60 * 1000));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PROFIL — Header
+// ═══════════════════════════════════════════════════════════════════════════
+function renderProfilHeader(containerId, data) {
+  const container = $(containerId);
+  if (!container || !data) return;
+  const avatar = data.avatar || '🌙';
+  const displayName = data.displayName || 'Utilisateur';
+  const username = data.username || 'inconnu';
+  const bio = data.bio || '';
+
+  container.innerHTML = `
+    <div class="profil-avatar" id="${containerId}-avatar-btn" title="Changer d'avatar">
+      <span class="profil-avatar-emoji">${avatar}</span>
+      <span class="profil-avatar-edit">✏️</span>
+    </div>
+    <div class="profil-infos">
+      <div class="profil-name">${escapeHtml(displayName)}</div>
+      <div class="profil-username">@${escapeHtml(username)}</div>
+      ${bio ? `<div class="profil-bio">${escapeHtml(bio)}</div>` : ''}
+    </div>`;
+
+  $(`${containerId}-avatar-btn`)?.addEventListener('click', () => openAvatarPicker(data));
+}
+
+function refreshProfils() {
+  if (!currentUserData) return;
+  renderProfilHeader('profil-header', currentUserData);
+  renderProfilHeader('profil-eco-header', currentUserData);
+  renderProfilHeader('profil-admin-header', currentUserData);
+}
+
+function initProfilUI() {
+  refreshProfils();
+  ['btn-gear','btn-gear-eco','btn-gear-admin'].forEach(id => {
+    const btn = $(id);
+    if (btn && !btn.dataset.bound) { btn.dataset.bound = '1'; btn.addEventListener('click', openSettingsModal); }
+  });
+}
+
+// ─── Modale avatar ───
+function openAvatarPicker(data) {
+  const current = data.avatar || '🌙';
+  const overlay = openModal(`
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header"><div class="modal-title">🖼️ Choisis ton avatar</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="avatar-grid">
+          ${AVATARS.map(a => `<button class="avatar-choice ${a===current?'selected':''}" data-avatar="${a}">${a}</button>`).join('')}
+        </div>
+      </div>
+    </div>`);
+  overlay.querySelectorAll('.avatar-choice').forEach(btn => btn.addEventListener('click', async () => {
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), { avatar: btn.dataset.avatar });
+      currentUserData.avatar = btn.dataset.avatar;
+      overlay.remove();
+      refreshProfils();
+    } catch (e) { alert('❌ Erreur'); }
+  }));
+}
+
+// ─── Modale nom d'affichage ───
+function openEditDisplayName() {
+  const current = currentUserData.displayName || '';
+  const jours = joursRestants(currentUserData.lastDisplayNameChange, 7);
+  if (jours > 0) { alert(`⏳ Attends encore ${jours} jour(s).`); return; }
+  const overlay = openModal(`
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header"><div class="modal-title">✏️ Nom d'affichage</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="field">
+          <label>Nom d'affichage (30 car. max, 1x/7j)</label>
+          <input type="text" id="edit-displayname" value="${escapeHtml(current)}" maxlength="30">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="edit-dn-save">💾 Enregistrer</button>
+      </div>
+    </div>`);
+  overlay.querySelector('#edit-dn-save').addEventListener('click', async () => {
+    const val = overlay.querySelector('#edit-displayname').value.trim();
+    if (!val) { alert('⚠️ Entre un nom.'); return; }
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), { displayName: val, lastDisplayNameChange: serverTimestamp() });
+      currentUserData.displayName = val;
+      overlay.remove(); refreshProfils();
+    } catch (e) { alert('❌ Erreur'); }
+  });
+}
+
+// ─── Modale username ───
+function openEditUsername() {
+  const current = currentUserData.username || '';
+  const jours = joursRestants(currentUserData.lastUsernameChange, 30);
+  if (jours > 0) { alert(`⏳ Attends encore ${jours} jour(s).`); return; }
+  const overlay = openModal(`
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header"><div class="modal-title">✏️ Nom d'utilisateur</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="field">
+          <label>Nom d'utilisateur (3-24 car., unique, 1x/30j)</label>
+          <div class="field-input">
+            <span class="field-prefix">@</span>
+            <input type="text" id="edit-username" value="${escapeHtml(current)}" minlength="3" maxlength="24" autocomplete="off">
+          </div>
+          <p class="field-hint" id="un-hint">3-24 car., commence par une lettre, autorisé : . _ -</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="edit-un-save">💾 Enregistrer</button>
+      </div>
+    </div>`);
+  overlay.querySelector('#edit-un-save').addEventListener('click', async () => {
+    const val = overlay.querySelector('#edit-username').value.trim();
+    const hint = overlay.querySelector('#un-hint');
+    if (!/^[A-Za-z][A-Za-z0-9._-]{2,23}$/.test(val)) { hint.textContent = '⚠️ Nom invalide.'; hint.style.color = 'var(--error)'; return; }
+    if (val.toLowerCase() === current.toLowerCase()) { overlay.remove(); return; }
+    hint.textContent = '🔍 Vérification...'; hint.style.color = 'var(--text-muted)';
+    try {
+      const q = query(collection(db, 'users'), where('username', '==', val));
+      const snap = await getDocs(q);
+      if (snap.docs.some(d => d.id !== currentUser.uid)) { hint.textContent = '❌ Déjà pris.'; hint.style.color = 'var(--error)'; return; }
+      await updateDoc(doc(db, 'users', currentUser.uid), { username: val, lastUsernameChange: serverTimestamp() });
+      currentUserData.username = val;
+      overlay.remove(); refreshProfils();
+    } catch (e) { hint.textContent = '❌ Erreur.'; hint.style.color = 'var(--error)'; }
+  });
+}
+
+// ─── Modale bio ───
+function openEditBio() {
+  const current = currentUserData.bio || '';
+  const overlay = openModal(`
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header"><div class="modal-title">📝 Bio</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="field">
+          <label>Courte description (150 car. max)</label>
+          <textarea id="edit-bio" maxlength="150" placeholder="Quelques mots sur toi…" style="min-height:100px;">${escapeHtml(current)}</textarea>
+          <div class="bio-counter" id="bio-counter">${current.length}/150</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="edit-bio-save">💾 Enregistrer</button>
+      </div>
+    </div>`);
+  const ta = overlay.querySelector('#edit-bio'), counter = overlay.querySelector('#bio-counter');
+  ta.addEventListener('input', () => counter.textContent = `${ta.value.length}/150`);
+  overlay.querySelector('#edit-bio-save').addEventListener('click', async () => {
+    const val = ta.value.trim();
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), { bio: val || null });
+      currentUserData.bio = val;
+      overlay.remove(); refreshProfils();
+    } catch (e) { alert('❌ Erreur'); }
+  });
+}
+
+// ─── Modale mot de passe ───
+function openChangePassword() {
+  const overlay = openModal(`
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header"><div class="modal-title">🔑 Changer le mot de passe</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="field"><label>Mot de passe actuel</label>
+          <div class="field-input"><input type="password" id="pw-current" autocomplete="current-password"></div>
+        </div>
+        <div class="field" style="margin-top:14px;"><label>Nouveau mot de passe</label>
+          <div class="field-input"><input type="password" id="pw-new" placeholder="Min. 8 car., 1 lettre + 1 chiffre" autocomplete="new-password"></div>
+        </div>
+        <div class="field" style="margin-top:14px;"><label>Confirmer</label>
+          <div class="field-input"><input type="password" id="pw-confirm" autocomplete="new-password"></div>
+        </div>
+        <p class="auth-error" id="pw-error" style="margin-top:12px;"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="pw-save">💾 Enregistrer</button>
+      </div>
+    </div>`);
+  overlay.querySelector('#pw-save').addEventListener('click', async () => {
+    const cur = overlay.querySelector('#pw-current').value;
+    const nw = overlay.querySelector('#pw-new').value;
+    const cf = overlay.querySelector('#pw-confirm').value;
+    const err = overlay.querySelector('#pw-error');
+    err.textContent = '';
+    if (!cur) { err.textContent = '⚠️ Entre ton mot de passe actuel.'; return; }
+    if (nw.length < 8) { err.textContent = '⚠️ 8 car. min.'; return; }
+    if (!/[A-Za-z]/.test(nw) || !/[0-9]/.test(nw)) { err.textContent = '⚠️ 1 lettre + 1 chiffre.'; return; }
+    if (nw !== cf) { err.textContent = '⚠️ Ne correspondent pas.'; return; }
+    if (nw === cur) { err.textContent = '⚠️ Choisis un différent.'; return; }
+    try {
+      err.textContent = '🔍 Vérification...'; err.style.color = 'var(--text-muted)';
+      const cred = EmailAuthProvider.credential(currentUser.email, cur);
+      await reauthenticateWithCredential(currentUser, cred);
+      await updatePassword(currentUser, nw);
+      overlay.remove();
+      alert('✅ Mot de passe changé !');
+    } catch (e) {
+      err.style.color = 'var(--error)';
+      if (['auth/wrong-password','auth/invalid-credential'].includes(e.code)) err.textContent = '❌ Mot de passe actuel incorrect.';
+      else if (e.code === 'auth/too-many-requests') err.textContent = '⏳ Trop de tentatives.';
+      else err.textContent = '❌ ' + (e.message || 'Erreur');
+    }
+  });
+}
+
+// ─── Modale Paramètres ───
+function openSettingsModal() {
+  const currentTheme = localStorage.getItem('iphax_theme') || 'iphax';
+  const overlay = openModal(`
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-header"><div class="modal-title">⚙️ Paramètres</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="field">
+          <label style="font-size:14px;color:var(--text-primary);font-weight:600;">🎨 Thème</label>
+          <p style="font-size:12px;color:var(--text-muted);margin:6px 0 10px 4px;">Clique pour changer instantanément.</p>
+          <div class="theme-grid">
+            ${THEMES.map(t => `<div><button class="theme-choice ${t.id===currentTheme?'selected':''}" data-theme="${t.id}" style="background:linear-gradient(135deg,${t.colors[0]},${t.colors[1]},${t.colors[2]});"></button><div class="theme-label">${t.label}</div></div>`).join('')}
+          </div>
+        </div>
+        <div class="field" style="margin-top:24px;">
+          <label style="font-size:14px;color:var(--text-primary);font-weight:600;">👤 Profil</label>
+          <button class="btn btn-ghost btn-full" id="settings-dn" style="justify-content:flex-start;">✏️ Modifier le nom d'affichage</button>
+          <button class="btn btn-ghost btn-full" id="settings-un" style="justify-content:flex-start;margin-top:8px;">👤 Modifier le nom d'utilisateur</button>
+          <button class="btn btn-ghost btn-full" id="settings-bio" style="justify-content:flex-start;margin-top:8px;">📝 Modifier la bio</button>
+        </div>
+        <div class="field" style="margin-top:24px;">
+          <label style="font-size:14px;color:var(--text-primary);font-weight:600;">🔐 Sécurité</label>
+          <button class="btn btn-ghost btn-full" id="settings-password" style="justify-content:flex-start;">🔑 Changer le mot de passe</button>
+        </div>
+        <div class="field" style="margin-top:24px;">
+          <label style="font-size:14px;color:var(--text-primary);font-weight:600;">ℹ️ Infos privées</label>
+          <div style="padding:12px;background:rgba(10,26,61,0.5);border-radius:var(--radius-sm);font-size:13px;color:var(--text-secondary);">
+            📧 ${escapeHtml(currentUserData?.email || 'non renseigné')}<br>
+            🎂 ${escapeHtml(currentUserData?.birthdate || 'non renseignée')}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="settings-logout" style="flex:1;">🚪 Déconnexion</button>
+      </div>
+    </div>`);
+  overlay.querySelectorAll('.theme-choice').forEach(btn => btn.addEventListener('click', async () => {
+    const chosen = btn.dataset.theme;
+    applyTheme(chosen);
+    overlay.querySelectorAll('.theme-choice').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    try { await updateDoc(doc(db, 'users', currentUser.uid), { theme: chosen }); currentUserData.theme = chosen; } catch (e) {}
+  }));
+  overlay.querySelector('#settings-dn').addEventListener('click', () => { overlay.remove(); setTimeout(openEditDisplayName, 150); });
+  overlay.querySelector('#settings-un').addEventListener('click', () => { overlay.remove(); setTimeout(openEditUsername, 150); });
+  overlay.querySelector('#settings-bio').addEventListener('click', () => { overlay.remove(); setTimeout(openEditBio, 150); });
+  overlay.querySelector('#settings-password').addEventListener('click', () => { overlay.remove(); setTimeout(openChangePassword, 150); });
+  overlay.querySelector('#settings-logout').addEventListener('click', () => { overlay.remove(); handleLogout(); });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DÉCONNEXION
+// ═══════════════════════════════════════════════════════════════════════════
+function handleLogout() {
+  if (!confirm('Se déconnecter d\'Iphax ?')) return;
+  signOut(auth).then(() => {
+    currentUser = null; currentUserData = null;
+    [memberChatUnsub, ecoChatUnsub, unsubEcoAttente, unsubEcoMes, unsubEcoResolues, unsubAdminNews, unsubEcoNews, unsubAdminDemandes, unsubFilPosts, unsubFilsList].forEach(u => { if (typeof u === 'function') u(); });
+    memberChatUnsub = ecoChatUnsub = unsubEcoAttente = unsubEcoMes = unsubEcoResolues = unsubAdminNews = unsubEcoNews = unsubAdminDemandes = unsubFilPosts = unsubFilsList = null;
+    showScreen('screen-intro');
+  });
+}
+$('btn-logout')?.addEventListener('click', handleLogout);
+$('btn-logout-eco')?.addEventListener('click', handleLogout);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DEMANDE DE PUBLICATION (fil général) — Membres + Écoutants
+// ═══════════════════════════════════════════════════════════════════════════
+function openDemandeFilModal() {
+  let anonyme = true;
+  const overlay = openModal(`
+    <div class="modal">
+      <div class="modal-header"><div class="modal-title">✍️ Demander à publier</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="field"><label>Anonyme ?</label>
+          <div class="journal-privacy-choice">
+            <button type="button" class="journal-privacy-option active" data-anon="true"><span class="privacy-icon">🎭</span><span class="privacy-label">Anonyme</span></button>
+            <button type="button" class="journal-privacy-option" data-anon="false"><span class="privacy-icon">👤</span><span class="privacy-label">Avec mon pseudo</span></button>
+          </div>
+        </div>
+        <div class="field"><label>Titre</label><input type="text" id="fil-title" placeholder="Un titre..." maxlength="100"></div>
+        <div class="field"><label>Ton message</label><textarea id="fil-content" placeholder="Témoignage, mot gentil, conseil..." style="min-height:140px;"></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="fil-send">Envoyer</button>
+      </div>
+    </div>`);
+  overlay.querySelectorAll('.journal-privacy-option').forEach(opt => opt.addEventListener('click', () => {
+    overlay.querySelectorAll('.journal-privacy-option').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active'); anonyme = opt.dataset.anon === 'true';
+  }));
+  overlay.querySelector('#fil-send').addEventListener('click', async () => {
+    const title = overlay.querySelector('#fil-title').value.trim();
+    const content = overlay.querySelector('#fil-content').value.trim();
+    if (!content) { alert('✍️ Écris ton message'); return; }
+    try {
+      await addDoc(collection(db, 'demandes-fil'), {
+        authorId: currentUser.uid,
+        authorName: currentUserData?.displayName || 'Utilisateur',
+        anonyme, title: title || 'Sans titre', content,
+        status: 'pending', createdAt: serverTimestamp()
+      });
+      overlay.remove();
+      alert('✅ Ta demande a été envoyée !');
+    } catch (e) { alert('❌ Impossible d\'envoyer.'); }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ★ SYSTÈME DE FILS COMPLET
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Modèle de données :
+// fils/{filId} = { title, description, color, theme, footer, authorName, authorId,
+//                  type: 'general'|'thera', members: [uid...], createdAt, isSystem }
+// fils/{filId}/posts/{postId} = { authorId, authorName, message, reactions: {emoji: {uid:true}},
+//                                  createdAt }
+
+const FILS_SYSTEME = [
+  { id: 'general', title: 'Fil général Iphax', description: 'Témoignages, mots gentils, conseils…', theme: 'Général', color: '#00E5FF', type: 'general', isSystem: true, footer: 'Ici, quelqu\'un t\'écoute 💙' }
+];
+
+// ─── Créer un fil thérapeutique (admin) ───
+function openCreateFilTheraModal() {
+  let selectedColor = '#00E5FF';
+  const COLORS = ['#00E5FF','#A78BFA','#F472B6','#3DDC97','#FB923C','#FFD93D','#E04A5A','#8FA6C7'];
+  const overlay = openModal(`
+    <div class="modal" style="max-width:560px;">
+      <div class="modal-header"><div class="modal-title">➕ Nouveau fil thérapeutique</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="field"><label>Titre</label><input type="text" id="ft-title" maxlength="80" placeholder="Ex : Groupe anxiété"></div>
+        <div class="field" style="margin-top:14px;"><label>Thème</label><input type="text" id="ft-theme" maxlength="40" placeholder="Ex : Anxiété"></div>
+        <div class="field" style="margin-top:14px;"><label>Description</label><textarea id="ft-desc" maxlength="500" placeholder="Décris ce fil…" style="min-height:100px;"></textarea></div>
+        <div class="field" style="margin-top:14px;"><label>Mini-texte de fin</label><input type="text" id="ft-footer" maxlength="120" placeholder="Ex : Prends soin de toi 💙"></div>
+        <div class="field" style="margin-top:14px;"><label>Couleur</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${COLORS.map((c,i) => `<button type="button" class="color-choice ${i===0?'selected':''}" data-color="${c}" style="width:36px;height:36px;border-radius:50%;background:${c};border:2px solid ${i===0?'#fff':'transparent'};cursor:pointer;"></button>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="ft-save">✨ Créer le fil</button>
+      </div>
+    </div>`);
+  overlay.querySelectorAll('.color-choice').forEach(btn => btn.addEventListener('click', () => {
+    overlay.querySelectorAll('.color-choice').forEach(b => b.style.borderColor = 'transparent');
+    btn.style.borderColor = '#fff';
+    selectedColor = btn.dataset.color;
+  }));
+  overlay.querySelector('#ft-save').addEventListener('click', async () => {
+    const title = overlay.querySelector('#ft-title').value.trim();
+    const theme = overlay.querySelector('#ft-theme').value.trim();
+    const description = overlay.querySelector('#ft-desc').value.trim();
+    const footer = overlay.querySelector('#ft-footer').value.trim();
+    if (!title) { alert('⚠️ Titre obligatoire'); return; }
+    try {
+      const ref = await addDoc(collection(db, 'fils'), {
+        title, theme: theme || 'Thérapie', description, footer, color: selectedColor,
+        type: 'thera',
+        authorName: currentUserData?.displayName || 'Admin',
+        authorId: currentUser.uid,
+        members: [],
+        isSystem: false,
+        createdAt: serverTimestamp()
+      });
+      overlay.remove();
+      alert('✅ Fil créé !');
+    } catch (e) { console.error(e); alert('❌ Erreur : ' + e.message); }
+  });
+}
+
+// ─── Assurer que le fil général existe ───
+async function ensureFilGeneral() {
+  try {
+    const ref = doc(db, 'fils', 'general');
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        title: 'Fil général Iphax',
+        description: 'Témoignages, mots gentils, conseils… Ici on partage avec bienveillance.',
+        theme: 'Général',
+        color: '#00E5FF',
+        type: 'general',
+        isSystem: true,
+        footer: 'Ici, quelqu\'un t\'écoute 💙',
+        authorName: 'Équipe Iphax',
+        authorId: 'system',
+        members: [],
+        createdAt: serverTimestamp()
+      });
+    }
+  } catch (e) { console.warn('Erreur init fil général :', e); }
+}
+
+// ─── Ouvrir un fil (membre / écoutant / admin) ───
+async function openFil(filId, contexte) {
+  currentFilId = filId;
+  const pageName = contexte === 'admin' ? 'fil-detail-admin' : contexte === 'eco' ? 'fil-detail-eco' : 'fil-detail';
+  const appName = contexte === 'admin' ? 'app-admin' : contexte === 'eco' ? 'app-ecoutant' : 'app-membre';
+  openPage(appName, pageName);
+
+  try {
+    const snap = await getDoc(doc(db, 'fils', filId));
+    if (!snap.exists()) { alert('❌ Fil introuvable'); return; }
+    currentFilData = snap.data();
+
+    // Adapter l'ID des éléments selon le contexte
+    const prefix = contexte === 'admin' ? 'fil-admin' : contexte === 'eco' ? 'fil-eco' : 'fil-detail';
+
+    // Embed
+    const embed = $(`${prefix.replace('fil-','fil-detail-').replace('fil-detail-detail','fil-detail')}-embed`) || $('fil-detail-embed') || $('fil-detail-eco-embed') || $('fil-detail-admin-embed');
+    const titleEl = $('fil-detail-title') || $('fil-detail-eco-title') || $('fil-detail-admin-title');
+    const subEl = $('fil-detail-subtitle') || $('fil-detail-eco-subtitle') || $('fil-detail-admin-subtitle');
+
+    if (titleEl) titleEl.textContent = currentFilData.title || 'Fil';
+    if (subEl) subEl.textContent = currentFilData.theme || '';
+
+    // Injecter les données dans l'embed selon le contexte
+    const embedEl = $('fil-detail-embed') || $('fil-detail-eco-embed') || $('fil-detail-admin-embed');
+    if (embedEl) {
+      embedEl.style.setProperty('--fil-color', currentFilData.color || '#00E5FF');
+      const eTitle = embedEl.querySelector('.fil-embed-title');
+      const eAuthor = embedEl.querySelector('.fil-embed-author');
+      const eTheme = embedEl.querySelector('.fil-embed-theme');
+      const eDate = embedEl.querySelector('.fil-embed-date');
+      const eDesc = embedEl.querySelector('.fil-embed-desc');
+      const eFooter = embedEl.querySelector('.fil-embed-footer');
+      if (eTitle) eTitle.textContent = currentFilData.title || '';
+      if (eAuthor) eAuthor.textContent = '@' + (currentFilData.authorName || 'system');
+      if (eTheme) eTheme.textContent = currentFilData.theme || '';
+      if (eDate) eDate.textContent = formatDate(currentFilData.createdAt);
+      if (eDesc) eDesc.textContent = currentFilData.description || '';
+      if (eFooter) eFooter.textContent = currentFilData.footer || '';
+    }
+
+    // Compteur de membres
+    const membersCount = $('fil-members-count') || $('fil-members-eco-count') || $('fil-members-admin-count');
+    if (membersCount) membersCount.textContent = (currentFilData.members || []).length;
+
+    // Bouton ➕ admin (visible seulement pour admin+)
+    const btnAdd = $('btn-add-member-admin');
+    if (btnAdd) {
+      btnAdd.style.display = (aAccesAdmin(currentUserData.role) || peutCreerFilThera(currentUserData.role)) ? 'flex' : 'none';
+      if (!btnAdd.dataset.bound) {
+        btnAdd.dataset.bound = '1';
+        btnAdd.addEventListener('click', () => openAddMemberModal(filId));
+      }
+    }
+
+    // Charger les posts
+    startFilPostsListener(filId, prefix);
+
+  } catch (e) { console.error('Erreur openFil :', e); alert('❌ Impossible d\'ouvrir le fil.'); }
+}
+
+// ─── Listener posts d'un fil ───
+function startFilPostsListener(filId, prefix) {
+  if (unsubFilPosts) { unsubFilPosts(); unsubFilPosts = null; }
+  const container = $('fil-posts') || $('fil-eco-posts') || $('fil-admin-posts');
+  if (!container) return;
+  container.innerHTML = '<p class="empty-state">Chargement…</p>';
+
+  const q = query(collection(db, 'fils', filId, 'posts'), orderBy('createdAt', 'asc'), limit(200));
+  unsubFilPosts = onSnapshot(q, snap => {
+    if (snap.empty) { container.innerHTML = '<p class="empty-state">Aucun post pour l\'instant.</p>'; return; }
+    container.innerHTML = '';
+    snap.forEach(d => {
+      const post = { id: d.id, ...d.data() };
+      const isOwner = post.authorId === currentUser?.uid;
+      const canDelete = isOwner || aAccesAdmin(currentUserData?.role);
+      const date = toDate(post.createdAt) || new Date();
+      const dateStr = date.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+
+      const reactionsHtml = REACTIONS_EMOJIS.map(e => {
+        const users = (post.reactions && post.reactions[e]) || {};
+        const count = Object.keys(users).length;
+        const active = !!users[currentUser?.uid];
+        return `<button class="fil-react-btn ${active?'active':''}" data-emoji="${e}" type="button">${e}<span class="fil-react-count">${count>0?count:''}</span></button>`;
+      }).join('');
+
+      const article = document.createElement('div');
+      article.className = 'fil-post';
+      article.innerHTML = `
+        <div class="fil-post-bar" style="background:${currentFilData?.color || '#00E5FF'};"></div>
+        <div class="fil-post-content">
+          <div class="fil-post-header">
+            <span class="fil-post-author">${escapeHtml(post.authorName || 'Anonyme')}</span>
+            <span>${dateStr}</span>
+          </div>
+          <div class="fil-post-message">${escapeHtml(post.message || '')}</div>
+          <div class="fil-post-actions">
+            ${reactionsHtml}
+            <button class="fil-react-plus" type="button" title="Réagir">➕</button>
+            <button class="fil-comment-btn" type="button" title="Commentaires">💬</button>
+            ${canDelete ? `<button class="fil-delete-btn" type="button" title="Supprimer">🗑️</button>` : ''}
+          </div>
+        </div>`;
+      container.appendChild(article);
+
+      // Réactions
+      article.querySelectorAll('.fil-react-btn').forEach(btn => btn.addEventListener('click', () => toggleFilReaction(filId, post.id, btn.dataset.emoji)));
+      // ➕ (palette fixe)
+      article.querySelector('.fil-react-plus').addEventListener('click', e => { e.stopPropagation(); toggleFilReaction(filId, post.id, '👍'); });
+      // 💬 (Wysp en travaux)
+      article.querySelector('.fil-comment-btn').addEventListener('click', () => {
+        openModal(`
+          <div class="modal" style="max-width:400px;">
+            <div class="modal-header"><div class="modal-title">💬 Commentaires</div><button class="modal-close">×</button></div>
+            <div class="modal-body" style="text-align:center;padding:30px 20px;">
+              <svg class="wysp" viewBox="0 0 200 240" style="width:100px;height:120px;"><use href="#wysp-icon"/></svg>
+              <p style="margin-top:14px;font-size:14px;color:var(--text-secondary);line-height:1.6;">Wysp est en train de coder les commentaires 🔨<br>Ça arrive bientôt !</p>
+            </div>
+          </div>`);
+      });
+      // Supprimer
+      const delBtn = article.querySelector('.fil-delete-btn');
+      if (delBtn) delBtn.addEventListener('click', async () => {
+        if (!confirm('Supprimer ce post ?')) return;
+        try { await deleteDoc(doc(db, 'fils', filId, 'posts', post.id)); } catch (e) { alert('❌ Erreur'); }
+      });
+    });
+  }, err => {
+    console.error('Erreur posts :', err);
+    container.innerHTML = '<p class="empty-state">⚠️ Impossible de charger.</p>';
+  });
+}
+
+// ─── Toggle réaction ───
+async function toggleFilReaction(filId, postId, emoji) {
+  if (!currentUser) return;
+  try {
+    const ref = doc(db, 'fils', filId, 'posts', postId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const reactions = snap.data().reactions || {};
+    const users = reactions[emoji] || {};
+    if (users[currentUser.uid]) delete users[currentUser.uid];
+    else users[currentUser.uid] = true;
+    reactions[emoji] = users;
+    await updateDoc(ref, { reactions });
+  } catch (e) { console.warn('Erreur réaction :', e); }
+}
+
+// ─── Modale "Écrire un post" ───
+function openCreatePostModal() {
+  if (!currentFilId) { alert('⚠️ Ouvre un fil d\'abord.'); return; }
+  const overlay = openModal(`
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-header"><div class="modal-title">✍️ Nouveau post</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="field"><label>Ton message</label><textarea id="post-msg" placeholder="Écris ton message…" style="min-height:140px;" maxlength="1000"></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="post-send">📩 Publier</button>
+      </div>
+    </div>`);
+  overlay.querySelector('#post-send').addEventListener('click', async () => {
+    const message = overlay.querySelector('#post-msg').value.trim();
+    if (!message) { alert('✍️ Écris quelque chose.'); return; }
+    try {
+      await addDoc(collection(db, 'fils', currentFilId, 'posts'), {
+        authorId: currentUser.uid,
+        authorName: currentUserData?.displayName || 'Anonyme',
+        message,
+        reactions: {},
+        createdAt: serverTimestamp()
+      });
+      overlay.remove();
+    } catch (e) { console.error(e); alert('❌ Erreur : ' + e.message); }
+  });
+}
+
+// ─── Modale "Ajouter un membre" ───
+function openAddMemberModal(filId) {
+  const overlay = openModal(`
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header"><div class="modal-title">➕ Ajouter un membre</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="field"><label>@pseudo du membre</label>
+          <div class="field-input">
+            <span class="field-prefix">@</span>
+            <input type="text" id="add-member-input" placeholder="luna_92" autocomplete="off">
+          </div>
+          <p class="field-hint" id="add-member-hint">Tape le nom d'utilisateur exact.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="add-member-save">Ajouter</button>
+      </div>
+    </div>`);
+  overlay.querySelector('#add-member-save').addEventListener('click', async () => {
+    const pseudo = overlay.querySelector('#add-member-input').value.trim().replace(/^@/, '');
+    const hint = overlay.querySelector('#add-member-hint');
+    if (!pseudo) { hint.textContent = '⚠️ Entre un pseudo.'; hint.style.color = 'var(--error)'; return; }
+    hint.textContent = '🔍 Recherche...'; hint.style.color = 'var(--text-muted)';
+    try {
+      const q = query(collection(db, 'users'), where('username', '==', pseudo));
+      const snap = await getDocs(q);
+      if (snap.empty) { hint.textContent = '❌ Aucun utilisateur avec ce pseudo.'; hint.style.color = 'var(--error)'; return; }
+      const userDoc = snap.docs[0];
+      const uid = userDoc.id;
+      const data = userDoc.data();
+      if (uid === currentUser.uid) { hint.textContent = '⚠️ C\'est toi-même.'; hint.style.color = 'var(--error)'; return; }
+
+      const ref = doc(db, 'fils', filId);
+      const fs = await getDoc(ref);
+      const members = (fs.data().members || []);
+      if (members.includes(uid)) { hint.textContent = '⚠️ Déjà membre.'; hint.style.color = 'var(--error)'; return; }
+      members.push(uid);
+      await updateDoc(ref, { members });
+      overlay.remove();
+      alert(`✅ @${data.username} ajouté au fil !`);
+    } catch (e) {
+      console.error(e);
+      hint.textContent = '❌ Erreur : ' + e.message; hint.style.color = 'var(--error)';
+    }
+  });
+}
+
+// ─── Liste des fils pour le membre ───
+function loadFilsTheraMembre() {
+  const container = $('fils-thera-list');
+  if (!container) return;
+  if (unsubFilsList) unsubFilsList();
+  const q = query(collection(db, 'fils'), where('type', '==', 'thera'));
+  unsubFilsList = onSnapshot(q, snap => {
+    const fils = [];
+    snap.forEach(d => {
+      const data = d.data();
+      if ((data.members || []).includes(currentUser.uid)) fils.push({ id: d.id, ...data });
+    });
+    if (fils.length === 0) {
+      container.innerHTML = '<p class="empty-state">Aucun fil thérapeutique rejoint pour l\'instant.</p>';
+      return;
+    }
+    container.innerHTML = fils.map(f => renderFilCard(f, 'membre')).join('');
+    container.querySelectorAll('[data-fil-open]').forEach(el => el.addEventListener('click', () => openFil(el.dataset.filOpen, 'membre')));
+  });
+}
+
+// ─── Rendu d'une carte de fil (embed mini) ───
+function renderFilCard(f, contexte) {
+  return `
+    <div class="fil-embed" data-fil-open="${f.id}" style="--fil-color:${f.color || '#00E5FF'}; cursor:pointer;">
+      <div class="fil-embed-bar"></div>
+      <div class="fil-embed-body">
+        <h3 class="fil-embed-title">${escapeHtml(f.title || '')}</h3>
+        <div class="fil-embed-meta">
+          <span class="fil-embed-author">@${escapeHtml(f.authorName || 'system')}</span>
+          <span class="fil-embed-theme">${escapeHtml(f.theme || '')}</span>
+          <span class="fil-embed-date">${formatDate(f.createdAt)}</span>
+        </div>
+        <p class="fil-embed-desc">${escapeHtml(f.description || '')}</p>
+        ${f.footer ? `<p class="fil-embed-footer">${escapeHtml(f.footer)}</p>` : ''}
+      </div>
+    </div>`;
+}
+
+// ─── Liste des fils pour écoutant ───
+function loadFilsList(contexte) {
+  const containerId = contexte === 'eco' ? 'fils-thera-eco-list' : contexte === 'admin' ? 'admin-fils-thera-list' : 'fils-thera-list';
+  const container = $(containerId);
+  if (!container) return;
+
+  const q = query(collection(db, 'fils'));
+  onSnapshot(q, snap => {
+    const fils = [];
+    snap.forEach(d => fils.push({ id: d.id, ...d.data() }));
+
+    const thera = fils.filter(f => f.type === 'thera');
+    if (thera.length === 0) {
+      container.innerHTML = '<p class="empty-state">Aucun fil thérapeutique pour l\'instant.</p>';
+      return;
+    }
+    // Admin voit tout, écoutant voit tout aussi (mais peut y participer)
+    const visible = contexte === 'admin' ? thera : thera.filter(f => (f.members || []).includes(currentUser.uid) || estEcoutant(currentUserData.role));
+    if (visible.length === 0) { container.innerHTML = '<p class="empty-state">Aucun fil accessible.</p>'; return; }
+
+    container.innerHTML = visible.map(f => renderFilCard(f, contexte)).join('');
+    container.querySelectorAll('[data-fil-open]').forEach(el => el.addEventListener('click', () => openFil(el.dataset.filOpen, contexte)));
+  });
+}
+
+// ─── Câbler les boutons de fils ───
+function setupFilsButtons() {
+  // Écoutant : proposer un post fil général → demande
+  const btnPropEco = $('btn-proposer-post-eco');
+  if (btnPropEco && !btnPropEco.dataset.bound) {
+    btnPropEco.dataset.bound = '1';
+    btnPropEco.addEventListener('click', openDemandeFilModal);
+  }
+
+  // Admin : fil général
+  const btnAdminFG = $('btn-admin-fil-general');
+  if (btnAdminFG && !btnAdminFG.dataset.bound) {
+    btnAdminFG.dataset.bound = '1';
+    btnAdminFG.addEventListener('click', () => openFil('general', 'admin'));
+  }
+  // Admin : fil perso
+  const btnAdminFP = $('btn-admin-fil-perso');
+  if (btnAdminFP && !btnAdminFP.dataset.bound) {
+    btnAdminFP.dataset.bound = '1';
+    btnAdminFP.addEventListener('click', () => openFil('personnel', 'admin'));
+  }
+  // Admin : fil staff
+  const btnAdminFS = $('btn-admin-fil-staff');
+  if (btnAdminFS && !btnAdminFS.dataset.bound) {
+    btnAdminFS.dataset.bound = '1';
+    btnAdminFS.addEventListener('click', () => openFil('staff', 'admin'));
+  }
+  // Admin : créer fil théra
+  const btnCreateFT = $('btn-admin-create-fil-thera');
+  if (btnCreateFT && !btnCreateFT.dataset.bound) {
+    btnCreateFT.dataset.bound = '1';
+    btnCreateFT.addEventListener('click', openCreateFilTheraModal);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════════════════════════════════════════
+function initAdmin() {
+  initProfilUI();
+  setupFilsButtons();
+
+  // Mini-onglets
+  ['admin-panel-tabs','admin-sup-tabs'].forEach(id => {
+    const container = $(id);
+    if (!container || container.dataset.bound) return;
+    container.dataset.bound = '1';
+    const tabs = container.querySelectorAll('.mini-tab');
+    const indicator = container.querySelector('.mini-tab-indicator');
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        container.dataset.active = tab.dataset.mini;
+        if (indicator) {
+          const total = tabs.length;
+          indicator.style.width = `calc(${100/total}% - ${(8/total)}px)`;
+          indicator.style.transform = `translateX(calc(100% * ${index}))`;
+        }
+        const page = container.closest('.page');
+        if (page) {
+          page.querySelectorAll('.mini-content').forEach(c => c.classList.remove('active'));
+          const content = page.querySelector(`.mini-content[data-mini-content="${tab.dataset.mini}"]`);
+          if (content) content.classList.add('active');
+        }
+      });
+    });
+  });
+
+  // Charger les sections
+  loadAdminNews();
+  loadAdminDemandes();
+  loadAdminMembres('');
+  loadAdminEcoutants('');
+  loadAdminConvs();
+  loadAdminSignalements();
+
+  // Recherches
+  ['admin-search-membres','admin-search-ecoutants','admin-search-users'].forEach(id => {
+    const inp = $(id);
+    if (!inp || inp.dataset.bound) return;
+    inp.dataset.bound = '1';
+    inp.addEventListener('input', e => {
+      const val = e.target.value;
+      if (id === 'admin-search-membres') loadAdminMembres(val);
+      if (id === 'admin-search-ecoutants') loadAdminEcoutants(val);
+      if (id === 'admin-search-users') loadAdminUsersSearch(val);
+    });
+  });
+
+  // Bouton créer news
+  const btnNews = $('btn-admin-new-news');
+  if (btnNews && !btnNews.dataset.bound) {
+    btnNews.dataset.bound = '1';
+    btnNews.addEventListener('click', openCreateNewsModal);
+  }
+
+  // Fils admin
+  loadFilsList('admin');
+
+  console.log('✅ Admin initialisé');
+}
+
+// ─── Créer une news ───
+function openCreateNewsModal() {
+  const overlay = openModal(`
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-header"><div class="modal-title">📰 Nouvelle news</div><button class="modal-close">×</button></div>
+      <div class="modal-body">
+        <div class="field"><label>Type</label>
+          <select id="news-type" style="width:100%;padding:12px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);font-family:inherit;">
+            <option value="📰 Annonce">📰 Annonce</option>
+            <option value="🎉 Événement">🎉 Événement</option>
+            <option value="💬 Témoignage">💬 Témoignage</option>
+            <option value="🆕 Nouveau contenu">🆕 Nouveau contenu</option>
+            <option value="📌 Épinglé">📌 Épinglé</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:14px;"><label>Titre</label><input type="text" id="news-title" maxlength="100"></div>
+        <div class="field" style="margin-top:14px;"><label>Contenu</label><textarea id="news-content" style="min-height:140px;"></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="news-save">Publier</button>
+      </div>
+    </div>`);
+  overlay.querySelector('#news-save').addEventListener('click', async () => {
+    const type = overlay.querySelector('#news-type').value;
+    const title = overlay.querySelector('#news-title').value.trim();
+    const content = overlay.querySelector('#news-content').value.trim();
+    if (!title || !content) { alert('⚠️ Titre et contenu obligatoires'); return; }
+    try {
+      await addDoc(collection(db, 'news'), {
+        type, title, content,
+        authorName: currentUserData?.displayName || 'Admin',
+        createdAt: serverTimestamp()
+      });
+      overlay.remove();
+    } catch (e) { alert('❌ Erreur : ' + e.message); }
+  });
+}
+
+// ─── Admin : news temps réel ───
+function loadAdminNews() {
+  const list = $('admin-news-list');
+  if (!list) return;
+  if (unsubAdminNews) unsubAdminNews();
+  const q = query(collection(db, 'news'), limit(50));
+  unsubAdminNews = onSnapshot(q, snap => {
+    const news = [];
+    snap.forEach(d => news.push({ id: d.id, ...d.data() }));
+    news.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+    if (news.length === 0) { list.innerHTML = '<p class="empty-state">Aucune news pour l\'instant.</p>'; return; }
+    list.innerHTML = '';
+    news.forEach(n => {
+      const article = document.createElement('article');
+      article.className = 'card';
+      article.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+          <span class="card-badge">${escapeHtml(n.type || '📰 Info')}</span>
+          <button class="news-delete-btn" data-id="${n.id}" title="Supprimer" style="background:transparent;border:none;color:var(--error);cursor:pointer;font-size:16px;padding:2px 6px;">🗑️</button>
+        </div>
+        <h3>${escapeHtml(n.title || 'Sans titre')}</h3>
+        <p>${escapeHtml(n.content || '')}</p>
+        <span class="card-meta">Par ${escapeHtml(n.authorName || 'Admin')} • ${formatDate(n.createdAt)}</span>`;
+      list.appendChild(article);
+    });
+    list.querySelectorAll('.news-delete-btn').forEach(btn => btn.addEventListener('click', async () => {
+      if (!confirm('Supprimer cette news ?')) return;
+      try { await deleteDoc(doc(db, 'news', btn.dataset.id)); } catch (e) { alert('❌ Erreur'); }
+    }));
+  }, err => {
+    console.error('Erreur news admin :', err);
+    list.innerHTML = '<p class="empty-state">Erreur : ' + (err.code || err.message) + '</p>';
+  });
+}
+
+// ─── Admin : demandes temps réel ───
+function loadAdminDemandes() {
+  const list = $('admin-demandes-list');
+  if (!list) return;
+  if (unsubAdminDemandes) unsubAdminDemandes();
+  const q = query(collection(db, 'demandes-fil'), orderBy('createdAt', 'desc'));
+  unsubAdminDemandes = onSnapshot(q, snap => {
+    if (snap.empty) { list.innerHTML = '<p class="empty-state">Aucune demande ✨</p>'; return; }
+    list.innerHTML = '';
+    snap.forEach(d => {
+      const data = d.data();
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <span class="card-badge">${data.anonyme ? '🎭 Anonyme' : '👤 ' + escapeHtml(data.authorName || 'Membre')}</span>
+        <h3>${escapeHtml(data.title || 'Sans titre')}</h3>
+        <p>${escapeHtml(data.content || '')}</p>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-primary btn-small" data-action="valider" data-id="${d.id}">✅ Publier</button>
+          <button class="btn btn-danger btn-small" data-action="refuser" data-id="${d.id}">❌ Refuser</button>
+        </div>`;
+      list.appendChild(card);
+    });
+    list.querySelectorAll('[data-action]').forEach(btn => btn.addEventListener('click', async () => {
+      const id = btn.dataset.id, action = btn.dataset.action;
+      btn.disabled = true; btn.textContent = '⏳...';
+      try {
+        if (action === 'valider') {
+          const snap2 = await getDoc(doc(db, 'demandes-fil', id));
+          if (snap2.exists()) {
+            const data = snap2.data();
+            await addDoc(collection(db, 'fils', 'general', 'posts'), {
+              authorId: data.authorId || 'anonymous',
+              authorName: data.anonyme ? 'Anonyme' : (data.authorName || 'Membre'),
+              message: data.content,
+              reactions: {},
+              createdAt: serverTimestamp()
+            });
+          }
+        }
+        await deleteDoc(doc(db, 'demandes-fil', id));
+      } catch (e) { console.error(e); alert('❌ Erreur : ' + e.message); }
+    }));
+  }, err => { console.warn('Erreur demandes :', err); });
+}
+
+// ─── Admin : membres ───
+async function loadAdminMembres(search) {
+  const list = $('admin-membres-list');
+  if (!list) return;
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), limit(200)));
+    const users = [];
+    snap.forEach(d => { const data = d.data(); if (data.role === 'membre') users.push({ id: d.id, ...data }); });
+    const filtered = search
+      ? users.filter(u => (u.username||'').toLowerCase().includes(search.toLowerCase()) || (u.displayName||'').toLowerCase().includes(search.toLowerCase()))
+      : users;
+    if (filtered.length === 0) { list.innerHTML = '<p class="empty-state">Aucun membre trouvé.</p>'; return; }
+    list.innerHTML = filtered.map(u => `
+      <div class="admin-user-card" data-uid="${u.id}">
+        <div class="admin-user-avatar">${u.avatar || '👤'}</div>
+        <div class="admin-user-infos">
+          <div class="admin-user-name">${escapeHtml(u.displayName || 'Sans nom')}</div>
+          <div class="admin-user-meta">@${escapeHtml(u.username || 'inconnu')}</div>
+        </div>
+        <span class="admin-role-badge">${u.role || 'membre'}</span>
+      </div>`).join('');
+  } catch (e) { list.innerHTML = '<p class="empty-state">Impossible de charger.</p>'; }
+}
+
+// ─── Admin : écoutants ───
+async function loadAdminEcoutants(search) {
+  const list = $('admin-ecoutants-list');
+  if (!list) return;
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), limit(200)));
+    const users = [];
+    snap.forEach(d => { const data = d.data(); if (estEcoutant(data.role)) users.push({ id: d.id, ...data }); });
+    const filtered = search
+      ? users.filter(u => (u.username||'').toLowerCase().includes(search.toLowerCase()) || (u.displayName||'').toLowerCase().includes(search.toLowerCase()))
+      : users;
+    if (filtered.length === 0) { list.innerHTML = '<p class="empty-state">Aucun écoutant trouvé.</p>'; return; }
+    list.innerHTML = filtered.map(u => `
+      <div class="admin-user-card" data-uid="${u.id}">
+        <div class="admin-user-avatar">${u.avatar || '🧑‍⚕️'}</div>
+        <div class="admin-user-infos">
+          <div class="admin-user-name">${escapeHtml(u.displayName || 'Sans nom')}</div>
+          <div class="admin-user-meta">@${escapeHtml(u.username || 'inconnu')}</div>
+        </div>
+        <span class="admin-role-badge">${u.role || 'ecoutant'}</span>
+      </div>`).join('');
+  } catch (e) { list.innerHTML = '<p class="empty-state">Impossible de charger.</p>'; }
+}
+
+// ─── Admin : conversations ───
+async function loadAdminConvs() {
+  const list = $('admin-convs-list');
+  if (!list) return;
+  try {
+    const q = query(collection(db, 'conversations'), where('status', 'in', ['waiting','claimed']), limit(100));
+    const snap = await getDocs(q);
+    const convs = [];
+    snap.forEach(d => convs.push({ id: d.id, ...d.data() }));
+    convs.sort((a, b) => (b.urgence || 0) - (a.urgence || 0));
+    if (convs.length === 0) { list.innerHTML = '<p class="empty-state">Aucune conversation active ✨</p>'; return; }
+    list.innerHTML = convs.map(c => {
+      const urg = c.urgence || 0;
+      const stars = '🔴'.repeat(urg) + '⚪'.repeat(5 - urg);
+      const status = c.status === 'waiting' ? '⏳ En attente' : '💚 ' + (c.claimedByName || 'En cours');
+      return `
+        <div class="conv-card ${urg >= 4 ? 'conv-urgent' : ''}">
+          <div class="conv-info">
+            <div class="conv-header-row">
+              <span class="conv-name">${escapeHtml(c.memberName || 'Membre')}</span>
+              <span class="conv-urgency">${stars}</span>
+            </div>
+            <span class="conv-username">@${escapeHtml(c.memberUsername || '')} · ${status}</span>
+            ${c.motif ? `<span class="conv-motif">🎯 ${escapeHtml(c.motif)}</span>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) { list.innerHTML = '<p class="empty-state">Impossible de charger.</p>'; }
+}
+
+// ─── Admin : signalements ───
+async function loadAdminSignalements() {
+  const list = $('admin-signalements-list');
+  if (!list) return;
+  try {
+    const q = query(collection(db, 'signalements'), where('status', '==', 'pending'));
+    const snap = await getDocs(q);
+    if (snap.empty) { list.innerHTML = '<p class="empty-state">Aucun signalement ✨</p>'; return; }
+    list.innerHTML = '';
+    snap.forEach(d => {
+      const data = d.data();
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <span class="card-badge" style="background:rgba(255,107,122,0.15);color:var(--error);">🚨 Signalement</span>
+        <h3>${escapeHtml(data.memberName || 'Membre')}</h3>
+        <p><strong>Raison :</strong> ${escapeHtml(data.raison || '')}</p>
+        <span class="card-meta">Signalé par ${escapeHtml(data.ecoutantName || 'Écoutant')}</span>`;
+      list.appendChild(card);
+    });
+  } catch (e) { list.innerHTML = '<p class="empty-state">Impossible de charger.</p>'; }
+}
+
+// ─── Admin : recherche users (créer chat) ───
+async function loadAdminUsersSearch(search) {
+  const container = $('admin-users-results');
+  if (!container) return;
+  if (!search || search.length < 2) { container.innerHTML = '<p class="empty-state">Tape au moins 2 lettres</p>'; return; }
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), limit(200)));
+    const results = [];
+    snap.forEach(d => {
+      const data = d.data();
+      if ((data.username||'').toLowerCase().includes(search.toLowerCase()) || (data.displayName||'').toLowerCase().includes(search.toLowerCase())) {
+        results.push({ id: d.id, ...data });
+      }
+    });
+    if (results.length === 0) { container.innerHTML = '<p class="empty-state">Aucun résultat</p>'; return; }
+    container.innerHTML = results.map(u => `
+      <div class="admin-user-card" data-uid="${u.id}" data-name="${escapeHtml(u.displayName || u.username || 'User')}">
+        <div class="admin-user-avatar">${u.avatar || '👤'}</div>
+        <div class="admin-user-infos">
+          <div class="admin-user-name">${escapeHtml(u.displayName || 'Sans nom')}</div>
+          <div class="admin-user-meta">@${escapeHtml(u.username || 'inconnu')}</div>
+        </div>
+        <span class="admin-role-badge">${u.role || 'membre'}</span>
+      </div>`).join('');
+    container.querySelectorAll('.admin-user-card').forEach(card => card.addEventListener('click', () => {
+      alert('💬 Chat admin ↔ ' + card.dataset.name + ' — à venir.');
+    }));
+  } catch (e) { console.warn(e); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTH STATE
+// ═══════════════════════════════════════════════════════════════════════════
+onAuthStateChanged(auth, async user => {
+  authReady = true;
+  if (user) {
+    currentUser = user;
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      if (snap.exists()) {
+        currentUserData = snap.data();
+        if (currentUserData.theme) applyTheme(currentUserData.theme);
+      }
+    } catch (e) {}
+  } else {
+    currentUser = null; currentUserData = null;
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT GLOBAL
+// ═══════════════════════════════════════════════════════════════════════════
+(async () => {
+  await ensureFilGeneral();
+  setupFilsButtons();
+  console.log('✅ main.js v3 complet chargé');
+})();
