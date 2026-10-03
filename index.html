@@ -14,6 +14,31 @@
 </head>
 <body>
 
+<!-- ═══ SPRITE SVG (Wysp factorisé) ═══ -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+  <defs>
+    <radialGradient id="wyspBody" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#1B3A5C"/><stop offset="100%" stop-color="#0A1A3D"/>
+    </radialGradient>
+    <radialGradient id="wyspGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
+    </radialGradient>
+    <symbol id="wysp-icon" viewBox="0 0 200 240">
+      <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlow)" opacity="0.4"/>
+      <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBody)" stroke="var(--cyan, #00E5FF)" stroke-width="1.5"/>
+      <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="var(--cyan, #00E5FF)" stroke-width="1.2"/>
+      <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="var(--cyan, #00E5FF)" stroke-width="1.2"/>
+      <circle cx="78" cy="115" r="22" fill="#FFFFFF"/><circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
+      <circle cx="78" cy="115" r="13" fill="var(--cyan, #00E5FF)"/><circle cx="122" cy="115" r="13" fill="var(--cyan, #00E5FF)"/>
+      <circle cx="78" cy="115" r="6" fill="#0A1A3D"/><circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
+      <circle cx="82" cy="110" r="3" fill="#FFFFFF"/><circle cx="126" cy="110" r="3" fill="#FFFFFF"/>
+      <path d="M 100 130 L 95 142 L 105 142 Z" fill="#FFB347"/>
+      <path d="M 88 155 Q 100 165 112 155" stroke="#8FA6C7" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
 <!-- ═══ INTRO ═══ -->
 <section id="screen-intro" class="screen active">
   <div class="intro-bg">
@@ -402,7 +427,7 @@
       </div>
     </div>
 
-    <!-- FIL GÉNÉRAL -->
+    <!-- FIL GÉNÉRAL (ancien, gardé au cas où) -->
     <div class="page" data-page="fil-general">
       <header class="page-header page-header-flex">
         <div>
@@ -413,6 +438,44 @@
       </header>
       <button class="btn btn-primary btn-full" id="btn-demande-fil" type="button">✍️ Demander à publier</button>
       <div class="feed" id="fil-general-feed">
+        <p class="empty-state">Aucun post pour l'instant.</p>
+      </div>
+    </div>
+
+    <!-- ═══ FIL DÉTAIL (membre) — NOUVEAU ═══ -->
+    <div class="page" data-page="fil-detail">
+      <header class="page-header page-header-flex">
+        <div>
+          <h1 class="page-title" id="fil-detail-title">Fil</h1>
+          <p class="page-subtitle" id="fil-detail-subtitle">…</p>
+        </div>
+        <button class="btn-gear" id="btn-back-fil-detail" type="button">←</button>
+      </header>
+
+      <!-- Embed du fil avec barre colorée -->
+      <div class="fil-embed" id="fil-detail-embed" data-color="#00E5FF">
+        <div class="fil-embed-bar"></div>
+        <div class="fil-embed-body">
+          <h3 class="fil-embed-title" id="fil-detail-embed-title">Titre du fil</h3>
+          <div class="fil-embed-meta">
+            <span class="fil-embed-author" id="fil-detail-embed-author">@auteur</span>
+            <span class="fil-embed-theme" id="fil-detail-embed-theme">Thème</span>
+            <span class="fil-embed-date" id="fil-detail-embed-date">Date</span>
+          </div>
+          <p class="fil-embed-desc" id="fil-detail-embed-desc">Description…</p>
+          <p class="fil-embed-footer" id="fil-detail-embed-footer">mini-texte</p>
+        </div>
+      </div>
+
+      <div class="fil-members-bar">
+        <button class="fil-members-btn" id="fil-members-btn" type="button">
+          👥 <span id="fil-members-count">0</span> membres
+        </button>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btn-fil-new-post" type="button">✍️ Écrire un post</button>
+
+      <div class="fil-posts" id="fil-posts">
         <p class="empty-state">Aucun post pour l'instant.</p>
       </div>
     </div>
@@ -429,26 +492,7 @@
       <div class="profil-header" id="profil-header"></div>
       <div class="section-label">📊 Mes statistiques</div>
       <div class="stats-wysp">
-        <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="wyspBody2" cx="50%" cy="40%" r="60%">
-              <stop offset="0%" stop-color="#1B3A5C"/><stop offset="100%" stop-color="#0A1A3D"/>
-            </radialGradient>
-            <radialGradient id="wyspGlow2" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.6"/><stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlow2)" opacity="0.4"/>
-          <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBody2)" stroke="#00E5FF" stroke-width="1.5"/>
-          <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="#00E5FF" stroke-width="1.2"/>
-          <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="#00E5FF" stroke-width="1.2"/>
-          <circle cx="78" cy="115" r="22" fill="#FFFFFF"/><circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
-          <circle cx="78" cy="115" r="13" fill="#00E5FF"/><circle cx="122" cy="115" r="13" fill="#00E5FF"/>
-          <circle cx="78" cy="115" r="6" fill="#0A1A3D"/><circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
-          <circle cx="82" cy="110" r="3" fill="#FFFFFF"/><circle cx="126" cy="110" r="3" fill="#FFFFFF"/>
-          <path d="M 100 130 L 95 142 L 105 142 Z" fill="#FFB347"/>
-          <path d="M 88 155 Q 100 165 112 155" stroke="#8FA6C7" stroke-width="2" fill="none" stroke-linecap="round"/>
-        </svg>
+        <svg class="wysp" viewBox="0 0 200 240"><use href="#wysp-icon"/></svg>
         <h3 class="stats-wysp-title">Wysp prépare tes stats 🔨</h3>
         <p class="stats-wysp-text">Tes statistiques personnelles arrivent bientôt :<br>conversations, jours d'activité, évolution de ton humeur…</p>
       </div>
@@ -493,22 +537,7 @@
       </header>
       <div class="wysp-container">
         <div class="wysp-wrapper">
-          <svg class="wysp" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="wyspBody" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#1B3A5C"/><stop offset="100%" stop-color="#0A1A3D"/></radialGradient>
-              <radialGradient id="wyspGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00E5FF" stop-opacity="0.6"/><stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/></radialGradient>
-            </defs>
-            <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlow)" opacity="0.4"/>
-            <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBody)" stroke="#00E5FF" stroke-width="1.5"/>
-            <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="#00E5FF" stroke-width="1.2"/>
-            <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="#00E5FF" stroke-width="1.2"/>
-            <circle cx="78" cy="115" r="22" fill="#FFFFFF"/><circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
-            <circle cx="78" cy="115" r="13" fill="#00E5FF"/><circle cx="122" cy="115" r="13" fill="#00E5FF"/>
-            <circle cx="78" cy="115" r="6" fill="#0A1A3D"/><circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
-            <circle cx="82" cy="110" r="3" fill="#FFFFFF"/><circle cx="126" cy="110" r="3" fill="#FFFFFF"/>
-            <path d="M 100 130 L 95 142 L 105 142 Z" fill="#FFB347"/>
-            <path d="M 88 155 Q 100 165 112 155" stroke="#8FA6C7" stroke-width="2" fill="none" stroke-linecap="round"/>
-          </svg>
+          <svg class="wysp" viewBox="0 0 200 240"><use href="#wysp-icon"/></svg>
         </div>
         <h2 class="wysp-title">Wysp prépare cet espace 🔨</h2>
         <p class="wysp-text">Formation, bien-être, supervision…<br>Wysp t'aide à prendre soin de toi<br>et à progresser dans ton rôle d'écoutant.</p>
@@ -591,7 +620,7 @@
       </form>
     </div>
 
-    <!-- FILS -->
+    <!-- FILS (écoutant) -->
     <div class="page" data-page="fils">
       <header class="page-header"><h1 class="page-title">💭 Fils de discussion</h1></header>
       <div class="feed">
@@ -599,11 +628,49 @@
           <span class="card-badge">🌐 Fil général</span>
           <h3>Fil général Iphax</h3>
           <p>Écris avec validation admin</p>
-          <button class="btn btn-primary btn-small" type="button">✍️ Proposer un post</button>
+          <button class="btn btn-primary btn-small" id="btn-proposer-post-eco" type="button">✍️ Proposer un post</button>
         </article>
         <div class="section-label">🧑‍⚕️ Mes fils thérapeutiques</div>
-        <p class="empty-state">Aucun fil thérapeutique pour l'instant.</p>
-        <button class="btn btn-primary btn-small" type="button">➕ Créer un fil thérapeutique</button>
+        <div id="fils-thera-eco-list">
+          <p class="empty-state">Aucun fil thérapeutique pour l'instant.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FIL DÉTAIL (écoutant) — DÉPLACÉ ICI ═══ -->
+    <div class="page" data-page="fil-detail-eco">
+      <header class="page-header page-header-flex">
+        <div>
+          <h1 class="page-title" id="fil-detail-eco-title">Fil</h1>
+          <p class="page-subtitle" id="fil-detail-eco-subtitle">…</p>
+        </div>
+        <button class="btn-gear" id="btn-back-fils-eco" type="button">←</button>
+      </header>
+
+      <div class="fil-embed" id="fil-detail-eco-embed" data-color="#00E5FF">
+        <div class="fil-embed-bar"></div>
+        <div class="fil-embed-body">
+          <h3 class="fil-embed-title" id="fil-eco-embed-title">Titre du fil</h3>
+          <div class="fil-embed-meta">
+            <span class="fil-embed-author" id="fil-eco-embed-author">@auteur</span>
+            <span class="fil-embed-theme" id="fil-eco-embed-theme">Thème</span>
+            <span class="fil-embed-date" id="fil-eco-embed-date">Date</span>
+          </div>
+          <p class="fil-embed-desc" id="fil-eco-embed-desc">Description…</p>
+          <p class="fil-embed-footer" id="fil-eco-embed-footer">mini-texte</p>
+        </div>
+      </div>
+
+      <div class="fil-members-bar">
+        <button class="fil-members-btn" id="fil-members-eco-btn" type="button">
+          👥 <span id="fil-members-eco-count">0</span> membres
+        </button>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btn-fil-eco-new-post" type="button">✍️ Écrire un post</button>
+
+      <div class="fil-posts" id="fil-eco-posts">
+        <p class="empty-state">Aucun post pour l'instant.</p>
       </div>
     </div>
 
@@ -619,22 +686,7 @@
       <div class="profil-header" id="profil-eco-header"></div>
       <div class="section-label">📊 Mes statistiques écoutant</div>
       <div class="stats-wysp">
-        <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="wyspBody3" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#1B3A5C"/><stop offset="100%" stop-color="#0A1A3D"/></radialGradient>
-            <radialGradient id="wyspGlow3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00E5FF" stop-opacity="0.6"/><stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/></radialGradient>
-          </defs>
-          <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlow3)" opacity="0.4"/>
-          <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBody3)" stroke="#00E5FF" stroke-width="1.5"/>
-          <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="#00E5FF" stroke-width="1.2"/>
-          <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="#00E5FF" stroke-width="1.2"/>
-          <circle cx="78" cy="115" r="22" fill="#FFFFFF"/><circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
-          <circle cx="78" cy="115" r="13" fill="#00E5FF"/><circle cx="122" cy="115" r="13" fill="#00E5FF"/>
-          <circle cx="78" cy="115" r="6" fill="#0A1A3D"/><circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
-          <circle cx="82" cy="110" r="3" fill="#FFFFFF"/><circle cx="126" cy="110" r="3" fill="#FFFFFF"/>
-          <path d="M 100 130 L 95 142 L 105 142 Z" fill="#FFB347"/>
-          <path d="M 88 155 Q 100 165 112 155" stroke="#8FA6C7" stroke-width="2" fill="none" stroke-linecap="round"/>
-        </svg>
+        <svg class="wysp" viewBox="0 0 200 240"><use href="#wysp-icon"/></svg>
         <h3 class="stats-wysp-title">Wysp prépare tes stats 🔨</h3>
         <p class="stats-wysp-text">Tes statistiques d'écoutant arrivent bientôt :<br>nombre d'écoutes, temps d'écoute, écoutés actuels…</p>
       </div>
@@ -650,6 +702,7 @@
     <button class="nav-item" data-page="profil-eco" type="button"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
   </nav>
 </section>
+
 <!-- ═══ APP ADMIN / MODÉRATEUR ═══ -->
 <section id="app-admin" class="screen">
   <div class="app-content">
@@ -729,22 +782,7 @@
       </header>
       <div class="wysp-container">
         <div class="wysp-wrapper">
-          <svg class="wysp" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="wyspBodyDev" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#1B3A5C"/><stop offset="100%" stop-color="#0A1A3D"/></radialGradient>
-              <radialGradient id="wyspGlowDev" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00E5FF" stop-opacity="0.6"/><stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/></radialGradient>
-            </defs>
-            <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlowDev)" opacity="0.4"/>
-            <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBodyDev)" stroke="var(--cyan)" stroke-width="1.5"/>
-            <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
-            <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
-            <circle cx="78" cy="115" r="22" fill="#FFFFFF"/><circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
-            <circle cx="78" cy="115" r="13" fill="var(--cyan)"/><circle cx="122" cy="115" r="13" fill="var(--cyan)"/>
-            <circle cx="78" cy="115" r="6" fill="#0A1A3D"/><circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
-            <circle cx="82" cy="110" r="3" fill="#FFFFFF"/><circle cx="126" cy="110" r="3" fill="#FFFFFF"/>
-            <path d="M 100 130 L 95 142 L 105 142 Z" fill="#FFB347"/>
-            <path d="M 88 155 Q 100 165 112 155" stroke="#8FA6C7" stroke-width="2" fill="none" stroke-linecap="round"/>
-          </svg>
+          <svg class="wysp" viewBox="0 0 200 240"><use href="#wysp-icon"/></svg>
         </div>
         <h2 class="wysp-title">Wysp prépare le Panel Dev 🔨</h2>
         <p class="wysp-text">Outils techniques, logs, statistiques système…<br>Wysp travaille dessus avec Moonlight et Raptor.</p>
@@ -752,7 +790,7 @@
       </div>
     </div>
 
-    <!-- SUPERVISION (central) -->
+    <!-- SUPERVISION -->
     <div class="page" data-page="admin-supervision">
       <header class="page-header">
         <h1 class="page-title">🎯 Supervision</h1>
@@ -801,19 +839,65 @@
           <span class="card-badge">🌐 Fil général</span>
           <h3>Fil général Iphax</h3>
           <p>Gérer les posts et la modération</p>
-          <button class="btn btn-primary btn-small" type="button">Voir le fil</button>
+          <button class="btn btn-primary btn-small" id="btn-admin-fil-general" type="button">Voir le fil</button>
         </article>
         <article class="card">
           <span class="card-badge">👥 Fil Personnel</span>
           <h3>Personnel Iphax</h3>
           <p>Écrire librement entre personnels</p>
+          <button class="btn btn-primary btn-small" id="btn-admin-fil-perso" type="button">Ouvrir</button>
         </article>
         <article class="card">
           <span class="card-badge">🛡️ Fil Staff</span>
           <h3>Staff Iphax</h3>
           <p>Espace de décision</p>
+          <button class="btn btn-primary btn-small" id="btn-admin-fil-staff" type="button">Ouvrir</button>
         </article>
-        <button class="btn btn-primary btn-small" type="button">➕ Créer un fil thérapeutique</button>
+        <div class="section-label">🧑‍⚕️ Fils thérapeutiques</div>
+        <div id="admin-fils-thera-list">
+          <p class="empty-state">Aucun fil thérapeutique pour l'instant.</p>
+        </div>
+        <button class="btn btn-primary btn-small" id="btn-admin-create-fil-thera" type="button">➕ Créer un fil thérapeutique</button>
+      </div>
+    </div>
+
+    <!-- ═══ FIL DÉTAIL (admin) — DÉPLACÉ ICI ═══ -->
+    <div class="page" data-page="fil-detail-admin">
+      <header class="page-header page-header-flex">
+        <div>
+          <h1 class="page-title" id="fil-detail-admin-title">Fil</h1>
+          <p class="page-subtitle" id="fil-detail-admin-subtitle">…</p>
+        </div>
+        <div class="fil-header-actions">
+          <button class="btn-add-member" id="btn-add-member-admin" type="button" title="Ajouter un membre">➕</button>
+          <button class="btn-gear" id="btn-back-fils-admin" type="button">←</button>
+        </div>
+      </header>
+
+      <div class="fil-embed" id="fil-detail-admin-embed" data-color="#00E5FF">
+        <div class="fil-embed-bar"></div>
+        <div class="fil-embed-body">
+          <h3 class="fil-embed-title" id="fil-admin-embed-title">Titre du fil</h3>
+          <div class="fil-embed-meta">
+            <span class="fil-embed-author" id="fil-admin-embed-author">@auteur</span>
+            <span class="fil-embed-theme" id="fil-admin-embed-theme">Thème</span>
+            <span class="fil-embed-date" id="fil-admin-embed-date">Date</span>
+          </div>
+          <p class="fil-embed-desc" id="fil-admin-embed-desc">Description…</p>
+          <p class="fil-embed-footer" id="fil-admin-embed-footer">mini-texte</p>
+        </div>
+      </div>
+
+      <div class="fil-members-bar">
+        <button class="fil-members-btn" id="fil-members-admin-btn" type="button">
+          👥 <span id="fil-members-admin-count">0</span> membres
+        </button>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btn-fil-admin-new-post" type="button">✍️ Écrire un post</button>
+
+      <div class="fil-posts" id="fil-admin-posts">
+        <p class="empty-state">Aucun post pour l'instant.</p>
       </div>
     </div>
 
@@ -829,22 +913,7 @@
       <div class="profil-header" id="profil-admin-header"></div>
       <div class="section-label">📊 Mes statistiques</div>
       <div class="stats-wysp">
-        <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="wyspBodyA" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#1B3A5C"/><stop offset="100%" stop-color="#0A1A3D"/></radialGradient>
-            <radialGradient id="wyspGlowA" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00E5FF" stop-opacity="0.6"/><stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/></radialGradient>
-          </defs>
-          <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlowA)" opacity="0.4"/>
-          <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBodyA)" stroke="var(--cyan)" stroke-width="1.5"/>
-          <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
-          <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
-          <circle cx="78" cy="115" r="22" fill="#FFFFFF"/><circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
-          <circle cx="78" cy="115" r="13" fill="var(--cyan)"/><circle cx="122" cy="115" r="13" fill="var(--cyan)"/>
-          <circle cx="78" cy="115" r="6" fill="#0A1A3D"/><circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
-          <circle cx="82" cy="110" r="3" fill="#FFFFFF"/><circle cx="126" cy="110" r="3" fill="#FFFFFF"/>
-          <path d="M 100 130 L 95 142 L 105 142 Z" fill="#FFB347"/>
-          <path d="M 88 155 Q 100 165 112 155" stroke="#8FA6C7" stroke-width="2" fill="none" stroke-linecap="round"/>
-        </svg>
+        <svg class="wysp" viewBox="0 0 200 240"><use href="#wysp-icon"/></svg>
         <h3 class="stats-wysp-title">Wysp prépare tes stats 🔨</h3>
         <p class="stats-wysp-text">Tes statistiques admin arrivent bientôt.</p>
       </div>
@@ -858,15 +927,7 @@
       </header>
       <div class="wysp-container">
         <div class="wysp-wrapper">
-          <svg class="wysp" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlowDev)" opacity="0.4"/>
-            <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBodyDev)" stroke="var(--cyan)" stroke-width="1.5"/>
-            <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
-            <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="var(--cyan)" stroke-width="1.2"/>
-            <circle cx="78" cy="115" r="22" fill="#FFFFFF"/><circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
-            <circle cx="78" cy="115" r="13" fill="var(--cyan)"/><circle cx="122" cy="115" r="13" fill="var(--cyan)"/>
-            <circle cx="78" cy="115" r="6" fill="#0A1A3D"/><circle cx="122" cy="115" r="6" fill="#0A1A3D"/>
-          </svg>
+          <svg class="wysp" viewBox="0 0 200 240"><use href="#wysp-icon"/></svg>
         </div>
         <h2 class="wysp-title">Chut, Wysp prépare un truc 🔨</h2>
         <p class="wysp-text">Cette section arrive bientôt.<br>Wysp et l'équipe Moonlight / Raptor travaillent dessus.</p>
@@ -876,7 +937,6 @@
 
   </div>
 
-  <!-- BARRE DE NAVIGATION ADMIN -->
   <nav class="bottom-nav admin-nav">
     <button class="nav-item active" data-page="admin-news" type="button">
       <span class="nav-icon">📰</span><span class="nav-label">News</span>
@@ -902,56 +962,6 @@
   </nav>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     PAGES FILS DÉTAIL — À TRIER PLUS TARD
-     ═══════════════════════════════════════════════════════════════════════════ -->
-
-     <section id="tmp-fil-detail-eco" class="screen">
-      <div class="app-content">
-        <div class="page active" data-page="fil-detail-eco">
-          <header class="page-header page-header-flex">
-            <div>
-              <h1 class="page-title" id="fil-detail-eco-title">Fil</h1>
-              <p class="page-subtitle" id="fil-detail-eco-subtitle">…</p>
-            </div>
-            <button class="btn-gear" id="btn-back-fils-eco" type="button">←</button>
-          </header>
-          <div class="fil-members-bar">
-            <button class="fil-members-btn" id="fil-members-eco-btn" type="button">
-              👥 <span id="fil-members-eco-count">0</span> membres
-            </button>
-          </div>
-          <button class="btn btn-primary btn-full" id="btn-fil-eco-new-post" type="button">✍️ Écrire un post</button>
-          <div class="fil-posts" id="fil-eco-posts">
-            <p class="empty-state">Aucun post pour l'instant.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <section id="tmp-fil-detail-admin" class="screen">
-      <div class="app-content">
-        <div class="page active" data-page="fil-detail-admin">
-          <header class="page-header page-header-flex">
-            <div>
-              <h1 class="page-title" id="fil-detail-admin-title">Fil</h1>
-              <p class="page-subtitle" id="fil-detail-admin-subtitle">…</p>
-            </div>
-            <button class="btn-gear" id="btn-back-fils-admin" type="button">←</button>
-          </header>
-          <div class="fil-members-bar">
-            <button class="fil-members-btn" id="fil-members-admin-btn" type="button">
-              👥 <span id="fil-members-admin-count">0</span> membres
-            </button>
-          </div>
-          <button class="btn btn-primary btn-full" id="btn-fil-admin-new-post" type="button">✍️ Écrire un post</button>
-          <div class="fil-posts" id="fil-admin-posts">
-            <p class="empty-state">Aucun post pour l'instant.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-    
 <!-- ═══ FIREBASE ═══ -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
