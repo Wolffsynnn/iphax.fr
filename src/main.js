@@ -1568,3 +1568,14 @@ onAuthStateChanged(auth, async user => {
 setupFilsButtons();
 console.log('✅ main.js chargé et prêt');
 }
+// ═══════════════════════════════════════════════════════════════════════════
+// ENGRENAGES PARAMÈTRES — binding global délégué (toujours actif)
+// ═══════════════════════════════════════════════════════════════════════════
+document.addEventListener('click', (e) => {
+  const gear = e.target.closest('#btn-gear, #btn-gear-eco, #btn-gear-admin');
+  if (!gear) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if (typeof openSettingsModal === 'function') openSettingsModal();
+  else console.warn('openSettingsModal introuvable');
+});
