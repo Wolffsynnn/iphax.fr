@@ -1813,6 +1813,18 @@ async function loadDevUsers(search) {
             roleChangedByName: currentUserData?.displayName || 'Dev'
           });
 
+          // TEST — log manuel
+window.testLog = async function() {
+  try {
+    await logAction('test', 'Ceci est un log de test');
+    console.log('✅ log écrit');
+    alert('Log écrit ! Va voir dans Logs.');
+  } catch (e) {
+    console.error(e);
+    alert('❌ Erreur : ' + e.message);
+  }
+};
+
           // Log automatique
           await logAction(
             'role',
