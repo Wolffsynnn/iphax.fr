@@ -1600,6 +1600,15 @@ document.addEventListener('click', (e) => {
 
 window.openSettings = openSettingsModal;
 
+window.testLog = async function() {
+  try {
+    await logAction('test', 'Ceci est un log de test');
+    alert('OK');
+  } catch (e) {
+    alert('ERREUR : ' + e.message);
+  }
+};
+
 window.testGear = function() {
   if (typeof openSettingsModal === 'function') {
     openSettingsModal();
