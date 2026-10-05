@@ -1377,7 +1377,10 @@ function openSettingsModal() {
           <div style="padding:12px;background:rgba(10,26,61,0.5);border-radius:var(--radius-sm);font-size:13px;color:var(--text-secondary);">📧 ${escapeHtml(currentUserData?.email || '—')}<br>🎂 ${escapeHtml(currentUserData?.birthdate || '—')}</div>
         </div>
       </div>
-      <div class="modal-footer"><button class="btn btn-ghost" id="s-lo" style="flex:1;">🚪 Déconnexion</button></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="s-reset" style="flex:1;">🔄 Reset thème</button>
+        <button class="btn btn-ghost" id="s-lo" style="flex:1;">🚪 Déconnexion</button>
+      </div>
     </div>`);
   ov.querySelectorAll('.theme-choice').forEach(b => b.addEventListener('click', async () => {
     const c = b.dataset.theme; applyTheme(c);
@@ -1389,6 +1392,11 @@ function openSettingsModal() {
   ov.querySelector('#s-un').addEventListener('click', () => { ov.remove(); setTimeout(openEditUsername, 150); });
   ov.querySelector('#s-bio').addEventListener('click', () => { ov.remove(); setTimeout(openEditBio, 150); });
   ov.querySelector('#s-pw').addEventListener('click', () => { ov.remove(); setTimeout(openChangePassword, 150); });
+  ov.querySelector('#s-reset').addEventListener('click', () => {
+    localStorage.removeItem('iphax_theme');
+    notify('Thème réinitialisé ✅', 'success');
+    setTimeout(() => location.reload(), 500);
+  });
   ov.querySelector('#s-lo').addEventListener('click', () => { ov.remove(); handleLogout(); });
 }
 function handleLogout() {
