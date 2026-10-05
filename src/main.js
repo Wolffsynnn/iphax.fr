@@ -2043,3 +2043,114 @@ async function loadDevSignalements() {
     c.innerHTML = '<p class="empty-state">⚠️ Impossible de charger les signalements.</p>';
   }
 }
+// ═══════════════════════════════════════════════════════════════════════════
+// SIGNALEMENT — FORMULAIRE UTILISATEUR
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SIGNAL_CATEGORIES = [
+  '🚨 Comportement d\'un écoutant',
+  '💬 Contenu choquant dans un fil',
+  '📢 Spam / publicité',
+  '🎭 Faux profil / usurpation',
+  '😰 Contenu inquiétant',
+  '🔒 Problème de confidentialité',
+  '❓ Autre'
+];
+
+function openSignalForm() {
+  let categorie = '';
+
+  const ov = openModal(`
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">🚨 Signaler</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Ton signalement sera traité en privé.</div>
+        </div>
+        <button class="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>Titre du signalement</label>
+          <input type="text" id="sig-titre" maxlength="100" placeholder="Ex : Propos inquiétants dans un fil">
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label>Catégorie</label>
+          <div class="signal-cats">
+            ${SIGNAL_CATEGORIES.map(c => `<button type="button" class="signal-cat" data-cat="${c}">${c}</button>`).join('')}
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label>Description</label>
+          <textarea id="sig-desc" maxlength="1000" style="min-height:120px;" placeholder="Explique ce qui s'est passé..."></textarea>
+        </div>
+
+        <p class="auth-error" id="sig-error" style="margin-top:10px;"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="sig-send">📩 Envoyer</button>
+      </div>
+    </div>
+  `);
+
+  ov.querySelectorAll('.signal-cat').forEach(btn => {
+    btn.addEventListener('click', () => {
+      ov.querySelectorAll('.signal-cat').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      categorie = btn.dataset.cat;
+    });
+  });
+
+  ov.querySelector('#sig-send').addEventListener('click', async () => {
+    const err = ov.querySelector('#sig-error');
+    const titre = ov.querySelector('#sig-titre').value.trim();
+    const desc = ov.querySelector('#sig-desc').value.trim();
+    err.textContent = '';
+
+    if (!titre) { err.textContent = '⚠️ Ajoute un titre.'; return; }
+    if (!categorie) { err.textContent = '⚠️ Choisis une catégorie.'; return; }
+    if (!desc) { err.textContent = '⚠️ Ajoute une description.'; return; }
+
+    const btn = ov.querySelector('#sig-send');
+    btn.disabled = true;
+    btn.textContent = '⏳ Envoi...';
+
+    try {
+      await addDoc(collection(db, 'signalements'), {
+        titre,
+        categorie,
+        raison: desc,
+        memberId: currentUser.uid,
+        memberName: currentUserData?.displayName || 'Utilisateur',
+        ecoutantId: currentUser.uid,
+        ecoutantName: currentUserData?.displayName || 'Utilisateur',
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+
+      await logAction('signalement',
+        `<strong>${escapeHtml(currentUserData?.displayName || 'Utilisateur')}</strong> a créé un signalement : <strong>${escapeHtml(titre)}</strong>`,
+        { categorie });
+
+      ov.remove();
+      notify('Signalement envoyé ✅', 'success');
+    } catch (e) {
+      err.textContent = '❌ ' + e.message;
+      btn.disabled = false;
+      btn.textContent = '📩 Envoyer';
+    }
+  });
+}
+// ═══════════════════════════════════════════════════════════════════════════
+// SIGNALEMENT — BINDING DU BOUTON 🚨
+// ═══════════════════════════════════════════════════════════════════════════
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('#btn-signaler-membre, #btn-signaler-eco, #btn-signaler-admin');
+  if (!btn) return;
+  e.preventDefault();
+  openSignalForm();
+});
