@@ -791,7 +791,7 @@
    #screen-auth {
      align-items: center;
      justify-content: center;
-     background: var(--bg-main);
+     background: transparent;
      overflow-y: auto;
      padding: 24px 16px;
    }
@@ -1049,7 +1049,7 @@
       10. APP - SHELL
       ───────────────────────────────────────────────────────────────────── */
    
-   #app-membre, #app-ecoutant, #app-admin { position: relative; background: var(--bg-main); }
+      background: transparent;
    
    .app-content {
      flex: 1;

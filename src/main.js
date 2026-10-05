@@ -1266,6 +1266,18 @@ function applyTheme(t) {
   const theme = t || 'iphax';
   document.body.dataset.theme = theme;
   try { localStorage.setItem('iphax_theme', theme); } catch (e) {}
+
+  // Fond image (uniquement pour les thèmes qui en ont un)
+  const bgImg = document.getElementById('theme-bg-img');
+  if (bgImg) {
+    const themesAvecFond = ['vert'];
+    if (themesAvecFond.includes(theme)) {
+      bgImg.classList.add('active');
+    } else {
+      bgImg.classList.remove('active');
+    }
+  }
+
   if (window.iphaxThemeBg && window.iphaxThemeBg.apply) {
     window.iphaxThemeBg.apply(theme);
   }
