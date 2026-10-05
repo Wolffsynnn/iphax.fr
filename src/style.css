@@ -289,7 +289,7 @@
      --glow-strong: 0 0 40px rgba(61,160,240,0.48);
      --grid-line: rgba(61,160,240,0.08);
      --particle: rgba(61,160,240,0.55);
-     --bg-image: none;
+     --bg-image: url('https://i.imgur.com/sIdZqY9.png');
    }
    
    [data-theme="dark"] {
@@ -370,6 +370,9 @@
     }
     [data-theme="sea"] {
       --bg-image: url('https://i.imgur.com/8QzUEFq.png');
+    }
+    [data-theme="ocean"] {
+      --bg-image: url('https://i.imgur.com/fs76Yom.png');
     }
    }
    
