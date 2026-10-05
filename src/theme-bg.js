@@ -105,13 +105,61 @@
       ctx.restore();
     }
   
+    let particles = [];
+
+    function makeParticle(colors) {
+      return {
+        x: Math.random() * W,
+        y: Math.random() * -H,
+        size: 12 + Math.random() * 22,
+        vy: 0.5 + Math.random() * 1.2,
+        vx: (Math.random() - 0.5) * 0.8,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.02,
+        swing: Math.random() * Math.PI * 2,
+        swingSpeed: 0.01 + Math.random() * 0.02,
+        swingAmplitude: 0.5 + Math.random() * 1.5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        opacity: 0.5 + Math.random() * 0.5
+      };
+    }
+  
+    function initParticles() {
+      const colors = THEME_COLORS[currentTheme];
+      if (!colors) { particles = []; return; }
+  
+      const count = Math.min(50, Math.floor((W * H) / 26000));
+      particles = [];
+      for (let i = 0; i < count; i++) {
+        const p = makeParticle(colors);
+        p.y = Math.random() * H;
+        particles.push(p);
+      }
+    }
+  
+    function updateParticle(p) {
+      p.swing += p.swingSpeed;
+      p.x += p.vx + Math.sin(p.swing) * p.swingAmplitude * 0.3;
+      p.y += p.vy;
+      p.rot += p.rotSpeed;
+  
+      if (p.y > H + 50) {
+        p.y = -50;
+        p.x = Math.random() * W;
+      }
+      if (p.x < -50) p.x = W + 50;
+      if (p.x > W + 50) p.x = -50;
+    }
+  
     function loop() {
       if (!running) return;
       raf = requestAnimationFrame(loop);
       ctx.clearRect(0, 0, W, H);
   
-      // Feuille de test au centre (pour valider le dessin)
-      drawLeaf(W / 2, H / 2, 120, -0.5, '#1F8A57', 1);
+      particles.forEach(p => {
+        updateParticle(p);
+        drawLeaf(p.x, p.y, p.size, p.rot, p.color, p.opacity);
+      });
     }
   
     function applyTheme(themeId) {
@@ -120,8 +168,9 @@
       if (canvas) {
         canvas.style.display = themesAvecFeuilles.includes(themeId) ? 'block' : 'none';
       }
+      initParticles();
     }
-  
+    
     function init() {
       createCanvas();
       applyTheme(document.body.dataset.theme || 'iphax');
