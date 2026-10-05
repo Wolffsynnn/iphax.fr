@@ -1944,6 +1944,7 @@ function bindDevTabs() {
       if (target === 'dashboard')    loadDevStats();
       if (target === 'logs')         loadDevLogs();
       if (target === 'signalements') loadDevSignalements();
+      if (target === 'outils')       initDevTools();
       if (target === 'roles') {
         const c = $('dev-users-list');
         if (c && !c.querySelector('.admin-user-card')) {
@@ -2154,3 +2155,48 @@ document.addEventListener('click', (e) => {
   e.preventDefault();
   openSignalForm();
 });
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL DEV — OUTILS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function initDevTools() {
+  // Version de l'app
+  const ver = $('dev-version-text');
+  if (ver) ver.textContent = 'v1.0.0 — Bêta';
+
+  // État Firebase
+  const fb = $('dev-firebase-status');
+  if (fb) {
+    if (window.iphaxAuth && window.iphaxDb) {
+      fb.textContent = '✅ Connecté (' + (window.iphaxAuth.currentUser?.email || 'inconnu') + ')';
+    } else {
+      fb.textContent = '❌ Non connecté';
+    }
+  }
+
+  // Bouton "Vider le cache"
+  const clearBtn = $('dev-clear-cache');
+  if (clearBtn && !clearBtn.dataset.bound) {
+    clearBtn.dataset.bound = '1';
+    clearBtn.addEventListener('click', () => {
+      if (!confirm('Vider le cache local (thème, préférences) ?')) return;
+      try {
+        localStorage.removeItem('iphax_theme');
+        notify('Cache vidé ✅', 'success');
+        setTimeout(() => location.reload(), 800);
+      } catch (e) {
+        notify('Erreur : ' + e.message, 'error');
+      }
+    });
+  }
+
+  // Bouton "Recharger l'application"
+  const reloadBtn = $('dev-reload');
+  if (reloadBtn && !reloadBtn.dataset.bound) {
+    reloadBtn.dataset.bound = '1';
+    reloadBtn.addEventListener('click', () => {
+      if (!confirm('Recharger l\'application ?')) return;
+      location.reload();
+    });
+  }
+}
