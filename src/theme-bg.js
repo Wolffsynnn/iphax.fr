@@ -179,7 +179,7 @@ const THEME_BG = {
   
     const canvas = document.createElement('canvas');
     canvas.id = 'theme-bg-canvas';
-    canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.55;';
+    canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999;background:red;opacity:0.5;';
     document.body.insertBefore(canvas, document.body.firstChild);
   
     THEME_BG.canvas = canvas;
