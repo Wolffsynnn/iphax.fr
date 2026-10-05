@@ -1,20 +1,45 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// IPHAX — theme-bg.js (Canvas 2D — feuilles réalistes)
+// IPHAX — theme-bg.js (Canvas 2D — multi-thèmes)
 // ═══════════════════════════════════════════════════════════════════════════
 
 (function() {
     let canvas, ctx, raf, W, H;
     let running = false;
     let currentTheme = null;
+    let particles = [];
   
+    // Couleurs par thème (null = pas d'animation)
     const THEME_COLORS = {
-      iphax:  null,
-      vert:   ['#0B5D31','#0F7A43','#166B3A','#1F8A57','#2A9D63'],
-      rouge:  null,
-      rose:   null,
-      violet: null,
-      jaune:  null,
-      orange: null
+      iphax:     null,
+      treegreen: ['#0B5D31','#0F7A43','#166B3A','#1F8A57','#2A9D63'],
+      fire:      ['#B23344','#D04858','#E04A5A','#FF6B3D','#FFA45B'],
+      cherry:    ['#FBD5E3','#F8C4D8','#F5B3CC','#F2A2C0'],
+      midnight:  null,
+      golden:    null,
+      autumn:    ['#B84E1E','#C46228','#D97742','#E08C3C','#9E3F15'],
+      sea:       ['#2BB6B6','#5ED8D8','#8EE6E6','#1F8A8A'],
+      ocean:     ['#1F6FBF','#3DA0F0','#5EB0FF','#0F3F7A'],
+      dark:      null,
+      white:     null
+    };
+  
+    // Forme par thème : 'leaf' | 'petal-flower' | 'flame' | 'autumn-leaf' | 'bubble'
+    const THEME_SHAPES = {
+      treegreen: 'leaf',
+      fire:      'flame',
+      cherry:    'petal-flower',
+      autumn:    'autumn-leaf',
+      sea:       'bubble',
+      ocean:     'bubble'
+    };
+  
+    const THEME_COUNT = {
+      treegreen: 60,
+      fire:      55,
+      cherry:    55,
+      autumn:    55,
+      sea:       50,
+      ocean:     50
     };
   
     function createCanvas() {
@@ -41,7 +66,6 @@
       H = window.innerHeight;
     }
   
-    // Assombrit ou éclaircit une couleur hex
     function shade(hex, factor) {
       const c = hex.replace('#', '');
       let r = parseInt(c.substring(0, 2), 16);
@@ -53,20 +77,19 @@
       return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
     }
   
-    // Dessine une feuille réaliste
+    /* ─────────────── DESSINS ─────────────── */
+  
     function drawLeaf(x, y, size, rot, color, opacity) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rot);
       ctx.globalAlpha = opacity;
   
-      // Dégradé principal
       const grad = ctx.createLinearGradient(0, -size, 0, size);
       grad.addColorStop(0, color);
       grad.addColorStop(0.5, shade(color, 1.15));
       grad.addColorStop(1, shade(color, 0.85));
   
-      // Forme
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.moveTo(0, -size);
@@ -75,7 +98,6 @@
       ctx.closePath();
       ctx.fill();
   
-      // Nervure centrale
       ctx.strokeStyle = shade(color, 0.6);
       ctx.lineWidth = Math.max(0.7, size * 0.03);
       ctx.beginPath();
@@ -83,19 +105,16 @@
       ctx.lineTo(0, size * 0.95);
       ctx.stroke();
   
-      // Nervures secondaires
       ctx.lineWidth = Math.max(0.4, size * 0.015);
       for (let i = 0; i < 4; i++) {
         const t = -0.7 + i * 0.4;
         const y0 = size * t;
         const y1 = y0 + size * 0.18;
         const spread = size * 0.35;
-  
         ctx.beginPath();
         ctx.moveTo(0, y0);
         ctx.quadraticCurveTo(spread * 0.6, y0 + size * 0.05, spread, y1);
         ctx.stroke();
-  
         ctx.beginPath();
         ctx.moveTo(0, y0);
         ctx.quadraticCurveTo(-spread * 0.6, y0 + size * 0.05, -spread, y1);
@@ -105,47 +124,219 @@
       ctx.restore();
     }
   
-    let particles = [];
-
+    function drawAutumnLeaf(x, y, size, rot, color, opacity) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.globalAlpha = opacity;
+  
+      const grad = ctx.createLinearGradient(0, -size, 0, size);
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, shade(color, 0.8));
+  
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * 0.75, size, 0, 0, Math.PI * 2);
+      ctx.fill();
+  
+      ctx.strokeStyle = shade(color, 0.5);
+      ctx.lineWidth = Math.max(0.7, size * 0.035);
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 0.9);
+      ctx.lineTo(0, size * 0.9);
+      ctx.stroke();
+  
+      ctx.restore();
+    }
+  
+    function drawPetal(x, y, size, rot, color, opacity) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.globalAlpha = opacity;
+  
+      const grad = ctx.createLinearGradient(0, -size, 0, size);
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, shade(color, 0.85));
+  
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(0, size);
+      ctx.bezierCurveTo(size * 0.7, size * 0.4, size * 0.7, -size * 0.6, 0, -size);
+      ctx.bezierCurveTo(-size * 0.7, -size * 0.6, -size * 0.7, size * 0.4, 0, size);
+      ctx.closePath();
+      ctx.fill();
+  
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.beginPath();
+      ctx.ellipse(0, -size * 0.9, size * 0.12, size * 0.15, 0, 0, Math.PI * 2);
+      ctx.fill();
+  
+      ctx.restore();
+    }
+  
+    function drawFlower(x, y, size, rot, color, opacity) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.globalAlpha = opacity;
+  
+      const petalCount = 6 + Math.floor(Math.random() * 3);
+      const petalSize = size * 0.55;
+  
+      for (let i = 0; i < petalCount; i++) {
+        const angle = rot + (i / petalCount) * Math.PI * 2;
+        ctx.save();
+        ctx.rotate(angle);
+        const grad = ctx.createLinearGradient(0, 0, 0, -petalSize);
+        grad.addColorStop(0, color);
+        grad.addColorStop(1, shade(color, 1.1));
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.ellipse(0, -petalSize * 0.5, petalSize * 0.35, petalSize * 0.6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+  
+      ctx.fillStyle = '#FDD9E5';
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+  
+      ctx.fillStyle = '#FFE8B0';
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+  
+      ctx.restore();
+    }
+  
+    function drawFlame(x, y, size, rot, color, opacity) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.globalAlpha = opacity;
+  
+      // Corps de flamme (forme goutte)
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+      grad.addColorStop(0, '#FFFFFF');
+      grad.addColorStop(0.3, color);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+  
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(0, size);
+      ctx.bezierCurveTo(size * 0.6, size * 0.3, size * 0.4, -size * 0.6, 0, -size);
+      ctx.bezierCurveTo(-size * 0.4, -size * 0.6, -size * 0.6, size * 0.3, 0, size);
+      ctx.closePath();
+      ctx.fill();
+  
+      ctx.restore();
+    }
+  
+    function drawBubble(x, y, size, rot, color, opacity) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.globalAlpha = opacity;
+  
+      const grad = ctx.createRadialGradient(
+        -size * 0.3, -size * 0.3, 0,
+        0, 0, size
+      );
+      grad.addColorStop(0, 'rgba(255,255,255,0.8)');
+      grad.addColorStop(0.4, color);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+  
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, size, 0, Math.PI * 2);
+      ctx.fill();
+  
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = Math.max(0.5, size * 0.08);
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.85, 0, Math.PI * 2);
+      ctx.stroke();
+  
+      ctx.restore();
+    }
+  
+    function drawShape(p) {
+      const shape = THEME_SHAPES[currentTheme];
+      if (shape === 'petal-flower') {
+        if (p.type === 'flower') drawFlower(p.x, p.y, p.size * 0.9, p.rot, p.color, p.opacity);
+        else drawPetal(p.x, p.y, p.size, p.rot, p.color, p.opacity);
+      } else if (shape === 'flame') {
+        drawFlame(p.x, p.y, p.size, p.rot, p.color, p.opacity);
+      } else if (shape === 'autumn-leaf') {
+        drawAutumnLeaf(p.x, p.y, p.size, p.rot, p.color, p.opacity);
+      } else if (shape === 'bubble') {
+        drawBubble(p.x, p.y, p.size * 0.6, p.rot, p.color, p.opacity);
+      } else {
+        drawLeaf(p.x, p.y, p.size, p.rot, p.color, p.opacity);
+      }
+    }
+  
+    /* ─────────────── PARTICULES ─────────────── */
+  
     function makeParticle(colors) {
+      const shape = THEME_SHAPES[currentTheme];
+      let type = 'leaf';
+      if (shape === 'petal-flower') {
+        type = Math.random() < 0.5 ? 'petal' : 'flower';
+      }
+      // Les bulles/flammes montent, les feuilles/pétales tombent
+      const monte = (shape === 'bubble' || shape === 'flame');
       return {
+        type,
         x: Math.random() * W,
-        y: Math.random() * -H,
-        size: 8 + Math.random() * 14,
-        vy: 0.5 + Math.random() * 1.2,
+        y: monte ? (H + Math.random() * H) : Math.random() * -H,
+        size: 8 + Math.random() * 16,
+        vy: monte ? -(0.5 + Math.random() * 1.3) : (0.5 + Math.random() * 1.3),
         vx: (Math.random() - 0.5) * 0.8,
         rot: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.02,
         swing: Math.random() * Math.PI * 2,
-        swingSpeed: 0.01 + Math.random() * 0.02,
-        swingAmplitude: 0.5 + Math.random() * 1.5,
+        swingSpeed: 0.01 + Math.random() * 0.025,
+        swingAmplitude: 0.6 + Math.random() * 1.8,
         color: colors[Math.floor(Math.random() * colors.length)],
-        opacity: 0.35 + Math.random() * 0.4
+        opacity: 0.4 + Math.random() * 0.45
       };
     }
   
     function initParticles() {
       const colors = THEME_COLORS[currentTheme];
       if (!colors) { particles = []; return; }
-  
-      const count = Math.min(35, Math.floor((W * H) / 38000));
+      const baseCount = THEME_COUNT[currentTheme] || 40;
+      const areaFactor = Math.min(1.5, (W * H) / 800000);
+      const count = Math.floor(baseCount * areaFactor);
       particles = [];
       for (let i = 0; i < count; i++) {
         const p = makeParticle(colors);
-        p.y = Math.random() * H;
+        p.y = (THEME_SHAPES[currentTheme] === 'bubble' || THEME_SHAPES[currentTheme] === 'flame')
+          ? Math.random() * H
+          : Math.random() * H;
         particles.push(p);
       }
     }
   
     function updateParticle(p) {
-      p.swing += p.swingSpeed;
-      p.x += p.vx + Math.sin(p.swing) * p.swingAmplitude * 0.3;
-      p.y += p.vy;
-      p.rot += p.rotSpeed;
+      const shape = THEME_SHAPES[currentTheme];
+      const monte = (shape === 'bubble' || shape === 'flame');
   
-      if (p.y > H + 50) {
-        p.y = -50;
-        p.x = Math.random() * W;
+      p.swing += p.swingSpeed;
+      p.x += p.vx + Math.sin(p.swing) * p.swingAmplitude * 0.4;
+      p.y += p.vy;
+      p.rot += p.rotSpeed * 0.3;
+  
+      if (monte) {
+        if (p.y < -50) {
+          p.y = H + 50;
+          p.x = Math.random() * W;
+        }
+      } else {
+        if (p.y > H + 50) {
+          p.y = -50;
+          p.x = Math.random() * W;
+        }
       }
       if (p.x < -50) p.x = W + 50;
       if (p.x > W + 50) p.x = -50;
@@ -155,22 +346,21 @@
       if (!running) return;
       raf = requestAnimationFrame(loop);
       ctx.clearRect(0, 0, W, H);
-  
       particles.forEach(p => {
         updateParticle(p);
-        drawLeaf(p.x, p.y, p.size, p.rot, p.color, p.opacity);
+        drawShape(p);
       });
     }
   
     function applyTheme(themeId) {
       currentTheme = themeId;
-      const themesAvecFeuilles = ['vert'];
+      const themesAvecAnimation = ['treegreen', 'fire', 'cherry', 'autumn', 'sea', 'ocean'];
       if (canvas) {
-        canvas.style.display = themesAvecFeuilles.includes(themeId) ? 'block' : 'none';
+        canvas.style.display = themesAvecAnimation.includes(themeId) ? 'block' : 'none';
       }
       initParticles();
     }
-
+  
     function init() {
       createCanvas();
       applyTheme(document.body.dataset.theme || 'iphax');
@@ -189,5 +379,5 @@
       setTimeout(init, 300);
     }
   
-    console.log('✅ theme-bg.js (Canvas pur) prêt');
+    console.log('✅ theme-bg.js prêt');
   })();

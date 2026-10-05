@@ -67,17 +67,22 @@ const MOOD_ELEMENTS = [{id:'humeur',label:'😊 Humeur'},{id:'sommeil',label:'�
 const MOOD_COLORS = [{name:'Excellent',hex:'#0F2551'},{name:'Très bien',hex:'#1B7A4D'},{name:'Bien',hex:'#A8E6CF'},{name:'Moyen',hex:'#FFD93D'},{name:'Bof',hex:'#FF9F45'},{name:'Mal',hex:'#E04A5A'},{name:'Très mal',hex:'#7A1525'}];
 const ELEMENT_COLORS = ['#FFD93D','#A78BFA','#FF9F45','#E04A5A','#3DDC97','#00E5FF','#5EB0FF'];
 const MOTIFS = ['Anxiété','Solitude','Tristesse','Colère','Harcèlement','Famille','École','Amitié','Amour','Deuil','Autre'];
-const CONV_CATEGORIES = ['Anxiété','Solitude','Tristesse','Colère','Famille','École','Amitié','Deuil','Autre'];
 const AVATARS = ['🌙','⭐','✨','🌌','🌠','🦉','🐱','🐶','🦊','🐰','🐼','🦋','🌸','🌺','🌻','🍀','💙','🎧','🎨','📚'];
+
 const THEMES = [
-  { id:'iphax',  label:'Bleu',    colors:['#00E5FF','#0099FF','#0057C9'] },
-  { id:'vert',   label:'Vert',    colors:['#2BB673','#38D18A','#1F8A57'] },
-  { id:'rouge',  label:'Rouge',   colors:['#E04A5A','#EE6577','#B23344'] },
-  { id:'rose',   label:'Rose',    colors:['#F472B6','#F98FCB','#C4488F'] },
-  { id:'violet', label:'Violet',  colors:['#A78BFA','#BFA4FB','#7C5CE0'] },
-  { id:'jaune',  label:'Jaune',   colors:['#E5B800','#F5CC2E','#B08D00'] },
-  { id:'orange', label:'Orange',  colors:['#F2874A','#FF9E62','#C46228'] }
+  { id:'iphax',     label:'Iphax',      colors:['#050E24','#0A1A3D','#00E5FF'] },
+  { id:'treegreen', label:'Tree Green', colors:['#0B5D31','#1F8A57','#2BB673'] },
+  { id:'fire',      label:'Fire',       colors:['#B23344','#E04A5A','#FF9E62'] },
+  { id:'cherry',    label:'Cherry',     colors:['#C4488F','#F472B6','#FADFEE'] },
+  { id:'midnight',  label:'Midnight',   colors:['#2B1D52','#7C5CE0','#A78BFA'] },
+  { id:'golden',    label:'Golden',     colors:['#B08D00','#E5B800','#F5CC2E'] },
+  { id:'autumn',    label:'Autumn',     colors:['#C46228','#F2874A','#FF9E62'] },
+  { id:'sea',       label:'Sea',        colors:['#1F8A8A','#2BB6B6','#5ED8D8'] },
+  { id:'ocean',     label:'Ocean',      colors:['#0F3F7A','#1F6FBF','#3DA0F0'] },
+  { id:'dark',      label:'Dark',       colors:['#000000','#1A1A1A','#333333'] },
+  { id:'white',     label:'White',      colors:['#FFFFFF','#F5F5F5','#E0E0E0'] }
 ];
+
 const REACTIONS_EMOJIS = ['👍','❤️','😢','😂','🔥','🎉','😮','😡'];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -207,7 +212,7 @@ formLogin?.addEventListener('submit', async e => {
     const role = data.role || 'membre';
     if (!roleCompatibleAvecBulle(role, currentBulle)) {
       await signOut(auth);
-      const vrai = LABELS_ESPACES[bulleDepuisRole(role)], tent = LABELS_ESPACES[currentBulle], rl = LABELS_ROLES[role] || role;
+      const vrai = LABELS_ESPACES[bulleDepuisRole(role)], rl = LABELS_ROLES[role] || role;
       showError('login-error', `🚫 Mauvais espace ! Compte ${rl}. Utilise la bulle « ${vrai} ».`);
       return;
     }
@@ -277,6 +282,7 @@ btnAcceptCgu?.addEventListener('click', async () => {
   try {
     await updateDoc(doc(db, 'users', currentUser.uid), { cguAccepted: true, cguAcceptedAt: serverTimestamp(), cguVersion: '1.0' });
     currentUserData.cguAccepted = true;
+    await logAction('cgu', `<strong>${escapeHtml(currentUserData?.displayName || 'Utilisateur')}</strong> a accepté les CGU v1.0`);
     routeUser(currentUserData);
   } catch (e) { notify('Erreur : ' + e.message, 'error'); }
 });
@@ -536,7 +542,6 @@ $('btn-new-rappel')?.addEventListener('click', () => {
 function openConvForm(type) {
   return new Promise(resolve => {
     let motif = '', urgence = 3, mots = '';
-    let prefNiveau = 'peu-importe', prefAge = 'peu-importe', prefStyle = 'peu-importe', prefGenre = 'peu-importe';
     const isRef = type === 'referent';
     const overlay = openModal(`
       <div class="modal" style="max-width:560px;">
@@ -564,7 +569,7 @@ function openConvForm(type) {
     overlay.querySelector('#cvsub').addEventListener('click', () => {
       if (!motif) { notify('Choisis un motif.', 'warning'); return; }
       overlay.remove();
-      resolve({ motif, urgence, mots: mots.trim(), prefs: { niveau: prefNiveau, age: prefAge, style: prefStyle, genre: prefGenre } });
+      resolve({ motif, urgence, mots: mots.trim() });
     });
   });
 }
@@ -586,8 +591,9 @@ async function findExistingConversation(type) {
 async function createConversation(type, fd) {
   if (!currentUser) return null;
   try {
-    const nc = { memberId: currentUser.uid, memberName: currentUserData?.displayName || 'Membre', memberUsername: currentUserData?.username || 'membre', status: 'waiting', claimedBy: null, claimedByName: null, type, motif: fd.motif, urgence: fd.urgence, mots: fd.mots || '', prefs: fd.prefs || {}, createdAt: serverTimestamp(), claimedAt: null, lastMessage: fd.mots ? fd.mots.substring(0, 60) : '(nouvelle demande)', lastMessageAt: serverTimestamp(), lastMessageFrom: currentUser.uid };
+    const nc = { memberId: currentUser.uid, memberName: currentUserData?.displayName || 'Membre', memberUsername: currentUserData?.username || 'membre', status: 'waiting', claimedBy: null, claimedByName: null, type, motif: fd.motif, urgence: fd.urgence, mots: fd.mots || '', createdAt: serverTimestamp(), claimedAt: null, lastMessage: fd.mots ? fd.mots.substring(0, 60) : '(nouvelle demande)', lastMessageAt: serverTimestamp(), lastMessageFrom: currentUser.uid };
     const ref = await addDoc(collection(db, 'conversations'), nc);
+    await logAction('conversation', `<strong>${escapeHtml(currentUserData?.displayName || 'Membre')}</strong> a lancé une nouvelle conversation`);
     return { id: ref.id, ...nc };
   } catch (e) { notify('Impossible de créer.', 'error'); return null; }
 }
@@ -695,15 +701,6 @@ function renderAttente() {
   }).join('');
   c.querySelectorAll('[data-claim-id]').forEach(btn => btn.addEventListener('click', async e => { e.stopPropagation(); await claimConversation(btn.dataset.claimId); }));
 }
-function formatPrefsPlain(prefs) {
-  const L = { 'peu-importe':'Peu importe','formation':'En formation','confirme':'Confirmé','experimente':'Expérimenté','jeune':'Jeune','adulte':'Adulte','doux':'Doux','direct':'Direct','ecoute':'Juste écouter','fille':'Fille','garcon':'Garçon','non-binaire':'Non-binaire' };
-  const p = [];
-  if (prefs.niveau && prefs.niveau !== 'peu-importe') p.push('🎓 ' + L[prefs.niveau]);
-  if (prefs.age && prefs.age !== 'peu-importe') p.push('🎂 ' + L[prefs.age]);
-  if (prefs.style && prefs.style !== 'peu-importe') p.push('🗣️ ' + L[prefs.style]);
-  if (prefs.genre && prefs.genre !== 'peu-importe') p.push('⚧️ ' + L[prefs.genre]);
-  return p.join(' · ') || 'Aucune préférence';
-}
 async function claimConversation(convId) {
   if (!currentUser) return;
   try {
@@ -713,6 +710,7 @@ async function claimConversation(convId) {
     const data = snap.data();
     if (data.status !== 'waiting' || data.claimedBy) { notify('Déjà prise.', 'warning'); return; }
     await updateDoc(ref, { status: 'claimed', claimedBy: currentUser.uid, claimedByName: currentUserData?.displayName || 'Écoutant', claimedAt: serverTimestamp() });
+    await logAction('conversation', `<strong>${escapeHtml(currentUserData?.displayName || 'Écoutant')}</strong> a pris en charge une conversation`);
     openEcoChat(convId);
   } catch (e) { notify('Impossible de prendre.', 'error'); }
 }
@@ -807,7 +805,6 @@ async function markConvAsRead(convId) {
   if (!currentUser) return;
   try { await updateDoc(doc(db, 'conversations', convId), { lastReadAt: serverTimestamp() }); } catch (e) {}
 }
-// MENU ⋯
 document.addEventListener('click', e => {
   const btn = e.target.closest('.conv-menu'); if (!btn) return;
   const card = btn.closest('[data-conv-id], [data-open-conv]'); if (!card) return;
@@ -848,6 +845,7 @@ async function handleConvAction(conv, action) {
     case 'notes': return openNotesModal(conv);
     case 'resoudre':
       await updateDoc(ref, { status: 'resolved', resolvedAt: serverTimestamp() });
+      await logAction('conversation', `<strong>${escapeHtml(currentUserData?.displayName || 'Écoutant')}</strong> a marqué une conversation comme résolue`);
       if (ecoConvId === conv.id) { if (ecoChatUnsub) { ecoChatUnsub(); ecoChatUnsub = null; } openPage('app-ecoutant', 'conversations'); }
       return;
     case 'unresolve': return await updateDoc(ref, { status: 'claimed', resolvedAt: null });
@@ -879,6 +877,7 @@ function openSignalerModal(conv) {
     if (!r) { notify('Indique une raison.', 'warning'); return; }
     try {
       await addDoc(collection(db, 'signalements'), { convId: conv.id, memberId: conv.memberId, memberName: conv.memberName, ecoutantId: currentUser.uid, ecoutantName: currentUserData?.displayName || 'Écoutant', raison: r, status: 'pending', createdAt: serverTimestamp() });
+      await logAction('signalement', `<strong>${escapeHtml(currentUserData?.displayName || 'Écoutant')}</strong> a signalé une conversation`);
       ov.remove(); notify('Signalement envoyé ✅', 'success');
     } catch (e) { notify('Erreur.', 'error'); }
   });
@@ -927,13 +926,13 @@ function openMoodViewerFor(memberId, memberName) {
     return h + '</tbody></table>';
   };
   const bChart = (all, daysCount, mode) => {
-    const W = 860, H = 320, pL = 30, pR = 20, pT = 20, pB = 30;
-    const iW = W - pL - pR, iH = H - pT - pB;
+    const Wc = 860, Hc = 320, pL = 30, pR = 20, pT = 20;
+    const iW = Wc - pL - pR, iH = Hc - pT - 30;
     const today = new Date(), pts = [];
     for (let i = daysCount - 1; i >= 0; i--) { const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i); const mk = getMonthKey(d), day = d.getDate(); pts.push({ day, cells: (all[mk] && all[mk][day]) || {} }); }
     const maxY = 6;
-    let svg = `<svg viewBox="0 0 ${W} ${H}" class="mood-chart-svg" preserveAspectRatio="none">`;
-    for (let l = 0; l <= maxY; l++) { const y = pT + iH - (l / maxY) * iH; svg += `<line x1="${pL}" y1="${y}" x2="${W - pR}" y2="${y}" stroke="rgba(255,255,255,0.06)"/>`; }
+    let svg = `<svg viewBox="0 0 ${Wc} ${Hc}" class="mood-chart-svg" preserveAspectRatio="none">`;
+    for (let l = 0; l <= maxY; l++) { const y = pT + iH - (l / maxY) * iH; svg += `<line x1="${pL}" y1="${y}" x2="${Wc - pR}" y2="${y}" stroke="rgba(255,255,255,0.06)"/>`; }
     if (mode === 'line') {
       MOOD_ELEMENTS.forEach((el, i) => { const col = ELEMENT_COLORS[i], p = []; pts.forEach((pt, idx) => { const v = pt.cells[el.id]; if (v == null) return; const x = pL + (idx / (pts.length - 1 || 1)) * iW; const y = pT + iH - (v / maxY) * iH; p.push(`${x.toFixed(1)},${y.toFixed(1)}`); }); if (p.length > 1) svg += `<polyline points="${p.join(' ')}" fill="none" stroke="${col}" stroke-width="2"/>`; });
     } else {
@@ -975,7 +974,7 @@ function startEcoNewsListener(containerId) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// FILS — SYSTÈME COMPLET
+// FILS
 // ═══════════════════════════════════════════════════════════════════════════
 async function openFil(filId, contexte) {
   currentFilId = filId;
@@ -988,7 +987,7 @@ async function openFil(filId, contexte) {
       try {
         await setDoc(doc(db, 'fils', 'general'), { title: 'Fil général Iphax', description: 'Témoignages, mots gentils, conseils…', theme: 'Général', color: '#00E5FF', type: 'general', isSystem: true, footer: 'Ici, quelqu\'un t\'écoute 💙', authorName: 'Équipe Iphax', authorId: 'system', members: [], createdAt: serverTimestamp() });
         snap = await getDoc(doc(db, 'fils', filId));
-      } catch (e) { /* pas grave si pas créé */ }
+      } catch (e) {}
     }
     if (!snap.exists()) { notify('Ce fil n\'existe pas encore.', 'info'); currentFilData = { title:'Fil', theme:'' }; }
     else currentFilData = snap.data();
@@ -1222,7 +1221,7 @@ function openCreateFilTheraModal() {
   });
 }
 function loadFilsTheraMembre() {
-  const c = $('fils-thera-list'); if (!c) return;
+  const c = $('fils-thera-membre-list'); if (!c) return;
   if (unsubFilsList) unsubFilsList();
   const q = query(collection(db, 'fils'), where('type', '==', 'thera'));
   unsubFilsList = onSnapshot(q, snap => {
@@ -1266,18 +1265,6 @@ function applyTheme(t) {
   const theme = t || 'iphax';
   document.body.dataset.theme = theme;
   try { localStorage.setItem('iphax_theme', theme); } catch (e) {}
-
-  // Fond image (uniquement pour les thèmes qui en ont un)
-  const bgImg = document.getElementById('theme-bg-img');
-  if (bgImg) {
-    const themesAvecFond = ['vert'];
-    if (themesAvecFond.includes(theme)) {
-      bgImg.classList.add('active');
-    } else {
-      bgImg.classList.remove('active');
-    }
-  }
-
   if (window.iphaxThemeBg && window.iphaxThemeBg.apply) {
     window.iphaxThemeBg.apply(theme);
   }
@@ -1370,13 +1357,38 @@ function openChangePassword() {
     }
   });
 }
+function openCustomTheme() {
+  openModal(`
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-header">
+        <div class="modal-title">🎨 Thème personnalisé</div>
+        <button class="modal-close">×</button>
+      </div>
+      <div class="modal-body" style="text-align:center;padding:30px 20px;">
+        <svg class="wysp" viewBox="0 0 200 240" style="width:130px;height:156px;margin:0 auto;">
+          <use href="#wysp-icon"/>
+        </svg>
+        <h3 style="font-size:18px;font-weight:800;color:var(--text-primary);margin-top:18px;letter-spacing:-0.3px;">
+          Chut…
+        </h3>
+        <p style="margin-top:10px;font-size:14px;color:var(--text-secondary);line-height:1.6;">
+          Wysp prépare une nouvelle fonctionnalité de personnalisation 🔨
+        </p>
+        <p style="margin-top:14px;font-size:12.5px;color:var(--text-muted);">
+          ⏳ Bientôt disponible
+        </p>
+      </div>
+    </div>
+  `);
+}
+
 function openSettingsModal() {
   const curT = localStorage.getItem('iphax_theme') || 'iphax';
   const ov = openModal(`
     <div class="modal" style="max-width:520px;">
       <div class="modal-header"><div class="modal-title">⚙️ Paramètres</div><button class="modal-close">×</button></div>
       <div class="modal-body">
-        <div class="field"><label style="font-size:14px;color:var(--text-primary);font-weight:600;">🎨 Thème</label><div class="theme-grid">${THEMES.map(t => `<div><button class="theme-choice ${t.id===curT?'selected':''}" data-theme="${t.id}" style="background:linear-gradient(135deg,${t.colors[0]},${t.colors[1]},${t.colors[2]});"></button><div class="theme-label">${t.label}</div></div>`).join('')}</div></div>
+        <div class="field"><label style="font-size:14px;color:var(--text-primary);font-weight:600;">🎨 Thème</label><div class="theme-grid">${THEMES.map(t => `<div><button class="theme-choice ${t.id===curT?'selected':''}" data-theme="${t.id}" style="background:linear-gradient(135deg,${t.colors[0]},${t.colors[1]},${t.colors[2]});"></button><div class="theme-label">${t.label}</div></div>`).join('')}<div><button class="theme-choice theme-choice-custom" id="theme-custom" style="background:linear-gradient(135deg,#888,#ccc,#fff);display:flex;align-items:center;justify-content:center;font-size:22px;">🎨</button><div class="theme-label">Personnalisé</div></div></div></div>
         <div class="field" style="margin-top:24px;"><label style="font-size:14px;color:var(--text-primary);font-weight:600;">👤 Profil</label>
           <button class="btn btn-ghost btn-full" id="s-dn" style="justify-content:flex-start;">✏️ Nom d'affichage</button>
           <button class="btn btn-ghost btn-full" id="s-un" style="justify-content:flex-start;margin-top:8px;">👤 Nom d'utilisateur</button>
@@ -1394,7 +1406,7 @@ function openSettingsModal() {
         <button class="btn btn-ghost" id="s-lo" style="flex:1;">🚪 Déconnexion</button>
       </div>
     </div>`);
-  ov.querySelectorAll('.theme-choice').forEach(b => b.addEventListener('click', async () => {
+  ov.querySelectorAll('.theme-choice:not(#theme-custom)').forEach(b => b.addEventListener('click', async () => {
     const c = b.dataset.theme; applyTheme(c);
     ov.querySelectorAll('.theme-choice').forEach(x => x.classList.remove('selected'));
     b.classList.add('selected');
@@ -1404,9 +1416,9 @@ function openSettingsModal() {
       notify('Thème enregistré ✅', 'success');
     } catch (e) {
       notify('Erreur sauvegarde : ' + e.message, 'error');
-      console.error(e);
     }
   }));
+  ov.querySelector('#theme-custom')?.addEventListener('click', () => { ov.remove(); setTimeout(openCustomTheme, 150); });
   ov.querySelector('#s-dn').addEventListener('click', () => { ov.remove(); setTimeout(openEditDisplayName, 150); });
   ov.querySelector('#s-un').addEventListener('click', () => { ov.remove(); setTimeout(openEditUsername, 150); });
   ov.querySelector('#s-bio').addEventListener('click', () => { ov.remove(); setTimeout(openEditBio, 150); });
@@ -1458,15 +1470,16 @@ function initAdmin() {
   const bn = $('btn-admin-new-news');
   if (bn && !bn.dataset.bound) { bn.dataset.bound = '1'; bn.addEventListener('click', openCreateNewsModal); }
   loadFilsList('admin');
-    // Panel Dev — chargement initial
-    loadDevStats();
-    bindDevTabs();
 
-    const devSearch = $('dev-search-users');
-    if (devSearch && !devSearch.dataset.bound) {
-      devSearch.dataset.bound = '1';
-      devSearch.addEventListener('input', e => loadDevUsers(e.target.value));
-    }
+  // Panel Dev
+  loadDevStats();
+  bindDevTabs();
+
+  const devSearch = $('dev-search-users');
+  if (devSearch && !devSearch.dataset.bound) {
+    devSearch.dataset.bound = '1';
+    devSearch.addEventListener('input', e => loadDevUsers(e.target.value));
+  }
 }
 function openCreateNewsModal() {
   const ov = openModal(`<div class="modal" style="max-width:520px;"><div class="modal-header"><div class="modal-title">📰 Nouvelle news</div><button class="modal-close">×</button></div><div class="modal-body"><div class="field"><label>Type</label><select id="nt" style="width:100%;padding:12px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);font-family:inherit;"><option value="📰 Annonce">📰 Annonce</option><option value="🎉 Événement">🎉 Événement</option><option value="💬 Témoignage">💬 Témoignage</option><option value="🆕 Nouveau contenu">🆕 Nouveau contenu</option><option value="📌 Épinglé">📌 Épinglé</option></select></div><div class="field" style="margin-top:14px;"><label>Titre</label><input type="text" id="nti" maxlength="100"></div><div class="field" style="margin-top:14px;"><label>Contenu</label><textarea id="nc" style="min-height:140px;"></textarea></div></div><div class="modal-footer"><button class="btn btn-ghost modal-close">Annuler</button><button class="btn btn-primary" id="ns">Publier</button></div></div>`);
@@ -1492,7 +1505,7 @@ function loadAdminNews() {
     });
     c.querySelectorAll('.nd').forEach(b => b.addEventListener('click', async () => {
       if (!confirm('Supprimer cette news ?')) return;
-      try { await deleteDoc(doc(db, 'news', b.dataset.id)); } catch (e) { notify('Erreur', 'error'); }
+      try { await deleteDoc(doc(db, 'news', b.dataset.id)); await logAction('delete', `<strong>${escapeHtml(currentUserData?.displayName || 'Admin')}</strong> a supprimé une news`); } catch (e) { notify('Erreur', 'error'); }
     }));
   });
 }
@@ -1526,7 +1539,6 @@ function loadAdminDemandes() {
     }));
   });
 }
-
 async function loadAdminMembres(search) {
   const c = $('admin-membres-list'); if (!c) return;
   try {
@@ -1537,7 +1549,6 @@ async function loadAdminMembres(search) {
     c.innerHTML = f.map(x => `<div class="admin-user-card" data-uid="${x.id}"><div class="admin-user-avatar">${x.avatar || '👤'}</div><div class="admin-user-infos"><div class="admin-user-name">${escapeHtml(x.displayName || 'Sans nom')}</div><div class="admin-user-meta">@${escapeHtml(x.username || 'inconnu')}</div></div><span class="admin-role-badge">${x.role || 'membre'}</span></div>`).join('');
   } catch (e) { c.innerHTML = '<p class="empty-state">Impossible de charger.</p>'; }
 }
-
 async function loadAdminEcoutants(search) {
   const c = $('admin-ecoutants-list'); if (!c) return;
   try {
@@ -1548,7 +1559,6 @@ async function loadAdminEcoutants(search) {
     c.innerHTML = f.map(x => `<div class="admin-user-card" data-uid="${x.id}"><div class="admin-user-avatar">${x.avatar || '🧑‍⚕️'}</div><div class="admin-user-infos"><div class="admin-user-name">${escapeHtml(x.displayName || 'Sans nom')}</div><div class="admin-user-meta">@${escapeHtml(x.username || 'inconnu')}</div></div><span class="admin-role-badge">${x.role || 'ecoutant'}</span></div>`).join('');
   } catch (e) { c.innerHTML = '<p class="empty-state">Impossible de charger.</p>'; }
 }
-
 async function loadAdminConvs() {
   const c = $('admin-convs-list'); if (!c) return;
   try {
@@ -1565,7 +1575,6 @@ async function loadAdminConvs() {
     }).join('');
   } catch (e) { c.innerHTML = '<p class="empty-state">Impossible de charger.</p>'; }
 }
-
 async function loadAdminSignalements() {
   const c = $('admin-signalements-list'); if (!c) return;
   try {
@@ -1581,7 +1590,6 @@ async function loadAdminSignalements() {
     });
   } catch (e) { c.innerHTML = '<p class="empty-state">Impossible de charger.</p>'; }
 }
-
 async function loadAdminUsersSearch(search) {
   const c = $('admin-users-results'); if (!c) return;
   if (!search || search.length < 2) { c.innerHTML = '<p class="empty-state">Tape au moins 2 lettres</p>'; return; }
@@ -1598,60 +1606,14 @@ async function loadAdminUsersSearch(search) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// AUTH STATE
-// ═══════════════════════════════════════════════════════════════════════════
-onAuthStateChanged(auth, async user => {
-  authReady = true;
-  if (user) {
-    currentUser = user;
-    try {
-      const snap = await getDoc(doc(db, 'users', user.uid));
-      if (snap.exists()) {
-        currentUserData = snap.data();
-        if (currentUserData.theme) applyTheme(currentUserData.theme);
-      }
-    } catch (e) {}
-  } else { currentUser = null; currentUserData = null; }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// INIT GLOBAL
-// ═══════════════════════════════════════════════════════════════════════════
-setupFilsButtons();
-console.log('✅ main.js chargé et prêt');
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ENGRENAGES PARAMÈTRES — binding global délégué (toujours actif)
-// ═══════════════════════════════════════════════════════════════════════════
-document.addEventListener('click', (e) => {
-  const gear = e.target.closest('#btn-gear, #btn-gear-eco, #btn-gear-admin');
-  if (!gear) return;
-  e.preventDefault();
-  e.stopPropagation();
-  if (typeof openSettingsModal === 'function') openSettingsModal();
-  else console.warn('openSettingsModal introuvable');
-});
-
-window.openSettings = openSettingsModal;
-
-window.testGear = function() {
-  if (typeof openSettingsModal === 'function') {
-    openSettingsModal();
-  } else {
-    alert('❌ openSettingsModal N\'EXISTE PAS dans main.js');
-  }
-};
-// ═══════════════════════════════════════════════════════════════════════════
 // PANEL DEV — DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════
-
 async function loadDevStats() {
   const c = $('dev-stats');
   if (!c) return;
   c.innerHTML = '<p class="empty-state">Chargement…</p>';
 
   try {
-    // Récupère tout en parallèle
     const [usersSnap, convsSnap, newsSnap, sigSnap, demandesSnap] = await Promise.all([
       getDocs(query(collection(db, 'users'), limit(500))),
       getDocs(query(collection(db, 'conversations'), limit(500))),
@@ -1660,95 +1622,41 @@ async function loadDevStats() {
       getDocs(query(collection(db, 'demandes-fil'), limit(500)))
     ]);
 
-    // Compte les utilisateurs par rôle
-    let nbMembres = 0, nbEcoutants = 0, nbAdmins = 0, nbDevs = 0, nbFondateurs = 0;
-    usersSnap.forEach(d => {
-      const r = d.data().role || 'membre';
-      if (r === 'membre') nbMembres++;
-      else if (estEcoutant(r)) nbEcoutants++;
-      else if (estAdmin(r)) nbAdmins++;
-      else if (estDev(r)) nbDevs++;
-      else if (r === 'fondateur') nbFondateurs++;
-    });
+    let nbEcoutants = 0;
+    usersSnap.forEach(d => { if (estEcoutant(d.data().role)) nbEcoutants++; });
 
-    // Compte les conversations
-    let convWaiting = 0, convClaimed = 0, convResolved = 0;
+    let convWaiting = 0, convResolved = 0;
     convsSnap.forEach(d => {
       const s = d.data().status;
       if (s === 'waiting') convWaiting++;
-      else if (s === 'claimed') convClaimed++;
       else if (s === 'resolved') convResolved++;
     });
 
-    // Compte les signalements en attente
     let sigPending = 0;
     sigSnap.forEach(d => { if (d.data().status === 'pending') sigPending++; });
 
-    // Compte les demandes en attente
     let demPending = 0;
     demandesSnap.forEach(d => { if (d.data().status === 'pending') demPending++; });
 
-    const totalUsers = usersSnap.size;
-    const totalConvs = convsSnap.size;
-
     c.innerHTML = `
-      <div class="dev-stat-card">
-        <div class="dev-stat-icon">👥</div>
-        <div class="dev-stat-value">${totalUsers}</div>
-        <div class="dev-stat-label">Utilisateurs</div>
-      </div>
-
-      <div class="dev-stat-card">
-        <div class="dev-stat-icon">💬</div>
-        <div class="dev-stat-value">${totalConvs}</div>
-        <div class="dev-stat-label">Conversations</div>
-      </div>
-
-      <div class="dev-stat-card">
-        <div class="dev-stat-icon">🧑‍⚕️</div>
-        <div class="dev-stat-value">${nbEcoutants}</div>
-        <div class="dev-stat-label">Écoutants</div>
-      </div>
-
-      <div class="dev-stat-card">
-        <div class="dev-stat-icon">🔥</div>
-        <div class="dev-stat-value">${convWaiting}</div>
-        <div class="dev-stat-label">En attente</div>
-      </div>
-
-      <div class="dev-stat-card">
-        <div class="dev-stat-icon">🚨</div>
-        <div class="dev-stat-value">${sigPending}</div>
-        <div class="dev-stat-label">Signalements</div>
-      </div>
-
-      <div class="dev-stat-card">
-        <div class="dev-stat-icon">📥</div>
-        <div class="dev-stat-value">${demPending}</div>
-        <div class="dev-stat-label">Demandes</div>
-      </div>
-
-      <div class="dev-stat-card">
-        <div class="dev-stat-icon">📰</div>
-        <div class="dev-stat-value">${newsSnap.size}</div>
-        <div class="dev-stat-label">News publiées</div>
-      </div>
-
-      <div class="dev-stat-card">
-        <div class="dev-stat-icon">✅</div>
-        <div class="dev-stat-value">${convResolved}</div>
-        <div class="dev-stat-label">Convs résolues</div>
-      </div>
+      <div class="dev-stat-card"><div class="dev-stat-icon">👥</div><div class="dev-stat-value">${usersSnap.size}</div><div class="dev-stat-label">Utilisateurs</div></div>
+      <div class="dev-stat-card"><div class="dev-stat-icon">💬</div><div class="dev-stat-value">${convsSnap.size}</div><div class="dev-stat-label">Conversations</div></div>
+      <div class="dev-stat-card"><div class="dev-stat-icon">🧑‍⚕️</div><div class="dev-stat-value">${nbEcoutants}</div><div class="dev-stat-label">Écoutants</div></div>
+      <div class="dev-stat-card"><div class="dev-stat-icon">🔥</div><div class="dev-stat-value">${convWaiting}</div><div class="dev-stat-label">En attente</div></div>
+      <div class="dev-stat-card"><div class="dev-stat-icon">🚨</div><div class="dev-stat-value">${sigPending}</div><div class="dev-stat-label">Signalements</div></div>
+      <div class="dev-stat-card"><div class="dev-stat-icon">📥</div><div class="dev-stat-value">${demPending}</div><div class="dev-stat-label">Demandes</div></div>
+      <div class="dev-stat-card"><div class="dev-stat-icon">📰</div><div class="dev-stat-value">${newsSnap.size}</div><div class="dev-stat-label">News publiées</div></div>
+      <div class="dev-stat-card"><div class="dev-stat-icon">✅</div><div class="dev-stat-value">${convResolved}</div><div class="dev-stat-label">Convs résolues</div></div>
     `;
   } catch (e) {
     console.error(e);
     c.innerHTML = '<p class="empty-state">⚠️ Impossible de charger les stats.</p>';
   }
 }
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PANEL DEV — GESTION DES RÔLES
 // ═══════════════════════════════════════════════════════════════════════════
-
 const DEV_ROLES_LIST = [
   { id: 'membre',      label: '👤 Membre' },
   { id: 'ecoutant',    label: '🧑‍⚕️ Écoutant' },
@@ -1812,7 +1720,7 @@ async function loadDevUsers(search) {
             <div class="admin-user-meta">@${escapeHtml(u.username || 'inconnu')}</div>
           </div>
           <div class="dev-user-actions">
-            <select class="dev-role-select" data-uid="${u.id}" data-old-role="${u.role || 'membre'}" ${isMe ? 'disabled title="Impossible de modifier ton propre rôle"' : ''}>
+            <select class="dev-role-select" data-uid="${u.id}" data-old-role="${u.role || 'membre'}" data-uname="${escapeHtml(u.displayName || u.username || 'utilisateur')}" ${isMe ? 'disabled title="Impossible de modifier ton propre rôle"' : ''}>
               ${options}
             </select>
           </div>
@@ -1820,23 +1728,17 @@ async function loadDevUsers(search) {
       `;
     }).join('');
 
-    // Binding du changement de rôle
     c.querySelectorAll('.dev-role-select').forEach(sel => {
       sel.addEventListener('change', async () => {
         const uid = sel.dataset.uid;
         const oldRole = sel.dataset.oldRole;
         const newRole = sel.value;
+        const uname = sel.dataset.uname;
 
         if (newRole === oldRole) return;
 
-        const ok = confirm(
-          `Changer le rôle de cet utilisateur ?\n\n` +
-          `${LABELS_ROLES[oldRole] || oldRole} → ${LABELS_ROLES[newRole] || newRole}`
-        );
-        if (!ok) {
-          sel.value = oldRole;
-          return;
-        }
+        const ok = confirm(`Changer le rôle de ${uname} ?\n\n${LABELS_ROLES[oldRole] || oldRole} → ${LABELS_ROLES[newRole] || newRole}`);
+        if (!ok) { sel.value = oldRole; return; }
 
         sel.disabled = true;
         try {
@@ -1847,30 +1749,12 @@ async function loadDevUsers(search) {
             roleChangedByName: currentUserData?.displayName || 'Dev'
           });
 
-          // TEST — log manuel
-          window.testLog = async function() {
-            try {
-              await logAction('test', 'Ceci est un log de test');
-              console.log('✅ log écrit');
-              alert('Log écrit ! Va voir dans Logs.');
-            } catch (e) {
-              console.error(e);
-              alert('❌ Erreur : ' + e.message);
-            }
-          };
-// TEST — log manuel
-window.testLog = async function() {
-  try {
-    await logAction('test', 'Ceci est un log de test');
-    console.log('✅ log écrit');
-    alert('Log écrit ! Va voir dans Logs.');
-  } catch (e) {
-    console.error(e);
-    alert('❌ Erreur : ' + e.message);
-  }
-};
-   sel.dataset.oldRole = newRole;
-   notify(`Rôle mis à jour : ${LABELS_ROLES[newRole] || newRole}`, 'success');
+          await logAction('role',
+            `<strong>${escapeHtml(currentUserData?.displayName || 'Dev')}</strong> a changé le rôle de <strong>${escapeHtml(uname)}</strong> : ${LABELS_ROLES[oldRole] || oldRole} → <strong>${LABELS_ROLES[newRole] || newRole}</strong>`,
+            { targetUid: uid, oldRole, newRole });
+
+          sel.dataset.oldRole = newRole;
+          notify(`Rôle mis à jour : ${LABELS_ROLES[newRole] || newRole}`, 'success');
         } catch (e) {
           sel.value = oldRole;
           notify('Erreur : ' + e.message, 'error');
@@ -1884,10 +1768,10 @@ window.testLog = async function() {
     c.innerHTML = '<p class="empty-state">⚠️ Erreur de recherche.</p>';
   }
 }
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PANEL DEV — LOGS
 // ═══════════════════════════════════════════════════════════════════════════
-
 let unsubDevLogs = null;
 let devLogsCache = [];
 let devLogsFilter = 'all';
@@ -1901,7 +1785,6 @@ const DEV_LOG_ICONS = {
 };
 
 async function logAction(type, text, extra = {}) {
-  // type = 'role' | 'delete' | 'signalement' | 'conversation' | 'cgu'
   try {
     await addDoc(collection(db, 'logs'), {
       type,
@@ -1919,40 +1802,30 @@ async function logAction(type, text, extra = {}) {
 function loadDevLogs() {
   const c = $('dev-logs-list');
   if (!c) return;
-
   if (unsubDevLogs) { unsubDevLogs(); unsubDevLogs = null; }
-
   c.innerHTML = '<p class="empty-state">Chargement…</p>';
-
   const q = query(collection(db, 'logs'), orderBy('createdAt', 'desc'), limit(200));
   unsubDevLogs = onSnapshot(q, snap => {
     devLogsCache = [];
     snap.forEach(d => devLogsCache.push({ id: d.id, ...d.data() }));
     renderDevLogs();
   }, err => {
-    c.innerHTML = '<p class="empty-state">⚠️ Impossible de charger les logs.<br><small style="opacity:0.7;">Vérifie les règles Firestore pour la collection "logs".</small></p>';
+    c.innerHTML = '<p class="empty-state">⚠️ Impossible de charger les logs.</p>';
   });
 }
 
 function renderDevLogs() {
   const c = $('dev-logs-list');
   if (!c) return;
-
-  const filtered = devLogsFilter === 'all'
-    ? devLogsCache
-    : devLogsCache.filter(l => l.type === devLogsFilter);
-
+  const filtered = devLogsFilter === 'all' ? devLogsCache : devLogsCache.filter(l => l.type === devLogsFilter);
   if (filtered.length === 0) {
     c.innerHTML = '<p class="empty-state">Aucun log pour l\'instant.</p>';
     return;
   }
-
   c.innerHTML = filtered.map(l => {
     const icon = DEV_LOG_ICONS[l.type] || '📝';
     const date = toDate(l.createdAt);
-    const ds = date
-      ? date.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
-      : '';
+    const ds = date ? date.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
     return `
       <div class="dev-log">
         <div class="dev-log-icon">${icon}</div>
@@ -1964,10 +1837,10 @@ function renderDevLogs() {
     `;
   }).join('');
 }
-// ═══════════════════════════════════════════════════════════════════════════
-// PANEL DEV — BINDING DES SOUS-ONGLETS
-// ═══════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL DEV — BINDING
+// ═══════════════════════════════════════════════════════════════════════════
 function bindDevTabs() {
   const tabs = document.querySelectorAll('#dev-tabs .mini-tab');
   tabs.forEach(tab => {
@@ -1988,7 +1861,6 @@ function bindDevTabs() {
     });
   });
 
-  // Filtres des logs
   const filtersBox = $('dev-log-filters');
   if (filtersBox && !filtersBox.dataset.bound) {
     filtersBox.dataset.bound = '1';
@@ -2002,24 +1874,18 @@ function bindDevTabs() {
     });
   }
 }
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PANEL DEV — SIGNALEMENTS
 // ═══════════════════════════════════════════════════════════════════════════
-
 async function loadDevSignalements() {
   const c = $('dev-signalements-list');
   if (!c) return;
   c.innerHTML = '<p class="empty-state">Chargement…</p>';
-
   try {
     const q = query(collection(db, 'signalements'), orderBy('createdAt', 'desc'), limit(100));
     const snap = await getDocs(q);
-
-    if (snap.empty) {
-      c.innerHTML = '<p class="empty-state">Aucun signalement ✨</p>';
-      return;
-    }
-
+    if (snap.empty) { c.innerHTML = '<p class="empty-state">Aucun signalement ✨</p>'; return; }
     c.innerHTML = '';
     snap.forEach(d => {
       const data = d.data();
@@ -2028,7 +1894,6 @@ async function loadDevSignalements() {
       const badge = data.status === 'pending'
         ? '<span class="card-badge" style="background:rgba(255,107,122,0.15);color:var(--error);">⏳ En attente</span>'
         : '<span class="card-badge" style="background:rgba(61,220,151,0.15);color:var(--success);">✅ Traité</span>';
-
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
@@ -2045,7 +1910,6 @@ async function loadDevSignalements() {
       `;
       c.appendChild(card);
     });
-
     c.querySelectorAll('[data-sig-action]').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = btn.dataset.sigId;
@@ -2055,10 +1919,8 @@ async function loadDevSignalements() {
         try {
           if (action === 'ok') {
             await updateDoc(doc(db, 'signalements', id), {
-              status: 'handled',
-              handledAt: serverTimestamp(),
-              handledBy: currentUser.uid,
-              handledByName: currentUserData?.displayName || 'Dev'
+              status: 'handled', handledAt: serverTimestamp(),
+              handledBy: currentUser.uid, handledByName: currentUserData?.displayName || 'Dev'
             });
             await logAction('signalement', `<strong>${escapeHtml(currentUserData?.displayName || 'Dev')}</strong> a marqué un signalement comme traité`, { signalementId: id });
           } else {
@@ -2073,15 +1935,14 @@ async function loadDevSignalements() {
         }
       });
     });
-
   } catch (e) {
     c.innerHTML = '<p class="empty-state">⚠️ Impossible de charger les signalements.</p>';
   }
 }
-// ═══════════════════════════════════════════════════════════════════════════
-// SIGNALEMENT — FORMULAIRE UTILISATEUR
-// ═══════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════
+// SIGNALEMENT — FORMULAIRE
+// ═══════════════════════════════════════════════════════════════════════════
 const SIGNAL_CATEGORIES = [
   '🚨 Comportement d\'un écoutant',
   '💬 Contenu choquant dans un fil',
@@ -2094,94 +1955,52 @@ const SIGNAL_CATEGORIES = [
 
 function openSignalForm() {
   let categorie = '';
-
   const ov = openModal(`
     <div class="modal" style="max-width:520px;">
       <div class="modal-header">
-        <div>
-          <div class="modal-title">🚨 Signaler</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Ton signalement sera traité en privé.</div>
-        </div>
+        <div><div class="modal-title">🚨 Signaler</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Ton signalement sera traité en privé.</div></div>
         <button class="modal-close">×</button>
       </div>
       <div class="modal-body">
-        <div class="field">
-          <label>Titre du signalement</label>
-          <input type="text" id="sig-titre" maxlength="100" placeholder="Ex : Propos inquiétants dans un fil">
-        </div>
-
-        <div class="field" style="margin-top:14px;">
-          <label>Catégorie</label>
-          <div class="signal-cats">
-            ${SIGNAL_CATEGORIES.map(c => `<button type="button" class="signal-cat" data-cat="${c}">${c}</button>`).join('')}
-          </div>
-        </div>
-
-        <div class="field" style="margin-top:14px;">
-          <label>Description</label>
-          <textarea id="sig-desc" maxlength="1000" style="min-height:120px;" placeholder="Explique ce qui s'est passé..."></textarea>
-        </div>
-
+        <div class="field"><label>Titre du signalement</label><input type="text" id="sig-titre" maxlength="100" placeholder="Ex : Propos inquiétants dans un fil"></div>
+        <div class="field" style="margin-top:14px;"><label>Catégorie</label><div class="signal-cats">${SIGNAL_CATEGORIES.map(c => `<button type="button" class="signal-cat" data-cat="${c}">${c}</button>`).join('')}</div></div>
+        <div class="field" style="margin-top:14px;"><label>Description</label><textarea id="sig-desc" maxlength="1000" style="min-height:120px;" placeholder="Explique ce qui s'est passé..."></textarea></div>
         <p class="auth-error" id="sig-error" style="margin-top:10px;"></p>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost modal-close">Annuler</button>
-        <button class="btn btn-primary" id="sig-send">📩 Envoyer</button>
-      </div>
+      <div class="modal-footer"><button class="btn btn-ghost modal-close">Annuler</button><button class="btn btn-primary" id="sig-send">📩 Envoyer</button></div>
     </div>
   `);
-
-  ov.querySelectorAll('.signal-cat').forEach(btn => {
-    btn.addEventListener('click', () => {
-      ov.querySelectorAll('.signal-cat').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      categorie = btn.dataset.cat;
-    });
-  });
-
+  ov.querySelectorAll('.signal-cat').forEach(btn => btn.addEventListener('click', () => {
+    ov.querySelectorAll('.signal-cat').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); categorie = btn.dataset.cat;
+  }));
   ov.querySelector('#sig-send').addEventListener('click', async () => {
     const err = ov.querySelector('#sig-error');
     const titre = ov.querySelector('#sig-titre').value.trim();
     const desc = ov.querySelector('#sig-desc').value.trim();
     err.textContent = '';
-
     if (!titre) { err.textContent = '⚠️ Ajoute un titre.'; return; }
     if (!categorie) { err.textContent = '⚠️ Choisis une catégorie.'; return; }
     if (!desc) { err.textContent = '⚠️ Ajoute une description.'; return; }
-
     const btn = ov.querySelector('#sig-send');
-    btn.disabled = true;
-    btn.textContent = '⏳ Envoi...';
-
+    btn.disabled = true; btn.textContent = '⏳ Envoi...';
     try {
       await addDoc(collection(db, 'signalements'), {
-        titre,
-        categorie,
-        raison: desc,
+        titre, categorie, raison: desc,
         memberId: currentUser.uid,
         memberName: currentUserData?.displayName || 'Utilisateur',
         ecoutantId: currentUser.uid,
         ecoutantName: currentUserData?.displayName || 'Utilisateur',
-        status: 'pending',
-        createdAt: serverTimestamp()
+        status: 'pending', createdAt: serverTimestamp()
       });
-
-      await logAction('signalement',
-        `<strong>${escapeHtml(currentUserData?.displayName || 'Utilisateur')}</strong> a créé un signalement : <strong>${escapeHtml(titre)}</strong>`,
-        { categorie });
-
-      ov.remove();
-      notify('Signalement envoyé ✅', 'success');
+      await logAction('signalement', `<strong>${escapeHtml(currentUserData?.displayName || 'Utilisateur')}</strong> a créé un signalement : <strong>${escapeHtml(titre)}</strong>`, { categorie });
+      ov.remove(); notify('Signalement envoyé ✅', 'success');
     } catch (e) {
       err.textContent = '❌ ' + e.message;
-      btn.disabled = false;
-      btn.textContent = '📩 Envoyer';
+      btn.disabled = false; btn.textContent = '📩 Envoyer';
     }
   });
 }
-// ═══════════════════════════════════════════════════════════════════════════
-// SIGNALEMENT — BINDING DU BOUTON 🚨
-// ═══════════════════════════════════════════════════════════════════════════
 
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('#btn-signaler-membre, #btn-signaler-eco, #btn-signaler-admin');
@@ -2189,16 +2008,14 @@ document.addEventListener('click', (e) => {
   e.preventDefault();
   openSignalForm();
 });
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PANEL DEV — OUTILS
 // ═══════════════════════════════════════════════════════════════════════════
-
 function initDevTools() {
-  // Version de l'app
   const ver = $('dev-version-text');
   if (ver) ver.textContent = 'v1.0.0 — Bêta';
 
-  // État Firebase
   const fb = $('dev-firebase-status');
   if (fb) {
     if (window.iphaxAuth && window.iphaxDb) {
@@ -2208,7 +2025,6 @@ function initDevTools() {
     }
   }
 
-  // Bouton "Vider le cache"
   const clearBtn = $('dev-clear-cache');
   if (clearBtn && !clearBtn.dataset.bound) {
     clearBtn.dataset.bound = '1';
@@ -2218,13 +2034,10 @@ function initDevTools() {
         localStorage.removeItem('iphax_theme');
         notify('Cache vidé ✅', 'success');
         setTimeout(() => location.reload(), 800);
-      } catch (e) {
-        notify('Erreur : ' + e.message, 'error');
-      }
+      } catch (e) { notify('Erreur : ' + e.message, 'error'); }
     });
   }
 
-  // Bouton "Recharger l'application"
   const reloadBtn = $('dev-reload');
   if (reloadBtn && !reloadBtn.dataset.bound) {
     reloadBtn.dataset.bound = '1';
@@ -2234,3 +2047,26 @@ function initDevTools() {
     });
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTH STATE
+// ═══════════════════════════════════════════════════════════════════════════
+onAuthStateChanged(auth, async user => {
+  authReady = true;
+  if (user) {
+    currentUser = user;
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      if (snap.exists()) {
+        currentUserData = snap.data();
+        if (currentUserData.theme) applyTheme(currentUserData.theme);
+      }
+    } catch (e) {}
+  } else { currentUser = null; currentUserData = null; }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT GLOBAL
+// ═══════════════════════════════════════════════════════════════════════════
+setupFilsButtons();
+console.log('✅ main.js chargé et prêt');
