@@ -1600,15 +1600,6 @@ document.addEventListener('click', (e) => {
 
 window.openSettings = openSettingsModal;
 
-window.testLog = async function() {
-  try {
-    await logAction('test', 'Ceci est un log de test');
-    alert('OK');
-  } catch (e) {
-    alert('ERREUR : ' + e.message);
-  }
-};
-
 window.testGear = function() {
   if (typeof openSettingsModal === 'function') {
     openSettingsModal();
@@ -1823,6 +1814,17 @@ async function loadDevUsers(search) {
           });
 
           // TEST — log manuel
+          window.testLog = async function() {
+            try {
+              await logAction('test', 'Ceci est un log de test');
+              console.log('✅ log écrit');
+              alert('Log écrit ! Va voir dans Logs.');
+            } catch (e) {
+              console.error(e);
+              alert('❌ Erreur : ' + e.message);
+            }
+          };
+// TEST — log manuel
 window.testLog = async function() {
   try {
     await logAction('test', 'Ceci est un log de test');
@@ -1833,16 +1835,8 @@ window.testLog = async function() {
     alert('❌ Erreur : ' + e.message);
   }
 };
-
-          // Log automatique
-          await logAction(
-            'role',
-            `<strong>${escapeHtml(currentUserData?.displayName || 'Dev')}</strong> a changé le rôle de <strong>@${escapeHtml(sel.closest('.admin-user-card')?.querySelector('.admin-user-meta')?.textContent?.replace('@','') || 'utilisateur')}</strong> : ${LABELS_ROLES[oldRole] || oldRole} → <strong>${LABELS_ROLES[newRole] || newRole}</strong>`,
-            { targetUid: uid, oldRole, newRole }
-          );
-
-          sel.dataset.oldRole = newRole;
-          notify(`Rôle mis à jour : ${LABELS_ROLES[newRole] || newRole}`, 'success');
+   sel.dataset.oldRole = newRole;
+   notify(`Rôle mis à jour : ${LABELS_ROLES[newRole] || newRole}`, 'success');
         } catch (e) {
           sel.value = oldRole;
           notify('Erreur : ' + e.message, 'error');
