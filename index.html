@@ -13,7 +13,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
 
-  <!-- Override alert → toast -->
   <script>
     window.alert = function(msg) {
       if (typeof window._iphaxNotify === 'function') {
@@ -46,38 +45,12 @@
 
     <symbol id="wysp-icon" viewBox="0 0 200 240">
 
-      <ellipse
-        cx="100"
-        cy="120"
-        rx="90"
-        ry="110"
-        fill="url(#wyspGlow)"
-        opacity="0.4"
-      />
+      <ellipse cx="100" cy="120" rx="90" ry="110" fill="url(#wyspGlow)" opacity="0.4" />
 
-      <ellipse
-        cx="100"
-        cy="130"
-        rx="60"
-        ry="75"
-        fill="url(#wyspBody)"
-        stroke="var(--accent, #00E5FF)"
-        stroke-width="1.5"
-      />
+      <ellipse cx="100" cy="130" rx="60" ry="75" fill="url(#wyspBody)" stroke="var(--accent, #00E5FF)" stroke-width="1.5" />
 
-      <path
-        d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z"
-        fill="#0A1A3D"
-        stroke="var(--accent, #00E5FF)"
-        stroke-width="1.2"
-      />
-
-      <path
-        d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z"
-        fill="#0A1A3D"
-        stroke="var(--accent, #00E5FF)"
-        stroke-width="1.2"
-      />
+      <path d="M 55 70 Q 50 35 65 30 Q 70 50 75 65 Z" fill="#0A1A3D" stroke="var(--accent, #00E5FF)" stroke-width="1.2" />
+      <path d="M 145 70 Q 150 35 135 30 Q 130 50 125 65 Z" fill="#0A1A3D" stroke="var(--accent, #00E5FF)" stroke-width="1.2" />
 
       <circle cx="78" cy="115" r="22" fill="#FFFFFF"/>
       <circle cx="122" cy="115" r="22" fill="#FFFFFF"/>
@@ -93,13 +66,7 @@
 
       <path d="M 100 130 L 95 142 L 105 142 Z" fill="#FFB347"/>
 
-      <path
-        d="M 88 155 Q 100 165 112 155"
-        stroke="#8FA6C7"
-        stroke-width="2"
-        fill="none"
-        stroke-linecap="round"
-      />
+      <path d="M 88 155 Q 100 165 112 155" stroke="#8FA6C7" stroke-width="2" fill="none" stroke-linecap="round" />
 
     </symbol>
   </defs>
@@ -111,56 +78,25 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 
 <section id="screen-intro" class="screen active">
-
   <div class="intro-bg">
     <div class="glow glow-1"></div>
     <div class="glow glow-2"></div>
     <div class="stars"></div>
   </div>
-
   <div class="intro-content">
-
     <div class="intro-logo">
-      <img
-        src="https://i.imgur.com/B76uhb4.png"
-        alt="Logo Iphax"
-        draggable="false"
-      >
+      <img src="https://i.imgur.com/B76uhb4.png" alt="Logo Iphax" draggable="false">
     </div>
-
     <h1 class="intro-title">Iphax</h1>
-
-    <p class="intro-subtitle">
-      By Moonlight studio
-    </p>
-
-    <button
-      class="btn btn-primary intro-btn"
-      id="btn-continuer"
-      type="button"
-    >
+    <p class="intro-subtitle">By Moonlight studio</p>
+    <button class="btn btn-primary intro-btn" id="btn-continuer" type="button">
       <span>Continuer</span>
-
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M5 12h14M13 5l7 7-7 7"/>
       </svg>
     </button>
-
-    <p class="intro-footnote">
-      Ici, quelqu'un t'écoute 💙
-    </p>
-
+    <p class="intro-footnote">Ici, quelqu'un t'écoute 💙</p>
   </div>
-
 </section>
 
 
@@ -175,487 +111,157 @@
   </div>
 
   <div class="role-bubbles">
-
-    <button
-      class="role-bubble active"
-      data-role="membre"
-      type="button"
-      title="Espace Membre"
-    >
+    <button class="role-bubble active" data-role="membre" type="button" title="Espace Membre">
       <span class="bubble-icon">👤</span>
       <span class="bubble-label">Membre</span>
     </button>
-
-    <button
-      class="role-bubble"
-      data-role="admin"
-      type="button"
-      title="Espace Admin"
-    >
+    <button class="role-bubble" data-role="admin" type="button" title="Espace Admin">
       <span class="bubble-icon">🔧</span>
       <span class="bubble-label">Admin</span>
     </button>
-
-    <button
-      class="role-bubble"
-      data-role="ecoutant"
-      type="button"
-      title="Espace Écoutant"
-    >
+    <button class="role-bubble" data-role="ecoutant" type="button" title="Espace Écoutant">
       <span class="bubble-icon">🧑‍⚕️</span>
       <span class="bubble-label">Écoutant</span>
     </button>
-
-    <button
-      class="role-bubble"
-      data-role="dev"
-      type="button"
-      title="Espace Dev"
-    >
+    <button class="role-bubble" data-role="dev" type="button" title="Espace Dev">
       <span class="bubble-icon">💻</span>
       <span class="bubble-label">Dev</span>
     </button>
-
-    <button
-      class="role-bubble role-bubble-founder"
-      data-role="fondateur"
-      type="button"
-      title="Espace Fondateur"
-    >
+    <button class="role-bubble role-bubble-founder" data-role="fondateur" type="button" title="Espace Fondateur">
       <span class="bubble-icon">👑</span>
       <span class="bubble-label">Fondateur</span>
     </button>
-
   </div>
 
-
   <div class="auth-container">
-
     <div class="auth-header">
-
       <div class="auth-logo-mini">
-        <img
-          src="https://i.imgur.com/B76uhb4.png"
-          alt="Logo Iphax"
-        >
+        <img src="https://i.imgur.com/B76uhb4.png" alt="Logo Iphax">
       </div>
-
-      <h2 class="auth-title" id="auth-title">
-        Bienvenue sur Iphax
-      </h2>
-
-      <p class="auth-subtitle" id="auth-subtitle">
-        Ici, quelqu'un t'écoute 💙
-      </p>
-
+      <h2 class="auth-title" id="auth-title">Bienvenue sur Iphax</h2>
+      <p class="auth-subtitle" id="auth-subtitle">Ici, quelqu'un t'écoute 💙</p>
     </div>
-
 
     <div class="auth-tabs" data-active="login">
-
-      <button
-        class="tab active"
-        data-tab="login"
-        type="button"
-      >
-        Connexion
-      </button>
-
-      <button
-        class="tab"
-        data-tab="signup"
-        type="button"
-      >
-        Inscription
-      </button>
-
+      <button class="tab active" data-tab="login" type="button">Connexion</button>
+      <button class="tab" data-tab="signup" type="button">Inscription</button>
       <span class="tab-indicator"></span>
-
     </div>
 
-
     <!-- LOGIN -->
-
-    <form
-      id="form-login"
-      class="auth-form active"
-      autocomplete="on"
-    >
-
+    <form id="form-login" class="auth-form active" autocomplete="on">
       <div class="field">
-
-        <label for="login-email">
-          Email
-        </label>
-
+        <label for="login-email">Email</label>
         <div class="field-input">
-
-          <svg
-            class="field-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <rect
-              x="2"
-              y="4"
-              width="20"
-              height="16"
-              rx="3"
-            />
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="3"/>
             <path d="m2 7 10 7 10-7"/>
           </svg>
-
-          <input
-            type="email"
-            id="login-email"
-            placeholder="ton@email.com"
-            required
-            autocomplete="email"
-          >
-
+          <input type="email" id="login-email" placeholder="ton@email.com" required autocomplete="email">
         </div>
-
       </div>
 
-
       <div class="field">
-
-        <label for="login-password">
-          Mot de passe
-        </label>
-
+        <label for="login-password">Mot de passe</label>
         <div class="field-input">
-
-          <svg
-            class="field-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <rect
-              x="4"
-              y="10"
-              width="16"
-              height="11"
-              rx="2.5"
-            />
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="10" width="16" height="11" rx="2.5"/>
             <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
           </svg>
-
-          <input
-            type="password"
-            id="login-password"
-            placeholder="••••••••"
-            required
-            autocomplete="current-password"
-          >
-
-          <button
-            type="button"
-            class="toggle-eye"
-            aria-label="Afficher"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+          <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+          <button type="button" class="toggle-eye" aria-label="Afficher">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
               <circle cx="12" cy="12" r="3"/>
             </svg>
           </button>
-
         </div>
-
-        <a
-          href="#"
-          class="forgot-link"
-        >
-          Mot de passe oublié ?
-        </a>
-
+        <a href="#" class="forgot-link">Mot de passe oublié ?</a>
       </div>
 
-
-      <button
-        type="submit"
-        class="btn btn-primary btn-full"
-      >
-        Se connecter
-      </button>
-
-      <p
-        class="auth-error"
-        id="login-error"
-      ></p>
-
+      <button type="submit" class="btn btn-primary btn-full">Se connecter</button>
+      <p class="auth-error" id="login-error"></p>
     </form>
 
-
     <!-- SIGNUP -->
-
-    <form
-      id="form-signup"
-      class="auth-form"
-      autocomplete="off"
-    >
-
+    <form id="form-signup" class="auth-form" autocomplete="off">
       <div class="field">
-
-        <label for="signup-email">
-          Email
-        </label>
-
+        <label for="signup-email">Email</label>
         <div class="field-input">
-
-          <svg
-            class="field-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <rect
-              x="2"
-              y="4"
-              width="20"
-              height="16"
-              rx="3"
-            />
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="3"/>
             <path d="m2 7 10 7 10-7"/>
           </svg>
-
-          <input
-            type="email"
-            id="signup-email"
-            placeholder="ton@email.com"
-            required
-            autocomplete="email"
-          >
-
+          <input type="email" id="signup-email" placeholder="ton@email.com" required autocomplete="email">
         </div>
-
       </div>
 
-
       <div class="field-row">
-
         <div class="field">
-
-          <label for="signup-username">
-            Nom d'utilisateur
-          </label>
-
+          <label for="signup-username">Nom d'utilisateur</label>
           <div class="field-input">
-
             <span class="field-prefix">@</span>
-
-            <input
-              type="text"
-              id="signup-username"
-              placeholder="luna_92"
-              required
-              minlength="3"
-              maxlength="24"
-              pattern="^[A-Za-z][A-Za-z0-9._-]{2,23}$"
-            >
-
+            <input type="text" id="signup-username" placeholder="luna_92" required minlength="3" maxlength="24" pattern="^[A-Za-z][A-Za-z0-9._-]{2,23}$">
           </div>
-
         </div>
 
-
         <div class="field">
-
-          <label for="signup-displayname">
-            Nom d'affichage
-          </label>
-
+          <label for="signup-displayname">Nom d'affichage</label>
           <div class="field-input">
-
-            <svg
-              class="field-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="8" r="4"/>
               <path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>
             </svg>
-
-            <input
-              type="text"
-              id="signup-displayname"
-              placeholder="Luna 🌙"
-              required
-              maxlength="30"
-            >
-
+            <input type="text" id="signup-displayname" placeholder="Luna 🌙" required maxlength="30">
           </div>
-
         </div>
-
       </div>
 
-
       <div class="field">
-
-        <label for="signup-birthdate">
-          Date de naissance
-        </label>
-
+        <label for="signup-birthdate">Date de naissance</label>
         <div class="field-input">
-
-          <svg
-            class="field-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <rect
-              x="3"
-              y="5"
-              width="18"
-              height="16"
-              rx="3"
-            />
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="5" width="18" height="16" rx="3"/>
             <path d="M3 10h18M8 3v4M16 3v4"/>
           </svg>
-
-          <input
-            type="date"
-            id="signup-birthdate"
-            required
-          >
-
+          <input type="date" id="signup-birthdate" required>
         </div>
-
-        <p class="field-hint">
-          Iphax est réservé aux mineurs (moins de 18 ans).
-        </p>
-
+        <p class="field-hint">Iphax est réservé aux mineurs (moins de 18 ans).</p>
       </div>
 
-
       <div class="field">
-
-        <label for="signup-password">
-          Mot de passe
-        </label>
-
+        <label for="signup-password">Mot de passe</label>
         <div class="field-input">
-
-          <svg
-            class="field-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <rect
-              x="4"
-              y="10"
-              width="16"
-              height="11"
-              rx="2.5"
-            />
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="10" width="16" height="11" rx="2.5"/>
             <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
           </svg>
-
-          <input
-            type="password"
-            id="signup-password"
-            placeholder="Min. 8 car., 1 lettre + 1 chiffre"
-            required
-            minlength="8"
-          >
-
-          <button
-            type="button"
-            class="toggle-eye"
-            aria-label="Afficher"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+          <input type="password" id="signup-password" placeholder="Min. 8 car., 1 lettre + 1 chiffre" required minlength="8">
+          <button type="button" class="toggle-eye" aria-label="Afficher">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
               <circle cx="12" cy="12" r="3"/>
             </svg>
           </button>
-
         </div>
-
       </div>
 
-
-      <button
-        type="submit"
-        class="btn btn-primary btn-full"
-      >
-        S'inscrire
-      </button>
-
-      <p
-        class="auth-error"
-        id="signup-error"
-      ></p>
-
+      <button type="submit" class="btn btn-primary btn-full">S'inscrire</button>
+      <p class="auth-error" id="signup-error"></p>
     </form>
 
+    <div class="divider"><span>ou</span></div>
 
-    <div class="divider">
-      <span>ou</span>
-    </div>
-
-
-    <button
-      type="button"
-      class="btn btn-google"
-      id="btn-google"
-    >
-
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 48 48"
-      >
-        <path
-          fill="#FFC107"
-          d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 19.3-7.6 20.6-17.6.1-.9.1-1.9 0-2.9z"
-        />
-
-        <path
-          fill="#FF3D00"
-          d="m6.3 14.7 6.6 4.8C14.6 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 5.1 29.3 3 24 3 16.1 3 9.3 7.5 6.3 14.7z"
-        />
-
-        <path
-          fill="#4CAF50"
-          d="M24 45c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.3 36 26.8 37 24 37c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.2 40.5 16 45 24 45z"
-        />
-
-        <path
-          fill="#1976D2"
-          d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.3 5.3c-.5.4 6.7-4.9 6.7-15 0-1.3-.1-2.5-.4-3.5z"
-        />
-
+    <button type="button" class="btn btn-google" id="btn-google">
+      <svg width="18" height="18" viewBox="0 0 48 48">
+        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 19.3-7.6 20.6-17.6.1-.9.1-1.9 0-2.9z"/>
+        <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 5.1 29.3 3 24 3 16.1 3 9.3 7.5 6.3 14.7z"/>
+        <path fill="#4CAF50" d="M24 45c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.3 36 26.8 37 24 37c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.2 40.5 16 45 24 45z"/>
+        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.3 5.3c-.5.4 6.7-4.9 6.7-15 0-1.3-.1-2.5-.4-3.5z"/>
       </svg>
-
       Continuer avec Google
-
     </button>
-
   </div>
-
 </section>
 
 
@@ -664,85 +270,34 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 
 <section id="screen-cgu" class="screen">
-
-  <div class="cgu-bg">
-    <div class="glow glow-3"></div>
-  </div>
+  <div class="cgu-bg"><div class="glow glow-3"></div></div>
 
   <div class="cgu-container">
-
     <div class="cgu-header">
-
       <span class="cgu-icon">📜</span>
-
-      <h1 class="cgu-title">
-        Conditions Générales d'Utilisation
-      </h1>
-
-      <p class="cgu-subtitle">
-        Merci de lire et d'accepter avant de continuer
-      </p>
-
+      <h1 class="cgu-title">Conditions Générales d'Utilisation</h1>
+      <p class="cgu-subtitle">Merci de lire et d'accepter avant de continuer</p>
     </div>
 
-
-    <div
-      class="cgu-text"
-      id="cgu-text"
-    >
-
+    <div class="cgu-text" id="cgu-text">
       <h2>1. Présentation d'Iphax</h2>
-
-      <p>
-        Iphax est une application web de collectif d'écoute en ligne,
-        éditée conjointement par <strong>RPTR</strong> et
-        <strong>Moonlight Studio</strong>.
-      </p>
-
-      <p>
-        Elle permet à des <strong>mineurs (0 à 17 ans)</strong>
-        de dialoguer par chat écrit avec des écoutants pairs formés,
-        dans un cadre bienveillant, confidentiel et sécurisé.
-      </p>
-
-      <p>
-        <strong>Iphax n'est pas</strong> :
-        un service d'urgence vitale,
-        un service médical ou psychologique,
-        ni un substitut à un professionnel de santé.
-      </p>
-
-      <p>
-        Iphax est actuellement en phase de <strong>bêta</strong>.
-      </p>
-
+      <p>Iphax est une application web de collectif d'écoute en ligne, éditée conjointement par <strong>RPTR</strong> et <strong>Moonlight Studio</strong>.</p>
+      <p>Elle permet à des <strong>mineurs (0 à 17 ans)</strong> de dialoguer par chat écrit avec des écoutants pairs formés, dans un cadre bienveillant, confidentiel et sécurisé.</p>
+      <p><strong>Iphax n'est pas</strong> : un service d'urgence vitale, un service médical ou psychologique, ni un substitut à un professionnel de santé.</p>
+      <p>Iphax est actuellement en phase de <strong>bêta</strong>.</p>
 
       <h2>2. Conditions d'accès</h2>
-
-      <p>
-        Pour utiliser Iphax, tu dois :
-      </p>
-
+      <p>Pour utiliser Iphax, tu dois :</p>
       <ul>
         <li>Avoir <strong>moins de 18 ans</strong></li>
         <li>Créer <strong>un seul compte</strong></li>
         <li>Fournir des informations <strong>exactes</strong></li>
       </ul>
 
-
       <h2>3. Ton compte</h2>
-
-      <p>
-        Tu choisis un nom d'utilisateur
-        (modifiable tous les 30 jours),
-        un nom d'affichage
-        (modifiable tous les 7 jours)
-        et un mot de passe sécurisé.
-      </p>
-
+      <p>Tu choisis un nom d'utilisateur (modifiable tous les 30 jours), un nom d'affichage (modifiable tous les 7 jours) et un mot de passe sécurisé.</p>
 
       <h2>4. Ce qu'Iphax propose</h2>
-
       <ul>
         <li>💬 Une écoute bienveillante par des pairs formés</li>
         <li>🧑‍⚕️ Des adultes référents qui supervisent</li>
@@ -750,19 +305,10 @@
         <li>🔒 Un espace privé confidentiel</li>
       </ul>
 
-
       <h2>5. Ce qu'Iphax ne fait PAS</h2>
-
-      <p>
-        Iphax ne remplace pas un médecin,
-        psychologue ou psychiatre.
-        Iphax ne fournit ni diagnostic,
-        ni traitement, ni prescription.
-      </p>
-
+      <p>Iphax ne remplace pas un médecin, psychologue ou psychiatre. Iphax ne fournit ni diagnostic, ni traitement, ni prescription.</p>
 
       <h2>6. Numéros d'urgence</h2>
-
       <ul>
         <li>📞 <strong>3114</strong> — Prévention du suicide</li>
         <li>📞 <strong>3018</strong> — Harcèlement</li>
@@ -774,13 +320,8 @@
         <li>📞 <strong>0 800 235 236</strong> — Fil Santé Jeunes</li>
       </ul>
 
-
       <h2>7. Règles de conduite</h2>
-
-      <p>
-        Sur Iphax, tu <strong>ne dois pas</strong> :
-      </p>
-
+      <p>Sur Iphax, tu <strong>ne dois pas</strong> :</p>
       <ul>
         <li>Harceler, insulter ou menacer quelqu'un</li>
         <li>Tenir des propos discriminatoires</li>
@@ -794,92 +335,33 @@
         <li>Contourner les règles</li>
       </ul>
 
-
       <h2>8. Confidentialité</h2>
-
-      <p>
-        🔒 <strong>Tes échanges sont confidentiels.</strong>
-        Exception légale en cas de danger immédiat.
-      </p>
-
+      <p>🔒 <strong>Tes échanges sont confidentiels.</strong> Exception légale en cas de danger immédiat.</p>
 
       <h2>9. Signalement</h2>
-
-      <p>
-        Un bouton "Signaler" est disponible dans l'app.
-      </p>
-
+      <p>Un bouton "Signaler" est disponible dans l'app.</p>
 
       <h2>10. Sanctions</h2>
-
-      <p>
-        Avertissement → suspension → bannissement.
-        Suppression immédiate en cas de danger grave.
-      </p>
-
+      <p>Avertissement → suspension → bannissement. Suppression immédiate en cas de danger grave.</p>
 
       <h2>11. Modification des CGU</h2>
-
-      <p>
-        Tu devras re-accepter les nouvelles conditions
-        à ta prochaine connexion.
-      </p>
-
+      <p>Tu devras re-accepter les nouvelles conditions à ta prochaine connexion.</p>
 
       <h2>12. Contact</h2>
-
-      <p>
-        Éditeurs :
-        <strong>RPTR</strong> et <strong>Moonlight Studio</strong>
-      </p>
-
+      <p>Éditeurs : <strong>RPTR</strong> et <strong>Moonlight Studio</strong></p>
     </div>
-
 
     <div class="cgu-footer">
-
-      <label
-        class="cgu-check disabled"
-        id="cgu-check-label"
-      >
-
-        <input
-          type="checkbox"
-          id="cgu-checkbox"
-          disabled
-        >
-
+      <label class="cgu-check disabled" id="cgu-check-label">
+        <input type="checkbox" id="cgu-checkbox" disabled>
         <span class="cgu-check-box"></span>
-
-        <span>
-          J'accepte les Conditions Générales d'Utilisation
-        </span>
-
+        <span>J'accepte les Conditions Générales d'Utilisation</span>
       </label>
 
-
-      <button
-        class="btn btn-primary btn-full"
-        id="btn-accept-cgu"
-        type="button"
-        disabled
-      >
-        J'accepte et je continue
-      </button>
-
-
-      <button
-        class="btn btn-ghost btn-full"
-        id="btn-refuse-cgu"
-        type="button"
-      >
-        Je refuse
-      </button>
-
+      <button class="btn btn-primary btn-full" id="btn-accept-cgu" type="button" disabled>J'accepte et je continue</button>
+      <button class="btn btn-ghost btn-full" id="btn-refuse-cgu" type="button">Je refuse</button>
     </div>
-
   </div>
-
 </section>
 
 
@@ -888,715 +370,225 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 
 <section id="app-membre" class="screen">
-
   <div class="app-content">
 
     <div class="page active" data-page="news">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          📰 News
-        </h1>
-
-        <p class="page-subtitle">
-          Les dernières infos du collectif
-        </p>
-
+        <h1 class="page-title">📰 News</h1>
+        <p class="page-subtitle">Les dernières infos du collectif</p>
       </header>
-
       <div class="feed" id="news-feed">
-
         <article class="card card-pinned">
-
-          <span class="card-badge">
-            📌 Épinglé
-          </span>
-
-          <h3>
-            Bienvenue sur Iphax 💙
-          </h3>
-
-          <p>
-            Ici, quelqu'un t'écoute.
-            N'hésite pas à explorer, écrire, partager.
-          </p>
-
-          <span class="card-meta">
-            Par l'équipe Iphax
-          </span>
-
+          <span class="card-badge">📌 Épinglé</span>
+          <h3>Bienvenue sur Iphax 💙</h3>
+          <p>Ici, quelqu'un t'écoute. N'hésite pas à explorer, écrire, partager.</p>
+          <span class="card-meta">Par l'équipe Iphax</span>
         </article>
-
         <div id="news-dynamic"></div>
-
       </div>
-
     </div>
 
-
     <div class="page" data-page="perso">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          📔 Espace perso
-        </h1>
-
-        <p class="page-subtitle">
-          Ton coin à toi, 100% privé
-        </p>
-
+        <h1 class="page-title">📔 Espace perso</h1>
+        <p class="page-subtitle">Ton coin à toi, 100% privé</p>
       </header>
-
-
       <div class="grid-cards">
-
-        <button
-          class="grid-card"
-          data-target="journal"
-        >
+        <button class="grid-card" data-target="journal">
           <span class="grid-icon">📔</span>
           <span class="grid-title">Journal intime</span>
           <span class="grid-desc">Écris ce que tu ressens</span>
         </button>
-
-        <button
-          class="grid-card"
-          data-target="mood-tracker"
-        >
+        <button class="grid-card" data-target="mood-tracker">
           <span class="grid-icon">😊</span>
           <span class="grid-title">Mood tracker</span>
           <span class="grid-desc">Suis ton état au quotidien</span>
         </button>
-
-        <button
-          class="grid-card"
-          data-target="objectifs"
-        >
+        <button class="grid-card" data-target="objectifs">
           <span class="grid-icon">🎯</span>
           <span class="grid-title">Objectifs</span>
           <span class="grid-desc">Tes petits défis perso</span>
         </button>
-
-        <button
-          class="grid-card"
-          data-target="rappels"
-        >
+        <button class="grid-card" data-target="rappels">
           <span class="grid-icon">💡</span>
           <span class="grid-title">Rappels positifs</span>
           <span class="grid-desc">Pensées bienveillantes</span>
         </button>
-
       </div>
-
     </div>
-
 
     <div class="page" data-page="mood-tracker">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1 class="page-title">
-            😊 Mood Tracker
-          </h1>
-
-          <p class="page-subtitle">
-            Suis ton état au quotidien
-          </p>
-
+          <h1 class="page-title">😊 Mood Tracker</h1>
+          <p class="page-subtitle">Suis ton état au quotidien</p>
         </div>
-
-        <button
-          class="btn-gear"
-          id="btn-back-perso"
-          type="button"
-        >
-          ←
-        </button>
-
+        <button class="btn-gear" id="btn-back-perso" type="button">←</button>
       </header>
-
-
-      <div
-        class="mood-legend"
-        id="mood-legend"
-      ></div>
-
-
+      <div class="mood-legend" id="mood-legend"></div>
       <div class="mood-month-nav">
-
-        <button
-          class="mood-nav-btn"
-          id="mood-prev"
-          type="button"
-        >
-          ←
-        </button>
-
-        <h2
-          class="mood-month-title"
-          id="mood-month-title"
-        >
-          Chargement…
-        </h2>
-
-        <button
-          class="mood-nav-btn"
-          id="mood-next"
-          type="button"
-        >
-          →
-        </button>
-
+        <button class="mood-nav-btn" id="mood-prev" type="button">←</button>
+        <h2 class="mood-month-title" id="mood-month-title">Chargement…</h2>
+        <button class="mood-nav-btn" id="mood-next" type="button">→</button>
       </div>
-
-
-      <div
-        class="mood-table-wrapper"
-        id="mood-table-wrapper"
-      >
-        <table
-          class="mood-table"
-          id="mood-table"
-        ></table>
+      <div class="mood-table-wrapper" id="mood-table-wrapper">
+        <table class="mood-table" id="mood-table"></table>
       </div>
-
-
-      <p class="mood-hint">
-        👆 Glisse pour voir tous les jours · Clique sur une case pour noter
-      </p>
-
+      <p class="mood-hint">👆 Glisse pour voir tous les jours · Clique sur une case pour noter</p>
     </div>
-
 
     <div class="page" data-page="journal">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1 class="page-title">
-            📔 Journal intime
-          </h1>
-
-          <p class="page-subtitle">
-            100% privé — personne ne peut lire
-          </p>
-
+          <h1 class="page-title">📔 Journal intime</h1>
+          <p class="page-subtitle">100% privé — personne ne peut lire</p>
         </div>
-
-        <button
-          class="btn-gear"
-          id="btn-back-perso-journal"
-          type="button"
-        >
-          ←
-        </button>
-
+        <button class="btn-gear" id="btn-back-perso-journal" type="button">←</button>
       </header>
-
-
-      <button
-        class="btn btn-primary btn-full"
-        id="btn-new-journal"
-        type="button"
-      >
-        ✍️ Nouvelle note
-      </button>
-
-
-      <div
-        class="journal-list"
-        id="journal-list"
-      >
-        <p
-          class="empty-state"
-          id="journal-empty"
-        >
-          Aucune note pour l'instant.
-          Écris ta première 💙
-        </p>
+      <button class="btn btn-primary btn-full" id="btn-new-journal" type="button">✍️ Nouvelle note</button>
+      <div class="journal-list" id="journal-list">
+        <p class="empty-state" id="journal-empty">Aucune note pour l'instant. Écris ta première 💙</p>
       </div>
-
     </div>
-
 
     <div class="page" data-page="objectifs">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1 class="page-title">
-            🎯 Objectifs
-          </h1>
-
-          <p class="page-subtitle">
-            Tes petits défis perso
-          </p>
-
+          <h1 class="page-title">🎯 Objectifs</h1>
+          <p class="page-subtitle">Tes petits défis perso</p>
         </div>
-
-        <button
-          class="btn-gear"
-          id="btn-back-perso-objectifs"
-          type="button"
-        >
-          ←
-        </button>
-
+        <button class="btn-gear" id="btn-back-perso-objectifs" type="button">←</button>
       </header>
-
-
-      <button
-        class="btn btn-primary btn-full"
-        id="btn-new-objectif"
-        type="button"
-      >
-        ➕ Nouvel objectif
-      </button>
-
-
-      <div
-        class="objectifs-list"
-        id="objectifs-list"
-      ></div>
-
+      <button class="btn btn-primary btn-full" id="btn-new-objectif" type="button">➕ Nouvel objectif</button>
+      <div class="objectifs-list" id="objectifs-list"></div>
     </div>
-
 
     <div class="page" data-page="rappels">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1 class="page-title">
-            💡 Rappels positifs
-          </h1>
-
-          <p class="page-subtitle">
-            Des pensées pour toi
-          </p>
-
+          <h1 class="page-title">💡 Rappels positifs</h1>
+          <p class="page-subtitle">Des pensées pour toi</p>
         </div>
-
-        <button
-          class="btn-gear"
-          id="btn-back-perso-rappels"
-          type="button"
-        >
-          ←
-        </button>
-
+        <button class="btn-gear" id="btn-back-perso-rappels" type="button">←</button>
       </header>
-
-
-      <button
-        class="btn btn-primary btn-full"
-        id="btn-new-rappel"
-        type="button"
-      >
-        ➕ Nouveau rappel
-      </button>
-
-
-      <div
-        class="rappels-list"
-        id="rappels-list"
-      ></div>
-
+      <button class="btn btn-primary btn-full" id="btn-new-rappel" type="button">➕ Nouveau rappel</button>
+      <div class="rappels-list" id="rappels-list"></div>
     </div>
-
 
     <div class="page" data-page="ecouter">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          💬 Écouter
-        </h1>
-
-        <p class="page-subtitle">
-          Tu peux demander à parler
-        </p>
-
+        <h1 class="page-title">💬 Écouter</h1>
+        <p class="page-subtitle">Tu peux demander à parler</p>
       </header>
-
-
       <div class="listen-card">
-
-        <div class="listen-icon">
-          💙
-        </div>
-
-        <h2>
-          Besoin de parler ?
-        </h2>
-
-        <p>
-          Un écoutant pourra discuter avec toi.
-        </p>
-
-        <button
-          class="btn btn-primary btn-full"
-          id="btn-parler-maintenant"
-          type="button"
-        >
-          💬 Parler maintenant
-        </button>
-
-        <button
-          class="btn btn-ghost btn-full"
-          id="btn-mon-ecoutant"
-          type="button"
-        >
-          👤 Mon écoutant
-        </button>
-
+        <div class="listen-icon">💙</div>
+        <h2>Besoin de parler ?</h2>
+        <p>Un écoutant pourra discuter avec toi.</p>
+        <button class="btn btn-primary btn-full" id="btn-parler-maintenant" type="button">💬 Parler maintenant</button>
+        <button class="btn btn-ghost btn-full" id="btn-mon-ecoutant" type="button">👤 Mon écoutant</button>
       </div>
-
     </div>
 
-
     <div class="page" data-page="chat">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1
-            class="page-title"
-            id="chat-title"
-          >
-            💬 Conversation
-          </h1>
-
-          <p
-            class="page-subtitle"
-            id="chat-subtitle"
-          >
-            …
-          </p>
-
+          <h1 class="page-title" id="chat-title">💬 Conversation</h1>
+          <p class="page-subtitle" id="chat-subtitle">…</p>
         </div>
-
-        <button
-          class="btn-gear"
-          id="btn-quit-chat"
-          type="button"
-        >
-          ←
-        </button>
-
+        <button class="btn-gear" id="btn-quit-chat" type="button">←</button>
       </header>
-
-
-      <div
-        class="chat-infos"
-        id="chat-infos"
-      ></div>
-
-
-      <div
-        class="chat-messages"
-        id="chat-messages"
-      ></div>
-
-
-      <form
-        class="chat-input-bar"
-        id="chat-form"
-      >
-
-        <input
-          type="text"
-          id="chat-input"
-          placeholder="Écris ton message…"
-          autocomplete="off"
-        >
-
-        <button
-          type="submit"
-          class="chat-send-btn"
-          aria-label="Envoyer"
-        >
-
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
+      <div class="chat-infos" id="chat-infos"></div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <form class="chat-input-bar" id="chat-form">
+        <input type="text" id="chat-input" placeholder="Écris ton message…" autocomplete="off">
+        <button type="submit" class="chat-send-btn" aria-label="Envoyer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="m22 2-7 20-4-9-9-4Z"/>
             <path d="M22 2 11 13"/>
           </svg>
-
         </button>
-
       </form>
-
     </div>
-
 
     <div class="page" data-page="fils">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          💭 Fils de discussion
-        </h1>
-
+        <h1 class="page-title">💭 Fils de discussion</h1>
       </header>
-
-
       <div class="feed">
-
-        <article
-          class="card card-pinned fil-card-clickable"
-          id="member-card-fil-general"
-          data-fil-id="general"
-        >
-
-          <span class="card-badge">
-            🌐 Fil général
-          </span>
-
-          <h3>
-            Fil général Iphax
-          </h3>
-
-          <p>
-            Rejoins la discussion du collectif
-          </p>
-
-          <button
-            class="btn btn-primary btn-small"
-            id="btn-fil-general"
-            type="button"
-          >
-            ➡️ Entrer
-          </button>
-
+        <article class="card card-pinned fil-card-clickable" id="member-card-fil-general" data-fil-id="general">
+          <span class="card-badge">🌐 Fil général</span>
+          <h3>Fil général Iphax</h3>
+          <p>Rejoins la discussion du collectif</p>
+          <button class="btn btn-primary btn-small" id="btn-fil-general" type="button">➡️ Entrer</button>
         </article>
-
-
-        <div class="section-label">
-          🧑‍⚕️ Mes fils thérapeutiques
-        </div>
-
-
+        <div class="section-label">🧑‍⚕️ Mes fils thérapeutiques</div>
         <div id="fils-thera-membre-list">
-          <p class="empty-state">
-            Aucun fil thérapeutique pour l'instant.
-          </p>
+          <p class="empty-state">Aucun fil thérapeutique pour l'instant.</p>
         </div>
-
       </div>
-
     </div>
-
 
     <div class="page" data-page="fil-detail">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1
-            class="page-title"
-            id="fil-detail-title"
-          >
-            Fil
-          </h1>
-
-          <p
-            class="page-subtitle"
-            id="fil-detail-subtitle"
-          >
-            …
-          </p>
-
+          <h1 class="page-title" id="fil-detail-title">Fil</h1>
+          <p class="page-subtitle" id="fil-detail-subtitle">…</p>
         </div>
-
-        <button
-          class="btn-gear"
-          id="btn-back-fils"
-          type="button"
-        >
-          ←
-        </button>
-
+        <button class="btn-gear" id="btn-back-fils" type="button">←</button>
       </header>
-
-
-      <div
-        class="fil-posts"
-        id="fil-posts"
-      >
-        <p class="empty-state">
-          Aucun message pour l'instant.
-        </p>
+      <div class="fil-posts" id="fil-posts">
+        <p class="empty-state">Aucun message pour l'instant.</p>
       </div>
-
-
       <div class="fil-bottom-bar">
-
-        <button
-          class="btn btn-primary btn-full"
-          id="btn-fil-demande"
-          type="button"
-        >
-          ✍️ Envoyer une demande
-        </button>
-
+        <button class="btn btn-primary btn-full" id="btn-fil-demande" type="button">✍️ Envoyer une demande</button>
       </div>
-
     </div>
 
-
-    <!-- ═══ PROFIL MEMBRE ═══ -->
-
+    <!-- PROFIL MEMBRE -->
     <div class="page" data-page="profil">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1 class="page-title">
-            👤 Mon profil
-          </h1>
-
-          <p class="page-subtitle">
-            Ton espace personnel
-          </p>
-
+          <h1 class="page-title">👤 Mon profil</h1>
+          <p class="page-subtitle">Ton espace personnel</p>
         </div>
-
-        <!-- IMPORTANT :
-             Pas de onclick ici.
-             main.js s'occupe du clic. -->
-
-        <button
-          class="btn-gear"
-          id="btn-gear"
-          type="button"
-          aria-label="Ouvrir les paramètres"
-          title="Paramètres"
-        >
-          ⚙️
-        </button>
-
-        <button
-          class="btn-gear"
-          id="btn-signaler-membre"
-          type="button"
-          aria-label="Signaler"
-          title="Signaler"
-        >
-          🚨
-        </button>
-
-
+        <button class="btn-gear" id="btn-signaler-membre" type="button" aria-label="Signaler" title="Signaler">🚨</button>
+        <button class="btn-gear" id="btn-gear" type="button" aria-label="Ouvrir les paramètres" title="Paramètres">⚙️</button>
       </header>
-
-
-      <div
-        class="profil-header"
-        id="profil-header"
-      ></div>
-
-
-      <div class="section-label">
-        🔒 Mon espace
-      </div>
-
-
+      <div class="profil-header" id="profil-header"></div>
+      <div class="section-label">🔒 Mon espace</div>
       <div class="grid-cards">
-
-        <button
-          class="grid-card"
-          data-target="perso"
-        >
+        <button class="grid-card" data-target="perso">
           <span class="grid-icon">📔</span>
           <span class="grid-title">Espace perso</span>
           <span class="grid-desc">Ton espace privé</span>
         </button>
-
-        <button
-          class="grid-card"
-          data-target="ecouter"
-        >
+        <button class="grid-card" data-target="ecouter">
           <span class="grid-icon">💬</span>
           <span class="grid-title">Mon écoute</span>
           <span class="grid-desc">Parler avec un écoutant</span>
         </button>
-
       </div>
-
     </div>
 
   </div>
 
-
-  <!-- NAVIGATION MEMBRE -->
-
   <nav class="bottom-nav">
-
-    <button
-      class="nav-item active"
-      data-page="news"
-      type="button"
-    >
-      <span class="nav-icon">📰</span>
-      <span class="nav-label">News</span>
+    <button class="nav-item active" data-page="news" type="button">
+      <span class="nav-icon">📰</span><span class="nav-label">News</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="perso"
-      type="button"
-    >
-      <span class="nav-icon">📔</span>
-      <span class="nav-label">Perso</span>
+    <button class="nav-item" data-page="perso" type="button">
+      <span class="nav-icon">📔</span><span class="nav-label">Perso</span>
     </button>
-
-    <button
-      class="nav-item nav-center"
-      data-page="ecouter"
-      type="button"
-    >
-      <span class="nav-icon">💬</span>
-      <span class="nav-label">Écouter</span>
+    <button class="nav-item nav-center" data-page="ecouter" type="button">
+      <span class="nav-icon">💬</span><span class="nav-label">Écouter</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="fils"
-      type="button"
-    >
-      <span class="nav-icon">💭</span>
-      <span class="nav-label">Fils</span>
+    <button class="nav-item" data-page="fils" type="button">
+      <span class="nav-icon">💭</span><span class="nav-label">Fils</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="profil"
-      type="button"
-    >
-      <span class="nav-icon">👤</span>
-      <span class="nav-label">Profil</span>
+    <button class="nav-item" data-page="profil" type="button">
+      <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
     </button>
-
   </nav>
-
 </section>
 
 
@@ -1605,609 +597,185 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 
 <section id="app-ecoutant" class="screen">
-
   <div class="app-content">
 
     <div class="page active" data-page="news-eco">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          📰 News
-        </h1>
-
-        <p class="page-subtitle">
-          Lis et propose des contenus
-        </p>
-
+        <h1 class="page-title">📰 News</h1>
+        <p class="page-subtitle">Lis et propose des contenus</p>
       </header>
-
-
       <div class="feed">
-        >
-          ➕ Créer une news
-        </button>
-
-
         <article class="card card-pinned">
-
-          <span class="card-badge">
-            📌 Épinglé
-          </span>
-
-          <h3>
-            Bienvenue sur Iphax 💙
-          </h3>
-
-          <p>
-            Ici, quelqu'un t'écoute.
-          </p>
-
+          <span class="card-badge">📌 Épinglé</span>
+          <h3>Bienvenue sur Iphax 💙</h3>
+          <p>Ici, quelqu'un t'écoute.</p>
         </article>
-
-
         <div id="news-eco-dynamic"></div>
-
       </div>
-
     </div>
-
 
     <div class="page" data-page="formation">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          📚 Formation & Ressources
-        </h1>
-
+        <h1 class="page-title">📚 Formation & Ressources</h1>
       </header>
-
-
       <div class="wysp-container">
-
         <div class="wysp-wrapper">
-
-          <svg
-            class="wysp"
-            viewBox="0 0 200 240"
-          >
-            <use href="#wysp-icon"/>
-          </svg>
-
+          <svg class="wysp" viewBox="0 0 200 240"><use href="#wysp-icon"/></svg>
         </div>
-
-        <h2 class="wysp-title">
-          Wysp prépare cet espace 🔨
-        </h2>
-
-        <p class="wysp-text">
-          Formation, bien-être, supervision…<br>
-          Wysp t'aide à prendre soin de toi.
-        </p>
-
-        <p class="wysp-soon">
-          ⏳ Bientôt disponible
-        </p>
-
+        <h2 class="wysp-title">Wysp prépare cet espace 🔨</h2>
+        <p class="wysp-text">Formation, bien-être, supervision…<br>Wysp t'aide à prendre soin de toi.</p>
+        <p class="wysp-soon">⏳ Bientôt disponible</p>
       </div>
-
     </div>
-
 
     <div class="page" data-page="conversations">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          💬 Conversations
-        </h1>
-
-        <p class="page-subtitle">
-          Écoute et accompagne
-        </p>
-
+        <h1 class="page-title">💬 Conversations</h1>
+        <p class="page-subtitle">Écoute et accompagne</p>
       </header>
 
-
-      <div
-        class="mini-tabs"
-        id="mini-tabs-eco"
-        data-active="en-attente"
-      >
-
-        <button
-          class="mini-tab active"
-          data-mini="en-attente"
-          type="button"
-        >
+      <div class="mini-tabs" id="mini-tabs-eco" data-active="en-attente">
+        <button class="mini-tab active" data-mini="en-attente" type="button">
           🔥 En attente
-          <span
-            class="mini-tab-badge"
-            id="badge-attente"
-            style="display:none;"
-          >
-            0
-          </span>
+          <span class="mini-tab-badge" id="badge-attente" style="display:none;">0</span>
         </button>
-
-        <button
-          class="mini-tab"
-          data-mini="mes-convs"
-          type="button"
-        >
-          💬 Mes convs
-        </button>
-
-        <button
-          class="mini-tab"
-          data-mini="resolues"
-          type="button"
-        >
-          ✅ Résolues
-        </button>
-
-        <button
-          class="mini-tab"
-          data-mini="stats"
-          type="button"
-        >
-          📊 Stats
-        </button>
-
+        <button class="mini-tab" data-mini="mes-convs" type="button">💬 Mes convs</button>
+        <button class="mini-tab" data-mini="resolues" type="button">✅ Résolues</button>
+        <button class="mini-tab" data-mini="stats" type="button">📊 Stats</button>
         <span class="mini-tab-indicator"></span>
-
       </div>
 
-
-      <div
-        class="mini-content active"
-        data-mini-content="en-attente"
-      >
-
+      <div class="mini-content active" data-mini-content="en-attente">
         <div class="filters">
-
-          <button class="filter active" type="button">
-            Tout
-          </button>
-
-          <button class="filter" type="button">
-            Non lus
-          </button>
-
-          <button class="filter" type="button">
-            Sans réponse
-          </button>
-
-          <button class="filter" type="button">
-            Marqués
-          </button>
-
+          <button class="filter active" type="button">Tout</button>
+          <button class="filter" type="button">Non lus</button>
+          <button class="filter" type="button">Sans réponse</button>
+          <button class="filter" type="button">Marqués</button>
         </div>
-
-
         <div id="convs-en-attente">
-
-          <p class="empty-state">
-            Aucune conversation en attente ✨
-          </p>
-
+          <p class="empty-state">Aucune conversation en attente ✨</p>
         </div>
-
       </div>
 
-
-      <div
-        class="mini-content"
-        data-mini-content="mes-convs"
-      >
-
+      <div class="mini-content" data-mini-content="mes-convs">
         <div class="filters">
-
-          <button class="filter active" type="button">
-            Tout
-          </button>
-
-          <button class="filter" type="button">
-            Non lus
-          </button>
-
-          <button class="filter" type="button">
-            Sans réponse
-          </button>
-
-          <button class="filter" type="button">
-            Marqués
-          </button>
-
+          <button class="filter active" type="button">Tout</button>
+          <button class="filter" type="button">Non lus</button>
+          <button class="filter" type="button">Sans réponse</button>
+          <button class="filter" type="button">Marqués</button>
         </div>
-
-
         <div id="convs-mes">
-
-          <p class="empty-state">
-            Aucune conversation pour l'instant.
-          </p>
-
+          <p class="empty-state">Aucune conversation pour l'instant.</p>
         </div>
-
       </div>
 
-
-      <div
-        class="mini-content"
-        data-mini-content="resolues"
-      >
-
+      <div class="mini-content" data-mini-content="resolues">
         <div id="convs-resolues">
-
-          <p class="empty-state">
-            Aucune conversation résolue ✅
-          </p>
-
+          <p class="empty-state">Aucune conversation résolue ✅</p>
         </div>
-
       </div>
 
-
-      <div
-        class="mini-content"
-        data-mini-content="stats"
-      >
-
-        <p class="empty-state">
-          Stats personnelles à venir 📊
-        </p>
-
+      <div class="mini-content" data-mini-content="stats">
+        <p class="empty-state">Stats personnelles à venir 📊</p>
       </div>
-
     </div>
 
-
     <div class="page" data-page="chat-eco">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1
-            class="page-title"
-            id="chat-eco-title"
-          >
-            💬 Conversation
-          </h1>
-
-          <p
-            class="page-subtitle"
-            id="chat-eco-subtitle"
-          >
-            …
-          </p>
-
+          <h1 class="page-title" id="chat-eco-title">💬 Conversation</h1>
+          <p class="page-subtitle" id="chat-eco-subtitle">…</p>
         </div>
-
-
         <div class="chat-eco-header-actions">
-
-          <button
-            class="btn-see-mood"
-            id="btn-see-mood-eco"
-            type="button"
-            style="display:none;"
-          >
-            📊 Mood
-          </button>
-
-          <button
-            class="btn-gear"
-            id="btn-back-chat-eco"
-            type="button"
-          >
-            ←
-          </button>
-
+          <button class="btn-see-mood" id="btn-see-mood-eco" type="button" style="display:none;">📊 Mood</button>
+          <button class="btn-gear" id="btn-back-chat-eco" type="button">←</button>
         </div>
-
       </header>
-
-
-      <div
-        class="chat-eco-infos"
-        id="chat-eco-infos"
-      ></div>
-
-
-      <div
-        class="chat-messages"
-        id="chat-eco-messages"
-      ></div>
-
-
-      <form
-        class="chat-input-bar"
-        id="chat-eco-form"
-      >
-
-        <input
-          type="text"
-          id="chat-eco-input"
-          placeholder="Écris ton message…"
-          autocomplete="off"
-        >
-
-        <button
-          type="submit"
-          class="chat-send-btn"
-          aria-label="Envoyer"
-        >
-
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
+      <div class="chat-eco-infos" id="chat-eco-infos"></div>
+      <div class="chat-messages" id="chat-eco-messages"></div>
+      <form class="chat-input-bar" id="chat-eco-form">
+        <input type="text" id="chat-eco-input" placeholder="Écris ton message…" autocomplete="off">
+        <button type="submit" class="chat-send-btn" aria-label="Envoyer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="m22 2-7 20-4-9-9-4Z"/>
             <path d="M22 2 11 13"/>
           </svg>
-
         </button>
-
       </form>
-
     </div>
-
 
     <div class="page" data-page="fils">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          💭 Fils de discussion
-        </h1>
-
+        <h1 class="page-title">💭 Fils de discussion</h1>
       </header>
-
-
       <div class="feed">
-
-        <article
-          class="card card-pinned fil-card-clickable"
-          id="eco-card-fil-general"
-          data-fil-id="general"
-        >
-
-          <span class="card-badge">
-            🌐 Fil général
-          </span>
-
-          <h3>
-            Fil général Iphax
-          </h3>
-
-          <p>
-            Rejoins la discussion du collectif
-          </p>
-
-          <button
-            class="btn btn-primary btn-small"
-            id="btn-proposer-post-eco"
-            type="button"
-          >
-            ➡️ Entrer
-          </button>
-
+        <article class="card card-pinned fil-card-clickable" id="eco-card-fil-general" data-fil-id="general">
+          <span class="card-badge">🌐 Fil général</span>
+          <h3>Fil général Iphax</h3>
+          <p>Rejoins la discussion du collectif</p>
+          <button class="btn btn-primary btn-small" id="btn-proposer-post-eco" type="button">➡️ Entrer</button>
         </article>
-
-
-        <div class="section-label">
-          🧑‍⚕️ Mes fils thérapeutiques
-        </div>
-
-
+        <div class="section-label">🧑‍⚕️ Mes fils thérapeutiques</div>
         <div id="fils-thera-eco-list">
-
-          <p class="empty-state">
-            Aucun fil thérapeutique pour l'instant.
-          </p>
-
+          <p class="empty-state">Aucun fil thérapeutique pour l'instant.</p>
         </div>
-
       </div>
-
     </div>
-
 
     <div class="page" data-page="fil-detail-eco">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1
-            class="page-title"
-            id="fil-detail-eco-title"
-          >
-            Fil
-          </h1>
-
-          <p
-            class="page-subtitle"
-            id="fil-detail-eco-subtitle"
-          >
-            …
-          </p>
-
+          <h1 class="page-title" id="fil-detail-eco-title">Fil</h1>
+          <p class="page-subtitle" id="fil-detail-eco-subtitle">…</p>
         </div>
-
-
-        <button
-          class="btn-gear"
-          id="btn-back-fils-eco"
-          type="button"
-        >
-          ←
-        </button>
-
+        <button class="btn-gear" id="btn-back-fils-eco" type="button">←</button>
       </header>
-
-
-      <div
-        class="fil-posts"
-        id="fil-eco-posts"
-      >
-
-        <p class="empty-state">
-          Aucun message pour l'instant.
-        </p>
-
+      <div class="fil-posts" id="fil-eco-posts">
+        <p class="empty-state">Aucun message pour l'instant.</p>
       </div>
-
-
       <div class="fil-bottom-bar">
-
-        <button
-          class="btn btn-primary btn-full"
-          id="btn-fil-eco-demande"
-          type="button"
-        >
-          ✍️ Envoyer une demande
-        </button>
-
+        <button class="btn btn-primary btn-full" id="btn-fil-eco-demande" type="button">✍️ Envoyer une demande</button>
       </div>
-
     </div>
 
-
-    <!-- ═══ PROFIL ÉCOUTANT ═══ -->
-
+    <!-- PROFIL ÉCOUTANT -->
     <div class="page" data-page="profil-eco">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1 class="page-title">
-            👤 Mon profil
-          </h1>
-
-          <p class="page-subtitle">
-            Ton espace écoutant
-          </p>
-
+          <h1 class="page-title">👤 Mon profil</h1>
+          <p class="page-subtitle">Ton espace écoutant</p>
         </div>
-
-        <button
-          class="btn-gear"
-          id="btn-signaler-eco"
-          type="button"
-          aria-label="Signaler"
-          title="Signaler"
-        >
-          🚨
-        </button>
-
-        <button
-          class="btn-gear"
-          id="btn-gear-eco"
-          type="button"
-          aria-label="Ouvrir les paramètres"
-          title="Paramètres"
-        >
-          ⚙️
-        </button>
-
+        <button class="btn-gear" id="btn-signaler-eco" type="button" aria-label="Signaler" title="Signaler">🚨</button>
+        <button class="btn-gear" id="btn-gear-eco" type="button" aria-label="Ouvrir les paramètres" title="Paramètres">⚙️</button>
       </header>
-
-
-      <div
-        class="profil-header"
-        id="profil-eco-header"
-      ></div>
-
-
-      <div class="section-label">
-        📊 Mes statistiques écoutant
-      </div>
-
-
+      <div class="profil-header" id="profil-eco-header"></div>
+      <div class="section-label">📊 Mes statistiques écoutant</div>
       <div class="stats-wysp">
-
-        <svg
-          class="wysp"
-          viewBox="0 0 200 240"
-        >
-          <use href="#wysp-icon"/>
-        </svg>
-
-        <h3 class="stats-wysp-title">
-          Wysp prépare tes stats 🔨
-        </h3>
-
-        <p class="stats-wysp-text">
-          Tes statistiques d'écoutant arrivent bientôt.
-        </p>
-
+        <svg class="wysp" viewBox="0 0 200 240"><use href="#wysp-icon"/></svg>
+        <h3 class="stats-wysp-title">Wysp prépare tes stats 🔨</h3>
+        <p class="stats-wysp-text">Tes statistiques d'écoutant arrivent bientôt.</p>
       </div>
-
     </div>
 
   </div>
 
-
   <nav class="bottom-nav">
-
-    <button
-      class="nav-item active"
-      data-page="news-eco"
-      type="button"
-    >
-      <span class="nav-icon">📰</span>
-      <span class="nav-label">News</span>
+    <button class="nav-item active" data-page="news-eco" type="button">
+      <span class="nav-icon">📰</span><span class="nav-label">News</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="formation"
-      type="button"
-    >
-      <span class="nav-icon">📚</span>
-      <span class="nav-label">Formation</span>
+    <button class="nav-item" data-page="formation" type="button">
+      <span class="nav-icon">📚</span><span class="nav-label">Formation</span>
     </button>
-
-    <button
-      class="nav-item nav-center"
-      data-page="conversations"
-      type="button"
-    >
-      <span class="nav-icon">💬</span>
-      <span class="nav-label">Écoute</span>
+    <button class="nav-item nav-center" data-page="conversations" type="button">
+      <span class="nav-icon">💬</span><span class="nav-label">Écoute</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="fils"
-      type="button"
-    >
-      <span class="nav-icon">💭</span>
-      <span class="nav-label">Fils</span>
+    <button class="nav-item" data-page="fils" type="button">
+      <span class="nav-icon">💭</span><span class="nav-label">Fils</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="profil-eco"
-      type="button"
-    >
-      <span class="nav-icon">👤</span>
-      <span class="nav-label">Profil</span>
+    <button class="nav-item" data-page="profil-eco" type="button">
+      <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
     </button>
-
   </nav>
-
 </section>
 
 
@@ -2216,289 +784,101 @@
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 
 <section id="app-admin" class="screen">
-
   <div class="app-content">
 
-
     <div class="page active" data-page="admin-news">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1 class="page-title">
-            📰 News
-          </h1>
-
-          <p class="page-subtitle">
-            Crée et gère les news du collectif
-          </p>
-
+          <h1 class="page-title">📰 News</h1>
+          <p class="page-subtitle">Crée et gère les news du collectif</p>
         </div>
-
-        <button
-          class="btn btn-primary btn-small"
-          id="btn-admin-new-news"
-          type="button"
-        >
-          ➕ Créer une news
-        </button>
-
+        <button class="btn btn-primary btn-small" id="btn-admin-new-news" type="button">➕ Créer une news</button>
       </header>
-
-
-      <div
-        class="feed"
-        id="admin-news-list"
-      >
-        <p class="empty-state">
-          Chargement…
-        </p>
+      <div class="feed" id="admin-news-list">
+        <p class="empty-state">Chargement…</p>
       </div>
-
     </div>
-
 
     <div class="page" data-page="admin-panel">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          🔧 Panel Admin
-        </h1>
-
-        <p class="page-subtitle">
-          Gestion de la plateforme
-        </p>
-
+        <h1 class="page-title">🔧 Panel Admin</h1>
+        <p class="page-subtitle">Gestion de la plateforme</p>
       </header>
 
-
-      <div
-        class="mini-tabs"
-        id="admin-panel-tabs"
-        data-active="demandes"
-      >
-
-        <button
-          class="mini-tab active"
-          data-mini="demandes"
-          type="button"
-        >
-          📥 Demandes
-        </button>
-
-        <button
-          class="mini-tab"
-          data-mini="membres"
-          type="button"
-        >
-          👥 Membres
-        </button>
-
-        <button
-          class="mini-tab"
-          data-mini="ecoutants"
-          type="button"
-        >
-          🎓 Écoutants
-        </button>
-
-        <button
-          class="mini-tab"
-          data-mini="params"
-          type="button"
-        >
-          🏷️ Params
-        </button>
-
-        <span
-          class="mini-tab-indicator"
-          style="width:calc(25% - 2px);"
-        ></span>
-
+      <div class="mini-tabs" id="admin-panel-tabs" data-active="demandes">
+        <button class="mini-tab active" data-mini="demandes" type="button">📥 Demandes</button>
+        <button class="mini-tab" data-mini="membres" type="button">👥 Membres</button>
+        <button class="mini-tab" data-mini="ecoutants" type="button">🎓 Écoutants</button>
+        <button class="mini-tab" data-mini="params" type="button">🏷️ Params</button>
+        <span class="mini-tab-indicator" style="width:calc(25% - 2px);"></span>
       </div>
 
-
-      <div
-        class="mini-content active"
-        data-mini-content="demandes"
-      >
-
+      <div class="mini-content active" data-mini-content="demandes">
         <div id="admin-demandes-list">
-
-          <p class="empty-state">
-            Aucune demande ✨
-          </p>
-
+          <p class="empty-state">Aucune demande ✨</p>
         </div>
-
       </div>
 
-
-      <div
-        class="mini-content"
-        data-mini-content="membres"
-      >
-
-        <input
-          type="text"
-          class="admin-search"
-          id="admin-search-membres"
-          placeholder="🔍 Rechercher un membre…"
-        >
-
+      <div class="mini-content" data-mini-content="membres">
+        <input type="text" class="admin-search" id="admin-search-membres" placeholder="🔍 Rechercher un membre…">
         <div id="admin-membres-list">
-
-          <p class="empty-state">
-            Chargement…
-          </p>
-
+          <p class="empty-state">Chargement…</p>
         </div>
-
       </div>
 
-
-      <div
-        class="mini-content"
-        data-mini-content="ecoutants"
-      >
-
-        <input
-          type="text"
-          class="admin-search"
-          id="admin-search-ecoutants"
-          placeholder="🔍 Rechercher un écoutant…"
-        >
-
+      <div class="mini-content" data-mini-content="ecoutants">
+        <input type="text" class="admin-search" id="admin-search-ecoutants" placeholder="🔍 Rechercher un écoutant…">
         <div id="admin-ecoutants-list">
-
-          <p class="empty-state">
-            Chargement…
-          </p>
-
+          <p class="empty-state">Chargement…</p>
         </div>
-
       </div>
 
-
-      <div
-        class="mini-content"
-        data-mini-content="params"
-      >
-
+      <div class="mini-content" data-mini-content="params">
         <div class="field">
-
-          <label>
-            🏷️ Catégories du fil général
-          </label>
-
-          <div
-            class="admin-categories"
-            id="admin-categories"
-          >
-
-            <span class="admin-cat-chip">
-              Anxiété
-            </span>
-
-            <span class="admin-cat-chip">
-              Solitude
-            </span>
-
-            <span class="admin-cat-chip">
-              Tristesse
-            </span>
-
-            <span class="admin-cat-chip">
-              Colère
-            </span>
-
-            <span class="admin-cat-chip">
-              Famille
-            </span>
-
-            <span class="admin-cat-chip">
-              École
-            </span>
-
-            <span class="admin-cat-chip">
-              Amitié
-            </span>
-
-            <span class="admin-cat-chip">
-              Deuil
-            </span>
-
+          <label>🏷️ Catégories du fil général</label>
+          <div class="admin-categories" id="admin-categories">
+            <span class="admin-cat-chip">Anxiété</span>
+            <span class="admin-cat-chip">Solitude</span>
+            <span class="admin-cat-chip">Tristesse</span>
+            <span class="admin-cat-chip">Colère</span>
+            <span class="admin-cat-chip">Famille</span>
+            <span class="admin-cat-chip">École</span>
+            <span class="admin-cat-chip">Amitié</span>
+            <span class="admin-cat-chip">Deuil</span>
           </div>
-
         </div>
-
-
-        <p
-          class="field-hint"
-          style="margin-top:12px;"
-        >
-          D'autres paramètres viendront bientôt 🔨
-        </p>
-
+        <p class="field-hint" style="margin-top:12px;">D'autres paramètres viendront bientôt 🔨</p>
       </div>
-
     </div>
 
-
     <div class="page" data-page="admin-dev">
-
       <header class="page-header">
         <h1 class="page-title">💻 Panel Dev</h1>
         <p class="page-subtitle">Outils techniques</p>
       </header>
 
-      <div
-        class="mini-tabs"
-        id="dev-tabs"
-        data-active="dashboard"
-      >
-        <button class="mini-tab active" data-mini="dashboard" type="button">
-          📊 Dashboard
-        </button>
-        <button class="mini-tab" data-mini="roles" type="button">
-          👥 Rôles
-        </button>
-        <button class="mini-tab" data-mini="logs" type="button">
-          📜 Logs
-        </button>
-        <button class="mini-tab" data-mini="signalements" type="button">
-          🚨 Signalements
-        </button>
-        <button class="mini-tab" data-mini="outils" type="button">
-          ⚙️ Outils
-        </button>
-
+      <div class="mini-tabs" id="dev-tabs" data-active="dashboard">
+        <button class="mini-tab active" data-mini="dashboard" type="button">📊 Dashboard</button>
+        <button class="mini-tab" data-mini="roles" type="button">👥 Rôles</button>
+        <button class="mini-tab" data-mini="logs" type="button">📜 Logs</button>
+        <button class="mini-tab" data-mini="signalements" type="button">🚨 Signalements</button>
+        <button class="mini-tab" data-mini="outils" type="button">⚙️ Outils</button>
         <span class="mini-tab-indicator" style="width:calc(20% - 2px);"></span>
       </div>
 
-      <!-- SOUS-ONGLET 1 : DASHBOARD -->
       <div class="mini-content active" data-mini-content="dashboard">
         <div id="dev-stats" class="dev-stats">
           <p class="empty-state">Chargement…</p>
         </div>
       </div>
 
-      <!-- SOUS-ONGLET 2 : RÔLES -->
       <div class="mini-content" data-mini-content="roles">
-        <input
-          type="text"
-          class="admin-search"
-          id="dev-search-users"
-          placeholder="🔍 Rechercher un utilisateur…"
-        >
+        <input type="text" class="admin-search" id="dev-search-users" placeholder="🔍 Rechercher un utilisateur…">
         <div id="dev-users-list">
           <p class="empty-state">Tape un pseudo pour commencer</p>
         </div>
       </div>
 
-      <!-- SOUS-ONGLET 3 : LOGS -->
       <div class="mini-content" data-mini-content="logs">
         <div class="filters" id="dev-log-filters">
           <button class="filter active" data-log-filter="all" type="button">Tout</button>
@@ -2513,17 +893,14 @@
         </div>
       </div>
 
-      <!-- SOUS-ONGLET 4 : SIGNALEMENTS -->
       <div class="mini-content" data-mini-content="signalements">
         <div id="dev-signalements-list">
           <p class="empty-state">Chargement…</p>
         </div>
       </div>
 
-      <!-- SOUS-ONGLET 5 : OUTILS -->
       <div class="mini-content" data-mini-content="outils">
         <div class="dev-tools">
-
           <div class="dev-tool-card">
             <div class="dev-tool-icon">🧹</div>
             <div class="dev-tool-info">
@@ -2532,7 +909,6 @@
             </div>
             <button class="btn btn-ghost btn-small" id="dev-clear-cache" type="button">Lancer</button>
           </div>
-
           <div class="dev-tool-card">
             <div class="dev-tool-icon">🔄</div>
             <div class="dev-tool-info">
@@ -2541,7 +917,6 @@
             </div>
             <button class="btn btn-ghost btn-small" id="dev-reload" type="button">Lancer</button>
           </div>
-
           <div class="dev-tool-card">
             <div class="dev-tool-icon">📦</div>
             <div class="dev-tool-info">
@@ -2549,7 +924,6 @@
               <p id="dev-version-text">—</p>
             </div>
           </div>
-
           <div class="dev-tool-card">
             <div class="dev-tool-icon">🔥</div>
             <div class="dev-tool-info">
@@ -2557,512 +931,157 @@
               <p id="dev-firebase-status">Vérification…</p>
             </div>
           </div>
-
         </div>
       </div>
-
     </div>
-
 
     <div class="page" data-page="admin-supervision">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          🎯 Supervision
-        </h1>
-
-        <p class="page-subtitle">
-          Suivi des conversations
-        </p>
-
+        <h1 class="page-title">🎯 Supervision</h1>
+        <p class="page-subtitle">Suivi des conversations</p>
       </header>
 
-
-      <div
-        class="mini-tabs"
-        id="admin-sup-tabs"
-        data-active="actives"
-      >
-
-        <button
-          class="mini-tab active"
-          data-mini="actives"
-          type="button"
-        >
-          💬 Conversations
-        </button>
-
-        <button
-          class="mini-tab"
-          data-mini="signalements"
-          type="button"
-        >
-          🚨 Signalements
-        </button>
-
-        <button
-          class="mini-tab"
-          data-mini="creer"
-          type="button"
-        >
-          ➕ Créer
-        </button>
-
-        <span
-          class="mini-tab-indicator"
-          style="width:calc(33.33% - 2px);"
-        ></span>
-
+      <div class="mini-tabs" id="admin-sup-tabs" data-active="actives">
+        <button class="mini-tab active" data-mini="actives" type="button">💬 Conversations</button>
+        <button class="mini-tab" data-mini="signalements" type="button">🚨 Signalements</button>
+        <button class="mini-tab" data-mini="creer" type="button">➕ Créer</button>
+        <span class="mini-tab-indicator" style="width:calc(33.33% - 2px);"></span>
       </div>
 
-
-      <div
-        class="mini-content active"
-        data-mini-content="actives"
-      >
-
+      <div class="mini-content active" data-mini-content="actives">
         <div class="filters">
-
-          <button class="filter active" type="button">
-            Tout
-          </button>
-
-          <button class="filter" type="button">
-            🔥 Urgence 5
-          </button>
-
-          <button class="filter" type="button">
-            ⚠️ Urgence 4
-          </button>
-
+          <button class="filter active" type="button">Tout</button>
+          <button class="filter" type="button">🔥 Urgence 5</button>
+          <button class="filter" type="button">⚠️ Urgence 4</button>
         </div>
-
-
         <div id="admin-convs-list">
-
-          <p class="empty-state">
-            Chargement…
-          </p>
-
+          <p class="empty-state">Chargement…</p>
         </div>
-
       </div>
 
-
-      <div
-        class="mini-content"
-        data-mini-content="signalements"
-      >
-
+      <div class="mini-content" data-mini-content="signalements">
         <div id="admin-signalements-list">
-
-          <p class="empty-state">
-            Aucun signalement ✨
-          </p>
-
+          <p class="empty-state">Aucun signalement ✨</p>
         </div>
-
       </div>
 
-
-      <div
-        class="mini-content"
-        data-mini-content="creer"
-      >
-
-        <input
-          type="text"
-          class="admin-search"
-          id="admin-search-users"
-          placeholder="🔍 Rechercher un utilisateur…"
-        >
-
+      <div class="mini-content" data-mini-content="creer">
+        <input type="text" class="admin-search" id="admin-search-users" placeholder="🔍 Rechercher un utilisateur…">
         <div id="admin-users-results">
-
-          <p class="empty-state">
-            Tape un pseudo pour commencer
-          </p>
-
+          <p class="empty-state">Tape un pseudo pour commencer</p>
         </div>
-
       </div>
-
     </div>
-
 
     <div class="page" data-page="admin-fils">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          💭 Fils de discussion
-        </h1>
-
+        <h1 class="page-title">💭 Fils de discussion</h1>
       </header>
-
-
       <div class="feed">
-
         <article class="card card-pinned">
-
-          <span class="card-badge">
-            🌐 Fil général
-          </span>
-
-          <h3>
-            Fil général Iphax
-          </h3>
-
-          <p>
-            Gérer les posts et la modération
-          </p>
-
-          <button
-            class="btn btn-primary btn-small"
-            id="btn-admin-fil-general"
-            type="button"
-          >
-            Voir le fil
-          </button>
-
+          <span class="card-badge">🌐 Fil général</span>
+          <h3>Fil général Iphax</h3>
+          <p>Gérer les posts et la modération</p>
+          <button class="btn btn-primary btn-small" id="btn-admin-fil-general" type="button">Voir le fil</button>
         </article>
-
-
         <article class="card">
-
-          <span class="card-badge">
-            👥 Fil Personnel
-          </span>
-
-          <h3>
-            Personnel Iphax
-          </h3>
-
-          <p>
-            Écrire librement entre personnels
-          </p>
-
-          <button
-            class="btn btn-primary btn-small"
-            id="btn-admin-fil-perso"
-            type="button"
-          >
-            Ouvrir
-          </button>
-
+          <span class="card-badge">👥 Fil Personnel</span>
+          <h3>Personnel Iphax</h3>
+          <p>Écrire librement entre personnels</p>
+          <button class="btn btn-primary btn-small" id="btn-admin-fil-perso" type="button">Ouvrir</button>
         </article>
-
-
         <article class="card">
-
-          <span class="card-badge">
-            🛡️ Fil Staff
-          </span>
-
-          <h3>
-            Staff Iphax
-          </h3>
-
-          <p>
-            Espace de décision
-          </p>
-
-          <button
-            class="btn btn-primary btn-small"
-            id="btn-admin-fil-staff"
-            type="button"
-          >
-            Ouvrir
-          </button>
-
+          <span class="card-badge">🛡️ Fil Staff</span>
+          <h3>Staff Iphax</h3>
+          <p>Espace de décision</p>
+          <button class="btn btn-primary btn-small" id="btn-admin-fil-staff" type="button">Ouvrir</button>
         </article>
-
-
-        <div class="section-label">
-          🧑‍⚕️ Fils thérapeutiques
-        </div>
-
-
+        <div class="section-label">🧑‍⚕️ Fils thérapeutiques</div>
         <div id="admin-fils-thera-list">
-
-          <p class="empty-state">
-            Aucun fil thérapeutique pour l'instant.
-          </p>
-
+          <p class="empty-state">Aucun fil thérapeutique pour l'instant.</p>
         </div>
-
-
-        <button
-          class="btn btn-primary btn-small"
-          id="btn-admin-create-fil-thera"
-          type="button"
-        >
-          ➕ Créer un fil thérapeutique
-        </button>
-
+        <button class="btn btn-primary btn-small" id="btn-admin-create-fil-thera" type="button">➕ Créer un fil thérapeutique</button>
       </div>
-
     </div>
-
 
     <div class="page" data-page="fil-detail-admin">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1
-            class="page-title"
-            id="fil-detail-admin-title"
-          >
-            Fil
-          </h1>
-
-          <p
-            class="page-subtitle"
-            id="fil-detail-admin-subtitle"
-          >
-            …
-          </p>
-
+          <h1 class="page-title" id="fil-detail-admin-title">Fil</h1>
+          <p class="page-subtitle" id="fil-detail-admin-subtitle">…</p>
         </div>
-
-
         <div class="fil-header-actions">
-
-          <button
-            class="btn-add-member"
-            id="btn-add-member-admin"
-            type="button"
-            title="Ajouter un membre"
-          >
-            ➕
-          </button>
-
-          <button
-            class="btn-gear"
-            id="btn-back-fils-admin"
-            type="button"
-          >
-            ←
-          </button>
-
+          <button class="btn-add-member" id="btn-add-member-admin" type="button" title="Ajouter un membre">➕</button>
+          <button class="btn-gear" id="btn-back-fils-admin" type="button">←</button>
         </div>
-
       </header>
-
-
-      <div
-        class="fil-posts"
-        id="fil-admin-posts"
-      >
-
-        <p class="empty-state">
-          Aucun message pour l'instant.
-        </p>
-
+      <div class="fil-posts" id="fil-admin-posts">
+        <p class="empty-state">Aucun message pour l'instant.</p>
       </div>
-
-
       <div class="fil-bottom-bar">
-
-        <button
-          class="btn btn-primary btn-full"
-          id="btn-fil-admin-message"
-          type="button"
-        >
-          ✍️ Envoyer un message
-        </button>
-
+        <button class="btn btn-primary btn-full" id="btn-fil-admin-message" type="button">✍️ Envoyer un message</button>
       </div>
-
     </div>
 
-
-    <!-- ═══ PROFIL ADMIN ═══ -->
-
+    <!-- PROFIL ADMIN -->
     <div class="page" data-page="admin-profil">
-
       <header class="page-header page-header-flex">
-
         <div>
-
-          <h1 class="page-title">
-            👤 Mon profil
-          </h1>
-
-          <p class="page-subtitle">
-            Ton espace admin
-          </p>
-
+          <h1 class="page-title">👤 Mon profil</h1>
+          <p class="page-subtitle">Ton espace admin</p>
         </div>
-
-        <!-- CORRIGÉ :
-             suppression de onclick="testGear()" -->
-
-        <button
-          class="btn-gear"
-          id="btn-gear-admin"
-          type="button"
-          aria-label="Ouvrir les paramètres"
-          title="Paramètres"
-        >
-          ⚙️
-        </button>
-
+        <button class="btn-gear" id="btn-signaler-admin" type="button" aria-label="Signaler" title="Signaler">🚨</button>
+        <button class="btn-gear" id="btn-gear-admin" type="button" aria-label="Ouvrir les paramètres" title="Paramètres">⚙️</button>
       </header>
-
-
-      <div
-        class="profil-header"
-        id="profil-admin-header"
-      ></div>
-
-
-      <div class="section-label">
-        📊 Mes statistiques
-      </div>
-
-
+      <div class="profil-header" id="profil-admin-header"></div>
+      <div class="section-label">📊 Mes statistiques</div>
       <div class="stats-wysp">
-
-        <svg
-          class="wysp"
-          viewBox="0 0 200 240"
-        >
-          <use href="#wysp-icon"/>
-        </svg>
-
-        <h3 class="stats-wysp-title">
-          Wysp prépare tes stats 🔨
-        </h3>
-
-        <p class="stats-wysp-text">
-          Tes statistiques admin arrivent bientôt.
-        </p>
-
+        <svg class="wysp" viewBox="0 0 200 240"><use href="#wysp-icon"/></svg>
+        <h3 class="stats-wysp-title">Wysp prépare tes stats 🔨</h3>
+        <p class="stats-wysp-text">Tes statistiques admin arrivent bientôt.</p>
       </div>
-
     </div>
-
 
     <div class="page" data-page="admin-soon">
-
       <header class="page-header">
-
-        <h1 class="page-title">
-          ⏳ Bientôt
-        </h1>
-
-        <p class="page-subtitle">
-          Une surprise arrive…
-        </p>
-
+        <h1 class="page-title">⏳ Bientôt</h1>
+        <p class="page-subtitle">Une surprise arrive…</p>
       </header>
-
-
       <div class="wysp-container">
-
         <div class="wysp-wrapper">
-
-          <svg
-            class="wysp"
-            viewBox="0 0 200 240"
-          >
-            <use href="#wysp-icon"/>
-          </svg>
-
+          <svg class="wysp" viewBox="0 0 200 240"><use href="#wysp-icon"/></svg>
         </div>
-
-        <h2 class="wysp-title">
-          Chut, Wysp prépare un truc 🔨
-        </h2>
-
-        <p class="wysp-text">
-          Cette section arrive bientôt.
-        </p>
-
-        <p class="wysp-soon">
-          ⏳ Coming soon
-        </p>
-
+        <h2 class="wysp-title">Chut, Wysp prépare un truc 🔨</h2>
+        <p class="wysp-text">Cette section arrive bientôt.</p>
+        <p class="wysp-soon">⏳ Coming soon</p>
       </div>
-
     </div>
 
   </div>
 
-
-  <!-- NAVIGATION ADMIN -->
-
   <nav class="bottom-nav admin-nav">
-
-    <button
-      class="nav-item active"
-      data-page="admin-news"
-      type="button"
-    >
-      <span class="nav-icon">📰</span>
-      <span class="nav-label">News</span>
+    <button class="nav-item active" data-page="admin-news" type="button">
+      <span class="nav-icon">📰</span><span class="nav-label">News</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="admin-panel"
-      type="button"
-    >
-      <span class="nav-icon">🔧</span>
-      <span class="nav-label">Admin</span>
+    <button class="nav-item" data-page="admin-panel" type="button">
+      <span class="nav-icon">🔧</span><span class="nav-label">Admin</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="admin-dev"
-      type="button"
-    >
-      <span class="nav-icon">💻</span>
-      <span class="nav-label">Dev</span>
+    <button class="nav-item" data-page="admin-dev" type="button">
+      <span class="nav-icon">💻</span><span class="nav-label">Dev</span>
     </button>
-
-    <button
-      class="nav-item nav-center"
-      data-page="admin-supervision"
-      type="button"
-    >
-      <span class="nav-icon">🎯</span>
-      <span class="nav-label">Supervision</span>
+    <button class="nav-item nav-center" data-page="admin-supervision" type="button">
+      <span class="nav-icon">🎯</span><span class="nav-label">Supervision</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="admin-fils"
-      type="button"
-    >
-      <span class="nav-icon">💭</span>
-      <span class="nav-label">Fils</span>
+    <button class="nav-item" data-page="admin-fils" type="button">
+      <span class="nav-icon">💭</span><span class="nav-label">Fils</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="admin-profil"
-      type="button"
-    >
-      <span class="nav-icon">👤</span>
-      <span class="nav-label">Profil</span>
+    <button class="nav-item" data-page="admin-profil" type="button">
+      <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
     </button>
-
-    <button
-      class="nav-item"
-      data-page="admin-soon"
-      type="button"
-    >
-      <span class="nav-icon">⏳</span>
-      <span class="nav-label">Bientôt</span>
+    <button class="nav-item" data-page="admin-soon" type="button">
+      <span class="nav-icon">⏳</span><span class="nav-label">Bientôt</span>
     </button>
-
   </nav>
-
 </section>
 
 
@@ -3072,128 +1091,52 @@
 
 <script type="module">
 
-  import {
-    initializeApp
-  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 
   import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signInWithPopup,
-    signInWithRedirect,
-    getRedirectResult,
-    GoogleAuthProvider,
-    onAuthStateChanged,
-    updateProfile,
-    signOut,
-    EmailAuthProvider,
-    reauthenticateWithCredential,
-    updatePassword
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider,
+    onAuthStateChanged, updateProfile, signOut, EmailAuthProvider,
+    reauthenticateWithCredential, updatePassword
   } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
-
   import {
-    getFirestore,
-    doc,
-    setDoc,
-    getDoc,
-    updateDoc,
-    deleteDoc,
-    serverTimestamp,
-    collection,
-    addDoc,
-    query,
-    orderBy,
-    where,
-    limit,
-    onSnapshot,
-    getDocs
+    getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, serverTimestamp,
+    collection, addDoc, query, orderBy, where, limit, onSnapshot, getDocs
   } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-
   const firebaseConfig = {
-
-    apiKey:
-      "AIzaSyCwE5cumxgs8yB_6ZZM49-5qZ1hy0k5plA",
-
-    authDomain:
-      "iphax-ac57b.firebaseapp.com",
-
-    projectId:
-      "iphax-ac57b",
-
-    storageBucket:
-      "iphax-ac57b.firebasestorage.app",
-
-    messagingSenderId:
-      "598455617044",
-
-    appId:
-      "1:598455617044:web:1ef068dd645bd4311f0901"
-
+    apiKey: "AIzaSyCwE5cumxgs8yB_6ZZM49-5qZ1hy0k5plA",
+    authDomain: "iphax-ac57b.firebaseapp.com",
+    projectId: "iphax-ac57b",
+    storageBucket: "iphax-ac57b.firebasestorage.app",
+    messagingSenderId: "598455617044",
+    appId: "1:598455617044:web:1ef068dd645bd4311f0901"
   };
-
 
   const app = initializeApp(firebaseConfig);
-
-
   window.iphaxAuth = getAuth(app);
-
   window.iphaxDb = getFirestore(app);
 
-
   window.fbAuthFns = {
-
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signInWithPopup,
-    signInWithRedirect,
-    getRedirectResult,
-    GoogleAuthProvider,
-    onAuthStateChanged,
-    updateProfile,
-    signOut,
-    EmailAuthProvider,
-    reauthenticateWithCredential,
-    updatePassword
-
+    createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup,
+    signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged,
+    updateProfile, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword
   };
-
 
   window.fbDbFns = {
-
-    doc,
-    setDoc,
-    getDoc,
-    updateDoc,
-    deleteDoc,
-    serverTimestamp,
-    collection,
-    addDoc,
-    query,
-    orderBy,
-    where,
-    limit,
-    onSnapshot,
-    getDocs
-
+    doc, setDoc, getDoc, updateDoc, deleteDoc, serverTimestamp,
+    collection, addDoc, query, orderBy, where, limit, onSnapshot, getDocs
   };
-
 
   console.log("✅ Firebase prêt");
 
-  import("/src/theme-bg.js").catch(e => console.warn("theme-bg non chargé :", e));
+  // Fond animé désactivé (à réactiver plus tard quand il sera réparé)
+  // import("/src/theme-bg.js").catch(e => console.warn("theme-bg non chargé :", e));
 
   await import("/src/main.js");
 </script>
-  console.log("TEST — theme-bg importé");
-  alert("TEST theme-bg");
-  await import("/src/main.js");
-
-</script>
-
 
 </body>
+<div class="theme-bg-img" id="theme-bg-img"></div>
 </html>
