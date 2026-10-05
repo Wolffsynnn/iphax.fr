@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // IPHAX — theme-bg.js
-alert('theme-bg.js chargé');
+alert('theme-bg chargé');
 // Fond animé WebGL (Three.js) selon le thème actif
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -328,3 +328,4 @@ const THEME_BG = {
   }
   
   console.log('✅ theme-bg.js prêt');
+  alert('theme-bg initialisé');
