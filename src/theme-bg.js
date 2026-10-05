@@ -16,14 +16,14 @@
       cherry:    ['#FBD5E3','#F8C4D8','#F5B3CC','#F2A2C0'],
       midnight:  null,
       golden:    null,
-      autumn:    ['#B84E1E','#C46228','#D97742','#E08C3C','#9E3F15'],
+      autumn:    ['#8B2F0E','#A83A15','#C4441E','#E04A1F','#D97742'],
       sea:       ['#2BB6B6','#5ED8D8','#8EE6E6','#1F8A8A'],
       ocean:     ['#1F6FBF','#3DA0F0','#5EB0FF','#0F3F7A'],
       dark:      null,
       white:     null
     };
   
-    // Forme par thème : 'leaf' | 'petal-flower' | 'flame' | 'autumn-leaf' | 'bubble'
+    // Forme par thème
     const THEME_SHAPES = {
       treegreen: 'leaf',
       fire:      'flame',
@@ -215,7 +215,6 @@
       ctx.translate(x, y);
       ctx.globalAlpha = opacity;
   
-      // Corps de flamme (forme goutte)
       const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
       grad.addColorStop(0, '#FFFFFF');
       grad.addColorStop(0.3, color);
@@ -283,13 +282,12 @@
       if (shape === 'petal-flower') {
         type = Math.random() < 0.5 ? 'petal' : 'flower';
       }
-      // Les bulles/flammes montent, les feuilles/pétales tombent
       const monte = (shape === 'bubble' || shape === 'flame');
       return {
         type,
         x: Math.random() * W,
         y: monte ? (H + Math.random() * H) : Math.random() * -H,
-        size: 8 + Math.random() * 16,
+        size: 6 + Math.random() * 10,
         vy: monte ? -(0.5 + Math.random() * 1.3) : (0.5 + Math.random() * 1.3),
         vx: (Math.random() - 0.5) * 0.8,
         rot: Math.random() * Math.PI * 2,
@@ -311,9 +309,7 @@
       particles = [];
       for (let i = 0; i < count; i++) {
         const p = makeParticle(colors);
-        p.y = (THEME_SHAPES[currentTheme] === 'bubble' || THEME_SHAPES[currentTheme] === 'flame')
-          ? Math.random() * H
-          : Math.random() * H;
+        p.y = Math.random() * H;
         particles.push(p);
       }
     }
