@@ -1967,3 +1967,79 @@ function bindDevTabs() {
     });
   }
 }
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL DEV — SIGNALEMENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function loadDevSignalements() {
+  const c = $('dev-signalements-list');
+  if (!c) return;
+  c.innerHTML = '<p class="empty-state">Chargement…</p>';
+
+  try {
+    const q = query(collection(db, 'signalements'), orderBy('createdAt', 'desc'), limit(100));
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      c.innerHTML = '<p class="empty-state">Aucun signalement ✨</p>';
+      return;
+    }
+
+    c.innerHTML = '';
+    snap.forEach(d => {
+      const data = d.data();
+      const date = toDate(data.createdAt);
+      const ds = date ? date.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+      const badge = data.status === 'pending'
+        ? '<span class="card-badge" style="background:rgba(255,107,122,0.15);color:var(--error);">⏳ En attente</span>'
+        : '<span class="card-badge" style="background:rgba(61,220,151,0.15);color:var(--success);">✅ Traité</span>';
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        ${badge}
+        <h3>${escapeHtml(data.memberName || 'Membre')}</h3>
+        <p><strong>Raison :</strong> ${escapeHtml(data.raison || '')}</p>
+        <span class="card-meta">Signalé par ${escapeHtml(data.ecoutantName || 'Écoutant')} • ${ds}</span>
+        ${data.status === 'pending' ? `
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button class="btn btn-primary btn-small" data-sig-action="ok" data-sig-id="${d.id}">✅ Traité</button>
+            <button class="btn btn-danger btn-small" data-sig-action="delete" data-sig-id="${d.id}">🗑️ Supprimer</button>
+          </div>
+        ` : ''}
+      `;
+      c.appendChild(card);
+    });
+
+    c.querySelectorAll('[data-sig-action]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.sigId;
+        const action = btn.dataset.sigAction;
+        btn.disabled = true;
+        btn.textContent = '⏳...';
+        try {
+          if (action === 'ok') {
+            await updateDoc(doc(db, 'signalements', id), {
+              status: 'handled',
+              handledAt: serverTimestamp(),
+              handledBy: currentUser.uid,
+              handledByName: currentUserData?.displayName || 'Dev'
+            });
+            await logAction('signalement', `<strong>${escapeHtml(currentUserData?.displayName || 'Dev')}</strong> a marqué un signalement comme traité`, { signalementId: id });
+          } else {
+            await deleteDoc(doc(db, 'signalements', id));
+            await logAction('signalement', `<strong>${escapeHtml(currentUserData?.displayName || 'Dev')}</strong> a supprimé un signalement`, { signalementId: id });
+          }
+          notify('Fait ✅', 'success');
+          loadDevSignalements();
+        } catch (e) {
+          notify('Erreur : ' + e.message, 'error');
+          btn.disabled = false;
+        }
+      });
+    });
+
+  } catch (e) {
+    c.innerHTML = '<p class="empty-state">⚠️ Impossible de charger les signalements.</p>';
+  }
+}
