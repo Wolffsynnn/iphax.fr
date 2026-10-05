@@ -1262,7 +1262,14 @@ function setupFilsButtons() {
 // ═══════════════════════════════════════════════════════════════════════════
 // PROFIL
 // ═══════════════════════════════════════════════════════════════════════════
-function applyTheme(t) { document.body.dataset.theme = t || 'iphax'; try { localStorage.setItem('iphax_theme', t || 'iphax'); } catch (e) {} }
+function applyTheme(t) {
+  const theme = t || 'iphax';
+  document.body.dataset.theme = theme;
+  try { localStorage.setItem('iphax_theme', theme); } catch (e) {}
+  if (window.iphaxThemeBg && window.iphaxThemeBg.apply) {
+    window.iphaxThemeBg.apply(theme);
+  }
+}
 applyTheme(localStorage.getItem('iphax_theme') || 'iphax');
 function joursRestants(ts, jours) { if (!ts) return 0; const l = ts.toMillis ? ts.toMillis() : new Date(ts).getTime(); const d = (jours * 24 * 60 * 60 * 1000) - (Date.now() - l); if (d <= 0) return 0; return Math.ceil(d / (24 * 60 * 60 * 1000)); }
 function renderProfilHeader(id, data) {
