@@ -3184,11 +3184,9 @@
 
   console.log("✅ Firebase prêt");
 
-  console.log("✅ Firebase prêt");
+  import("/src/theme-bg.js").catch(e => console.warn("theme-bg non chargé :", e));
 
-  // await import("/src/theme-bg.js");
   await import("/src/main.js");
-
 </script>
   console.log("TEST — theme-bg importé");
   alert("TEST theme-bg");
