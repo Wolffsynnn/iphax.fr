@@ -1386,7 +1386,14 @@ function openSettingsModal() {
     const c = b.dataset.theme; applyTheme(c);
     ov.querySelectorAll('.theme-choice').forEach(x => x.classList.remove('selected'));
     b.classList.add('selected');
-    try { await updateDoc(doc(db, 'users', currentUser.uid), { theme: c }); currentUserData.theme = c; } catch (e) {}
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), { theme: c });
+      currentUserData.theme = c;
+      notify('Thème enregistré ✅', 'success');
+    } catch (e) {
+      notify('Erreur sauvegarde : ' + e.message, 'error');
+      console.error(e);
+    }
   }));
   ov.querySelector('#s-dn').addEventListener('click', () => { ov.remove(); setTimeout(openEditDisplayName, 150); });
   ov.querySelector('#s-un').addEventListener('click', () => { ov.remove(); setTimeout(openEditUsername, 150); });
