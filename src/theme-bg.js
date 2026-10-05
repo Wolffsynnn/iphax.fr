@@ -9,7 +9,7 @@
   
     const THEME_COLORS = {
       iphax:  null,
-      vert:   ['#0B5D31','#0F7A43','#1F8A57','#2BB673','#38D18A','#5ED8A0'],
+      vert:   ['#0B5D31','#0F7A43','#166B3A','#1F8A57','#2A9D63'],
       rouge:  null,
       rose:   null,
       violet: null,
@@ -111,7 +111,7 @@
       return {
         x: Math.random() * W,
         y: Math.random() * -H,
-        size: 12 + Math.random() * 22,
+        size: 8 + Math.random() * 14,
         vy: 0.5 + Math.random() * 1.2,
         vx: (Math.random() - 0.5) * 0.8,
         rot: Math.random() * Math.PI * 2,
@@ -120,7 +120,7 @@
         swingSpeed: 0.01 + Math.random() * 0.02,
         swingAmplitude: 0.5 + Math.random() * 1.5,
         color: colors[Math.floor(Math.random() * colors.length)],
-        opacity: 0.5 + Math.random() * 0.5
+        opacity: 0.35 + Math.random() * 0.4
       };
     }
   
@@ -128,7 +128,7 @@
       const colors = THEME_COLORS[currentTheme];
       if (!colors) { particles = []; return; }
   
-      const count = Math.min(50, Math.floor((W * H) / 26000));
+      const count = Math.min(35, Math.floor((W * H) / 38000));
       particles = [];
       for (let i = 0; i < count; i++) {
         const p = makeParticle(colors);
@@ -170,7 +170,7 @@
       }
       initParticles();
     }
-    
+
     function init() {
       createCanvas();
       applyTheme(document.body.dataset.theme || 'iphax');
