@@ -664,7 +664,11 @@ async function quitMemberChat() {
 // INIT ÉCOUTANT
 // ═══════════════════════════════════════════════════════════════════════════
 function initEcoutant() {
-  startAttenteListener(); startMesConvsListener(); startResoluesListener();
+  initProfilUI();
+  startAttenteListener();
+  startMesConvsListener();
+  startResoluesListener();
+  initProfilUI();
   document.querySelectorAll('#app-ecoutant .mini-tab').forEach(tab => {
     if (tab.dataset.bound) return; tab.dataset.bound = '1';
     tab.addEventListener('click', () => {
@@ -1111,6 +1115,7 @@ function openDemandePostModal(filId) {
       </div>
       <div class="modal-footer"><button class="btn btn-ghost modal-close">Annuler</button><button class="btn btn-primary" id="dpS">📩 Envoyer la demande</button></div>
     </div>`);
+  ov.querySelectorAll('.journal-privacy-option').forEach(o => ov.querySelectorAll('.journal-privacy-option').forEach(x => x.classList.remove('active')) || o.classList.add('active'));
   ov.querySelectorAll('.journal-privacy-option').forEach(o => o.addEventListener('click', () => {
     ov.querySelectorAll('.journal-privacy-option').forEach(x => x.classList.remove('active'));
     o.classList.add('active'); anonyme = o.dataset.anon === 'true';
