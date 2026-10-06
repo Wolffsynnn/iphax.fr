@@ -93,7 +93,7 @@
     let raf, gl, program, startTime;
     let scrollY = 0;
     let running = false;
-    let autoScrollSpeed = 0.6; // pixels par frame
+    let autoScrollSpeed = 1.8; // ⚡ pixels par frame (était 0.6 → 3x plus rapide)
     let onDoneCallback = null;
   
     const VERTEX_SHADER = `

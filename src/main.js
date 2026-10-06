@@ -3,6 +3,12 @@
 // ═══════════════════════════════════════════════════════════════════════════
 console.log('🚀 main.js démarré');
 
+// 🛡️ Sécurité anti-reload SPA
+document.addEventListener('submit', e => {
+  if (e.target.matches('#chat-form, #chat-eco-form')) return;
+  e.preventDefault();
+});
+
 const auth = window.iphaxAuth;
 const db = window.iphaxDb;
 const {
@@ -204,6 +210,7 @@ formSignup?.addEventListener('submit', async e => {
     await updateProfile(cred.user, { displayName: username });
     const userData = { uid: cred.user.uid, email: cred.user.email, username, displayName, birthdate, age, role: 'membre', cguAccepted: false, createdAt: serverTimestamp(), lastUsernameChange: null, lastDisplayNameChange: null };
     await setDoc(doc(db, 'users', cred.user.uid), userData);
+    await setDoc(doc(db, 'users-public', cred.user.uid), { username, displayName, avatar: '🌙' });
     currentUser = cred.user; currentUserData = userData;
     showScreen('screen-cgu');
   } catch (error) { showError('signup-error', traductError(error.code, error.message)); }
@@ -236,6 +243,7 @@ async function handleGoogleUser(user, bulle) {
   if (!snap.exists()) {
     data = { uid: user.uid, email: user.email, username: null, displayName: user.displayName || 'Utilisateur', birthdate: null, age: null, role: 'membre', provider: 'google', cguAccepted: false, createdAt: serverTimestamp() };
     await setDoc(ref, data);
+    await setDoc(doc(db, 'users-public', user.uid), { username: null, displayName: user.displayName || 'Utilisateur', avatar: '🌙' });
   } else data = snap.data();
   const role = data.role || 'membre';
   if (!roleCompatibleAvecBulle(role, bulle)) {
@@ -1343,7 +1351,13 @@ function openAvatarPicker(data) {
   const cur = data.avatar || '🌙';
   const ov = openModal(`<div class="modal" style="max-width:420px;"><div class="modal-header"><div class="modal-title">🖼️ Avatar</div><button class="modal-close">×</button></div><div class="modal-body"><div class="avatar-grid">${AVATARS.map(a => `<button class="avatar-choice ${a===cur?'selected':''}" data-avatar="${a}">${a}</button>`).join('')}</div></div></div>`);
   ov.querySelectorAll('.avatar-choice').forEach(b => b.addEventListener('click', async () => {
-    try { await updateDoc(doc(db, 'users', currentUser.uid), { avatar: b.dataset.avatar }); currentUserData.avatar = b.dataset.avatar; ov.remove(); refreshProfils(); } catch (e) { notify('Erreur', 'error'); }
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), { avatar: b.dataset.avatar });
+      await updateDoc(doc(db, 'users-public', currentUser.uid), { avatar: b.dataset.avatar });
+      currentUserData.avatar = b.dataset.avatar;
+      ov.remove();
+      refreshProfils();
+    } catch (e) { notify('Erreur', 'error'); }
   }));
 }
 function openEditDisplayName() {
@@ -1354,7 +1368,14 @@ function openEditDisplayName() {
   ov.querySelector('#dns').addEventListener('click', async () => {
     const v = ov.querySelector('#dn').value.trim();
     if (!v) { notify('Entre un nom.', 'warning'); return; }
-    try { await updateDoc(doc(db, 'users', currentUser.uid), { displayName: v, lastDisplayNameChange: serverTimestamp() }); currentUserData.displayName = v; ov.remove(); refreshProfils(); notify('Enregistré ✅', 'success'); } catch (e) { notify('Erreur', 'error'); }
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), { displayName: v, lastDisplayNameChange: serverTimestamp() });
+      await updateDoc(doc(db, 'users-public', currentUser.uid), { displayName: v });
+      currentUserData.displayName = v;
+      ov.remove();
+      refreshProfils();
+      notify('Enregistré ✅', 'success');
+    } catch (e) { notify('Erreur', 'error'); }
   });
 }
 function openEditUsername() {
@@ -1371,6 +1392,7 @@ function openEditUsername() {
       const snap = await getDocs(query(collection(db, 'users'), where('username', '==', v)));
       if (snap.docs.some(d => d.id !== currentUser.uid)) { h.textContent = '❌ Déjà pris.'; h.style.color = 'var(--error)'; return; }
       await updateDoc(doc(db, 'users', currentUser.uid), { username: v, lastUsernameChange: serverTimestamp() });
+      await updateDoc(doc(db, 'users-public', currentUser.uid), { username: v });
       currentUserData.username = v; ov.remove(); refreshProfils(); notify('Enregistré ✅', 'success');
     } catch (e) { h.textContent = '❌ Erreur.'; h.style.color = 'var(--error)'; }
   });
