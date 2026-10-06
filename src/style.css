@@ -2928,3 +2928,20 @@
   flex: 1;
   min-height: 0;
 }
+/* ═══════════════════════════════════════════════════════════════════
+   LAYOUT 3 COLONNES — espace | chat | panel
+   ═══════════════════════════════════════════════════════════════════ */
+
+   @media (min-width: 900px) {
+    .chat-eco-wrapper {
+      display: grid;
+      grid-template-columns: 1fr minmax(500px, 700px) 380px;
+      gap: 0;
+    }
+  
+    /* Colonne vide à gauche (pour plus tard) */
+    .chat-eco-wrapper::before {
+      content: '';
+      display: block;
+    }
+  }
