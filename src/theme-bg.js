@@ -257,6 +257,86 @@
   
       ctx.restore();
     }
+
+    function drawStar(x, y, size, rot, color, opacity) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.globalAlpha = opacity;
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 2);
+      grad.addColorStop(0, '#FFFFFF');
+      grad.addColorStop(0.3, color);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 1.5);
+      ctx.lineTo(size * 0.3, -size * 0.3);
+      ctx.lineTo(size * 1.5, 0);
+      ctx.lineTo(size * 0.3, size * 0.3);
+      ctx.lineTo(0, size * 1.5);
+      ctx.lineTo(-size * 0.3, size * 0.3);
+      ctx.lineTo(-size * 1.5, 0);
+      ctx.lineTo(-size * 0.3, -size * 0.3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  
+    function drawNebula(x, y, size, rot, color, opacity) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.globalAlpha = opacity * 0.5;
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 3);
+      grad.addColorStop(0, color);
+      grad.addColorStop(0.5, shade(color, 0.7));
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  
+    function drawCloud(x, y, size, rot, color, opacity) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.globalAlpha = opacity * 0.35;
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 2.5);
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 2, 0, Math.PI * 2);
+      ctx.arc(size * 1.2, -size * 0.3, size * 1.6, 0, Math.PI * 2);
+      ctx.arc(-size * 1.2, -size * 0.4, size * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  
+    function drawShootingStar(x, y, size, rot, color, opacity) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.globalAlpha = opacity;
+      const grad = ctx.createLinearGradient(-size * 6, 0, 0, 0);
+      grad.addColorStop(0, 'rgba(255,255,255,0)');
+      grad.addColorStop(1, color);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = Math.max(1, size * 0.15);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-size * 6, 0);
+      ctx.lineTo(0, 0);
+      ctx.stroke();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
   
     function drawShape(p) {
       const shape = THEME_SHAPES[currentTheme];
@@ -269,6 +349,11 @@
         drawAutumnLeaf(p.x, p.y, p.size, p.rot, p.color, p.opacity);
       } else if (shape === 'bubble') {
         drawBubble(p.x, p.y, p.size * 0.6, p.rot, p.color, p.opacity);
+      } else if (shape === 'star') {
+        if (p.type === 'shooting') drawShootingStar(p.x, p.y, p.size, p.rot, p.color, p.opacity);
+        else if (p.type === 'nebula') drawNebula(p.x, p.y, p.size * 1.5, p.rot, p.color, p.opacity);
+        else if (p.type === 'cloud') drawCloud(p.x, p.y, p.size * 1.8, p.rot, p.color, p.opacity);
+        else drawStar(p.x, p.y, p.size * 0.5, p.rot, p.color, p.opacity);
       } else {
         drawLeaf(p.x, p.y, p.size, p.rot, p.color, p.opacity);
       }
@@ -351,14 +436,21 @@
       let type = 'leaf';
       if (shape === 'petal-flower') {
         type = Math.random() < 0.5 ? 'petal' : 'flower';
+      } else if (shape === 'star') {
+        const r = Math.random();
+        if (r < 0.70) type = 'star';
+        else if (r < 0.90) type = 'nebula';
+        else if (r < 0.98) type = 'cloud';
+        else type = 'shooting';
       }
       const monte = (shape === 'bubble' || shape === 'flame');
+      const lent = (shape === 'star' && type !== 'shooting');
       return {
         type,
         x: Math.random() * W,
         y: monte ? (H + Math.random() * H) : Math.random() * -H,
         size: 6 + Math.random() * 10,
-        vy: monte ? -(0.5 + Math.random() * 1.3) : (0.5 + Math.random() * 1.3),
+        vy: monte ? -(0.5 + Math.random() * 1.3) : (lent ? (Math.random() - 0.5) * 0.2 : (0.5 + Math.random() * 1.3)),
         vx: (Math.random() - 0.5) * 0.8,
         rot: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.02,
