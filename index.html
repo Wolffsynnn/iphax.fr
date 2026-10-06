@@ -643,27 +643,47 @@
     </div>
 
     <div class="page" data-page="chat-eco">
-      <header class="page-header page-header-flex">
-        <div>
-          <h1 class="page-title" id="chat-eco-title">💬 Conversation</h1>
-          <p class="page-subtitle" id="chat-eco-subtitle">…</p>
+      <div class="chat-eco-wrapper">
+    
+        <!-- Colonne principale : le chat -->
+        <div class="chat-eco-main">
+          <header class="page-header page-header-flex">
+            <div>
+              <h1 class="page-title" id="chat-eco-title">💬 Conversation</h1>
+              <p class="page-subtitle" id="chat-eco-subtitle">…</p>
+            </div>
+            <div class="chat-eco-header-actions">
+              <button class="btn-see-mood" id="btn-see-mood-eco" type="button" style="display:none;">📊 Mood</button>
+              <button class="btn-panel-toggle" id="btn-panel-toggle" type="button" aria-label="Outils">🖌️</button>
+              <button class="btn-gear" id="btn-back-chat-eco" type="button">←</button>
+            </div>
+          </header>
+          <div class="chat-eco-infos" id="chat-eco-infos"></div>
+          <div class="chat-messages" id="chat-eco-messages"></div>
+          <form class="chat-input-bar" id="chat-eco-form">
+            <input type="text" id="chat-eco-input" placeholder="Écris ton message…" autocomplete="off">
+            <button type="submit" class="chat-send-btn" aria-label="Envoyer">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m22 2-7 20-4-9-9-4Z"/>
+                <path d="M22 2 11 13"/>
+              </svg>
+            </button>
+          </form>
         </div>
-        <div class="chat-eco-header-actions">
-          <button class="btn-see-mood" id="btn-see-mood-eco" type="button" style="display:none;">📊 Mood</button>
-          <button class="btn-gear" id="btn-back-chat-eco" type="button">←</button>
-        </div>
-      </header>
-      <div class="chat-eco-infos" id="chat-eco-infos"></div>
-      <div class="chat-messages" id="chat-eco-messages"></div>
-      <form class="chat-input-bar" id="chat-eco-form">
-        <input type="text" id="chat-eco-input" placeholder="Écris ton message…" autocomplete="off">
-        <button type="submit" class="chat-send-btn" aria-label="Envoyer">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m22 2-7 20-4-9-9-4Z"/>
-            <path d="M22 2 11 13"/>
-          </svg>
-        </button>
-      </form>
+    
+        <!-- Colonne latérale : le panel -->
+        <aside class="chat-eco-panel" id="chat-eco-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">🛠️ Outils</h2>
+            <button class="panel-close" id="btn-panel-close" type="button" aria-label="Fermer">×</button>
+          </div>
+          <div class="panel-body" id="chat-eco-panel-body">
+            <!-- Le contenu sera injecté en JS -->
+            <p class="empty-state">Chargement…</p>
+          </div>
+        </aside>
+    
+      </div>
     </div>
 
     <div class="page" data-page="fils">
