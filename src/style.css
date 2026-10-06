@@ -165,7 +165,7 @@
      --glow-strong: 0 0 40px rgba(167,139,250,0.48);
      --grid-line: rgba(167,139,250,0.08);
      --particle: rgba(167,139,250,0.55);
-     --bg-image: none;
+     --bg-image: url('https://i.imgur.com/GODfKQD.png');
    }
    
    [data-theme="golden"] {
@@ -373,6 +373,9 @@
     }
     [data-theme="ocean"] {
       --bg-image: url('https://i.imgur.com/fs76Yom.png');
+    }
+    [data-theme="midnight"] {
+      --bg-image: url('https://i.imgur.com/DirQgT3.png');
     }
    }
    
@@ -2610,4 +2613,3 @@
      background: linear-gradient(135deg, #888, #ccc, #fff);
      color: #222;
    }
-   
