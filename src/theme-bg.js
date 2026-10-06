@@ -14,7 +14,7 @@
       treegreen: ['#0B5D31','#0F7A43','#166B3A','#1F8A57','#2A9D63'],
       fire:      ['#B23344','#D04858','#E04A5A','#FF6B3D','#FFA45B'],
       cherry:    ['#FBD5E3','#F8C4D8','#F5B3CC','#F2A2C0'],
-      midnight:  null,
+      midnight:  ['#A78BFA','#BFA4FB','#7C5CE0','#DDD0FF','#8E6EE8'],
       golden:    null,
       autumn:    ['#8B2F0E','#A83A15','#C4441E','#E04A1F','#D97742'],
       sea:       ['#2BB6B6','#5ED8D8','#8EE6E6','#1F8A8A'],
@@ -23,24 +23,26 @@
       white:     null
     };
   
-    // Forme par thème
-    const THEME_SHAPES = {
-      treegreen: 'leaf',
-      fire:      'flame',
-      cherry:    'petal-flower',
-      autumn:    'autumn-leaf',
-      sea:       'bubble',
-      ocean:     'bubble'
-    };
+        // Forme par thème
+        const THEME_SHAPES = {
+          treegreen: 'leaf',
+          fire:      'flame',
+          cherry:    'petal-flower',
+          autumn:    'autumn-leaf',
+          sea:       'bubble',
+          ocean:     'bubble',
+          midnight:  'star'
+        };
   
-    const THEME_COUNT = {
-      treegreen: 60,
-      fire:      55,
-      cherry:    55,
-      autumn:    55,
-      sea:       50,
-      ocean:     50
-    };
+        const THEME_COUNT = {
+          treegreen: 60,
+          fire:      55,
+          cherry:    55,
+          autumn:    55,
+          sea:       50,
+          ocean:     50,
+          midnight:  70
+        };
   
     function createCanvas() {
       canvas = document.createElement('canvas');
@@ -512,7 +514,7 @@
   
     function applyTheme(themeId) {
       currentTheme = themeId;
-      const themesAvecAnimation = ['treegreen', 'fire', 'cherry', 'autumn', 'sea', 'ocean'];
+      const themesAvecAnimation = ['treegreen', 'fire', 'cherry', 'autumn', 'sea', 'ocean', 'midnight'];
       if (canvas) {
         canvas.style.display = themesAvecAnimation.includes(themeId) ? 'block' : 'none';
       }
