@@ -729,6 +729,25 @@ function initEcoutant() {
   loadFilsList('eco');
   const bp = $('btn-proposer-post-eco');
   if (bp && !bp.dataset.bound) { bp.dataset.bound = '1'; bp.addEventListener('click', () => openFil('general', 'eco')); }
+    // Bouton pinceau pour ouvrir/fermer le panel sur mobile
+    const btnPanelToggle = $('btn-panel-toggle');
+    if (btnPanelToggle && !btnPanelToggle.dataset.bound) {
+      btnPanelToggle.dataset.bound = '1';
+      btnPanelToggle.addEventListener('click', () => {
+        const panel = $('chat-eco-panel');
+        if (panel) panel.classList.toggle('open');
+      });
+    }
+  
+    // Bouton × pour fermer le panel sur mobile
+    const btnPanelClose = $('btn-panel-close');
+    if (btnPanelClose && !btnPanelClose.dataset.bound) {
+      btnPanelClose.dataset.bound = '1';
+      btnPanelClose.addEventListener('click', () => {
+        const panel = $('chat-eco-panel');
+        if (panel) panel.classList.remove('open');
+      });
+    }
 }
 
 function startAttenteListener() {
