@@ -2780,3 +2780,131 @@
   .credits-section { font-size: 12px; letter-spacing: 4px; }
   .credits-skip { top: 14px; right: 14px; padding: 8px 14px; font-size: 12px; }
 }
+/* ═══════════════════════════════════════════════════════════════════
+   CHAT ÉCOUTANT — LAYOUT AVEC PANEL LATÉRAL
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Conteneur principal : chat + panel côte à côte */
+.chat-eco-wrapper {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Colonne du chat (prend tout l'espace dispo) */
+.chat-eco-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* empêche le débordement */
+  overflow: hidden;
+}
+
+/* Le panel (caché par défaut, s'affiche en flex) */
+.chat-eco-panel {
+  display: none;
+  flex-direction: column;
+  width: 380px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(15,37,81,0.98), rgba(10,26,61,0.98));
+  border-left: 1.5px solid var(--border);
+  overflow: hidden;
+}
+
+/* Sur PC (écran >= 900px) : panel TOUJOURS visible */
+@media (min-width: 900px) {
+  .chat-eco-panel {
+    display: flex;
+  }
+  /* Le bouton 🖌️ est caché sur PC */
+  .btn-panel-toggle {
+    display: none !important;
+  }
+  /* Le bouton × du panel est caché sur PC */
+  .panel-close {
+    display: none !important;
+  }
+}
+
+/* Sur mobile : panel caché par défaut, ouvert via bouton */
+@media (max-width: 899px) {
+  .chat-eco-panel {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    z-index: 50;
+  }
+  /* Quand on ouvre le panel sur mobile */
+  .chat-eco-panel.open {
+    display: flex;
+  }
+  /* Bouton toggle visible sur mobile */
+  .btn-panel-toggle {
+    display: inline-flex !important;
+  }
+}
+
+/* Header du panel */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1.5px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.panel-close {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 6px;
+  transition: color 0.2s;
+}
+.panel-close:hover {
+  color: var(--text-primary);
+}
+
+/* Corps du panel (scrollable) */
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Petit bouton toggle (mobile) */
+.btn-panel-toggle {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(10,26,61,0.7);
+  border: 1.5px solid var(--border);
+  color: var(--text-primary);
+  font-size: 18px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s;
+}
+.btn-panel-toggle:hover {
+  background: rgba(0,229,255,0.1);
+  border-color: var(--accent);
+}
