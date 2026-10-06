@@ -320,7 +320,7 @@
      --glow-strong: 0 0 40px rgba(187,187,187,0.45);
      --grid-line: rgba(187,187,187,0.06);
      --particle: rgba(187,187,187,0.5);
-     --bg-image: none;
+     --bg-image: url('https://i.imgur.com/mvFTZSE.png');
    }
    
    [data-theme="white"] {
@@ -351,7 +351,7 @@
      --glow-strong: 0 0 40px rgba(85,85,85,0.3);
      --grid-line: rgba(85,85,85,0.05);
      --particle: rgba(85,85,85,0.4);
-     --bg-image: none;
+     --bg-image: url('https://i.imgur.com/febLdeX.png');
    }
    
    /* Images de fond — mobile */
@@ -379,6 +379,12 @@
     }
     [data-theme="golden"] {
       --bg-image: url('https://i.imgur.com/51BplmP.png');
+    }
+    [data-theme="dark"] {
+      --bg-image: url('https://i.imgur.com/aeUVunZ.png');
+    }
+    [data-theme="white"] {
+      --bg-image: url('https://i.imgur.com/dq8fKI9.png');
     }
    }
    
