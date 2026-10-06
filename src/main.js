@@ -795,9 +795,12 @@ async function openEcoChat(convId) {
   markConvAsRead(convId);
   openPage('app-ecoutant', 'chat-eco');
   const tEl = $('chat-eco-title'), sEl = $('chat-eco-subtitle'), iEl = $('chat-eco-infos');
+
+  let convData = null;
   try {
     const snap = await getDoc(doc(db, 'conversations', convId));
     if (snap.exists()) {
+      convData = { id: convId, ...snap.data() };
       const x = snap.data();
       if (tEl) tEl.textContent = '💬 ' + (x.memberName || 'Membre');
       if (sEl) sEl.textContent = '@' + (x.memberUsername || 'membre');
@@ -810,8 +813,11 @@ async function openEcoChat(convId) {
         iEl.appendChild(b);
       }
     }
-  } catch (e) {}
-  renderEcoPanel(snap.exists() ? { id: convId, ...snap.data() } : null);
+  } catch (e) {
+    console.error('Erreur openEcoChat:', e);
+  }
+
+  renderEcoPanel(convData);
   startEcoChatListener(convId);
 }
 function startEcoChatListener(convId) {
@@ -2279,7 +2285,6 @@ function renderEcoPanel(conv) {
     </div>
   `;
 }
-
 // ═══════════════════════════════════════════════════════════════════════════
 // INIT GLOBAL
 // ═══════════════════════════════════════════════════════════════════════════
