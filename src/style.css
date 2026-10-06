@@ -2945,3 +2945,47 @@
       display: block;
     }
   }
+  /* ═══════════════════════════════════════════════════════════════════
+   AJUSTEMENTS FINAUX — chat-eco
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Le main du chat gère son padding lui-même */
+.chat-eco-main {
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+/* Header du chat : pas de marge en haut */
+.chat-eco-main > .page-header {
+  margin-top: 0;
+  padding-top: 16px;
+  flex-shrink: 0;
+}
+
+/* Le panel a son propre padding interne, on enlève celui par défaut */
+.chat-eco-panel {
+  padding: 0;
+  margin: 0;
+}
+
+/* Header du panel : espacement correct */
+.panel-header {
+  padding: 18px 16px;
+  min-height: 64px;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Messages : un peu d'espace sur les côtés */
+.chat-eco-main .chat-messages {
+  padding: 0 8px;
+}
+
+/* Input bar : un peu de marge en bas */
+.chat-eco-main .chat-input-bar {
+  margin: 12px 0;
+}
