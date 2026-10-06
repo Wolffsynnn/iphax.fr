@@ -1288,12 +1288,18 @@ function initProfilUI() {
     const b = $(id);
     if (b && !b.dataset.bound) {
       b.dataset.bound = '1';
-      // Click classique (PC)
       b.addEventListener('click', (e) => { e.preventDefault(); openSettingsModal(); });
-      // Touch (mobile) — évite le délai de 300ms et les problèmes de tap
       b.addEventListener('touchstart', (e) => { e.preventDefault(); openSettingsModal(); }, { passive: false });
     }
   });
+
+  // Bouton paramètres alternatif (mobile)
+  const bMobile = $('btn-settings-mobile');
+  if (bMobile && !bMobile.dataset.bound) {
+    bMobile.dataset.bound = '1';
+    bMobile.addEventListener('click', (e) => { e.preventDefault(); openSettingsModal(); });
+    bMobile.addEventListener('touchstart', (e) => { e.preventDefault(); openSettingsModal(); }, { passive: false });
+  }
 }
 function openAvatarPicker(data) {
   const cur = data.avatar || '🌙';
