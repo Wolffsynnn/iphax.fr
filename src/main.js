@@ -637,7 +637,8 @@ function startMemberChatListener(convId) {
     else if (data.status === 'resolved') { if (sEl) sEl.textContent = '✅ Terminée'; }
   });
   const q = query(collection(db, 'conversations', convId, 'messages'), orderBy('createdAt', 'asc'), limit(300));
-  const unsubMsgs = onSnapshot(q, snap => {
+    const unsubMsgs = onSnapshot(q, snap => {
+      console.log('📩 Snapshot reçu, docs:', snap.size);
     if (snap.empty) { messagesEl.innerHTML = '<p class="empty-state">Dis bonjour 💙</p>'; return; }
     messagesEl.innerHTML = '';
     snap.forEach(d => {
@@ -650,6 +651,22 @@ function startMemberChatListener(convId) {
   });
   memberChatUnsub = () => { unsubConv(); unsubMsgs(); };
 }
+const unsubMsgs = onSnapshot(q, snap => {
+  try {
+    if (snap.empty) { messagesEl.innerHTML = '<p class="empty-state">Dis bonjour 💙</p>'; return; }
+    messagesEl.innerHTML = '';
+    snap.forEach(d => {
+      const msg = d.data(); const isMe = msg.senderId === currentUser.uid;
+      const div = document.createElement('div'); div.className = 'chat-msg ' + (isMe ? 'me' : 'them');
+      div.innerHTML = `${escapeHtml(msg.text)}<span class="chat-msg-time">${formatTime(msg.createdAt)}</span>`;
+      messagesEl.appendChild(div);
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  } catch (e) {
+    console.error('ERREUR rendu messages:', e);
+    notify('Erreur rendu : ' + e.message, 'error');
+  }
+});
 async function sendMemberMessage(e) {
   e.preventDefault();
   const input = $('chat-input'); const text = input.value.trim();
