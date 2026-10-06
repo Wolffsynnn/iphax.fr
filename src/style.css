@@ -2908,3 +2908,23 @@
   background: rgba(0,229,255,0.1);
   border-color: var(--accent);
 }
+/* ═══════════════════════════════════════════════════════════════════
+   FIX LAYOUT — Page chat-eco doit remplir tout l'espace
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Quand la page active est le chat-eco, le parent doit être en flex sans padding */
+#app-ecoutant .page[data-page="chat-eco"].active {
+  padding: 0;
+  margin: 0;
+  max-width: none;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Le wrapper prend tout l'espace */
+.chat-eco-wrapper {
+  flex: 1;
+  min-height: 0;
+}
