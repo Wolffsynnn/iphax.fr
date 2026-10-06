@@ -372,9 +372,65 @@
       else if (p.type === 'nebula') drawNebula(p.x, p.y, p.size * 1.5, p.rot, p.color, p.opacity);
       else if (p.type === 'cloud') drawCloud(p.x, p.y, p.size * 1.8, p.rot, p.color, p.opacity);
       else drawStar(p.x, p.y, p.size * 0.5, p.rot, p.color, p.opacity);
+    } else if (shape === 'sun') {
+      if (p.type === 'sunray') drawSunray(p.x, p.y, p.size * 2.5, p.rot, p.color, p.opacity * 0.8);
+      else drawPollen(p.x, p.y, p.size * 0.4, p.rot, p.color, p.opacity);
     } else {
       drawLeaf(p.x, p.y, p.size, p.rot, p.color, p.opacity);
     }
+  }
+
+  function drawSunray(x, y, size, rot, color, opacity) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+    ctx.globalAlpha = opacity;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(1, size * 0.1);
+    ctx.lineCap = 'round';
+
+    // 8 rayons autour du centre
+    const rayCount = 8;
+    for (let i = 0; i < rayCount; i++) {
+      const angle = (i / rayCount) * Math.PI * 2;
+      const r1 = size * 0.4;
+      const r2 = size;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(angle) * r1, Math.sin(angle) * r1);
+      ctx.lineTo(Math.cos(angle) * r2, Math.sin(angle) * r2);
+      ctx.stroke();
+    }
+
+    // Petit cœur lumineux
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 0.5);
+    grad.addColorStop(0, '#FFFFFF');
+    grad.addColorStop(0.5, color);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawPollen(x, y, size, rot, color, opacity) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.globalAlpha = opacity;
+
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+    grad.addColorStop(0, '#FFFFFF');
+    grad.addColorStop(0.4, color);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, size, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   }
 
   /* ─────────────── PARTICULES ─────────────── */
@@ -390,6 +446,10 @@
       else if (r < 0.90) type = 'nebula';
       else if (r < 0.98) type = 'cloud';
       else type = 'shooting';
+    } else if (shape === 'sun') {
+      const r = Math.random();
+      if (r < 0.15) type = 'sunray';
+      else type = 'pollen';
     }
     const monte = (shape === 'bubble' || shape === 'flame');
     const lent = (shape === 'star' && type !== 'shooting');
