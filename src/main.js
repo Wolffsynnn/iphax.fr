@@ -2284,7 +2284,221 @@ function renderEcoPanel(conv) {
       </button>
     </div>
   `;
+  bindEcoPanelEvents(conv);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL ÉCOUTANT — BINDING DES ÉVÉNEMENTS
+// ═══════════════════════════════════════════════════════════════════════════
+function bindEcoPanelEvents(conv) {
+  if (!conv) return;
+  const ref = doc(db, 'conversations', conv.id);
+
+  // ─── ⭐ Important (toggle) ───
+  const btnMarked = $('panel-marked');
+  if (btnMarked) {
+    btnMarked.addEventListener('click', async () => {
+      const newVal = !conv.marked;
+      try {
+        await updateDoc(ref, { marked: newVal });
+        conv.marked = newVal;
+        btnMarked.classList.toggle('active', newVal);
+        const c = ecoMesCache.find(x => x.id === conv.id);
+        if (c) c.marked = newVal;
+        renderMesConvs();
+      } catch (e) { notify('Erreur : ' + e.message, 'error'); }
+    });
+  }
+
+  // ─── 📌 Épingler (toggle) ───
+  const btnPinned = $('panel-pinned');
+  if (btnPinned) {
+    btnPinned.addEventListener('click', async () => {
+      const newVal = !conv.pinned;
+      try {
+        await updateDoc(ref, { pinned: newVal });
+        conv.pinned = newVal;
+        btnPinned.classList.toggle('active', newVal);
+        const c = ecoMesCache.find(x => x.id === conv.id);
+        if (c) c.pinned = newVal;
+        renderMesConvs();
+      } catch (e) { notify('Erreur : ' + e.message, 'error'); }
+    });
+  }
+
+  // ─── 🎯 Urgence perso (1-5) ───
+  document.querySelectorAll('.panel-urgence-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const v = parseInt(btn.dataset.urg, 10);
+      const newVal = (conv.urgenceEco === v) ? null : v;
+      try {
+        await updateDoc(ref, { urgenceEco: newVal });
+        conv.urgenceEco = newVal;
+        document.querySelectorAll('.panel-urgence-btn').forEach(b => {
+          b.classList.toggle('active', parseInt(b.dataset.urg, 10) === newVal);
+        });
+      } catch (e) { notify('Erreur : ' + e.message, 'error'); }
+    });
+  });
+
+  // ─── 📝 Enregistrer notes ───
+  const btnNotesSave = $('panel-notes-save');
+  if (btnNotesSave) {
+    btnNotesSave.addEventListener('click', async () => {
+      const ta = $('panel-notes-textarea');
+      if (!ta) return;
+      const t = ta.value.trim();
+      try {
+        await updateDoc(ref, { notesInternes: t || null });
+        conv.notesInternes = t || null;
+        notify('Notes enregistrées ✅', 'success');
+      } catch (e) { notify('Erreur : ' + e.message, 'error'); }
+    });
+  }
+
+  // ─── ✅ Marquer résolu ───
+  const btnResolve = $('panel-resolve');
+  if (btnResolve) {
+    btnResolve.addEventListener('click', async () => {
+      if (!confirm('Marquer cette conversation comme résolue ?')) return;
+      try {
+        await updateDoc(ref, { status: 'resolved', resolvedAt: serverTimestamp() });
+        await logAction('conversation', `<strong>${escapeHtml(currentUserData?.displayName || 'Écoutant')}</strong> a marqué une conversation comme résolue`);
+        notify('Conversation résolue ✅', 'success');
+        if (ecoChatUnsub) { ecoChatUnsub(); ecoChatUnsub = null; }
+        ecoConvId = null;
+        openPage('app-ecoutant', 'conversations');
+        setActiveNav('app-ecoutant', 'conversations');
+      } catch (e) { notify('Erreur : ' + e.message, 'error'); }
+    });
+  }
+
+  // ─── 🚪 Quitter ───
+  const btnQuit = $('panel-quit');
+  if (btnQuit) {
+    btnQuit.addEventListener('click', async () => {
+      if (!confirm('Quitter cette conversation ? Elle repassera en attente pour un autre écoutant.')) return;
+      try {
+        await updateDoc(ref, {
+          status: 'waiting',
+          claimedBy: null,
+          claimedByName: null,
+          claimedAt: null
+        });
+        await logAction('conversation', `<strong>${escapeHtml(currentUserData?.displayName || 'Écoutant')}</strong> a quitté une conversation`);
+        notify('Conversation remise en attente ✅', 'success');
+        if (ecoChatUnsub) { ecoChatUnsub(); ecoChatUnsub = null; }
+        ecoConvId = null;
+        openPage('app-ecoutant', 'conversations');
+        setActiveNav('app-ecoutant', 'conversations');
+      } catch (e) { notify('Erreur : ' + e.message, 'error'); }
+    });
+  }
+
+  // ─── 🚨 Signaler ───
+  const btnSig = $('panel-signaler');
+  if (btnSig) {
+    btnSig.addEventListener('click', () => openSignalerModal(conv));
+  }
+
+  // ─── 🔄 Transférer ───
+  const btnTr = $('panel-transfer');
+  if (btnTr) {
+    btnTr.addEventListener('click', () => openTransferModal(conv));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL ÉCOUTANT — TRANSFERT
+// ═══════════════════════════════════════════════════════════════════════════
+async function openTransferModal(conv) {
+  let ecoutants = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), limit(200)));
+    snap.forEach(d => {
+      const u = d.data();
+      if (estEcoutant(u.role) && d.id !== currentUser.uid) {
+        ecoutants.push({ id: d.id, ...u });
+      }
+    });
+  } catch (e) {
+    notify('Impossible de charger les écoutants.', 'error');
+    return;
+  }
+
+  if (ecoutants.length === 0) {
+    notify('Aucun autre écoutant disponible.', 'warning');
+    return;
+  }
+
+  let selectedId = null;
+
+  const ov = openModal(`
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-header">
+        <div><div class="modal-title">🔄 Transférer la conversation</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Choisis l'écoutant qui reprendra.</div></div>
+        <button class="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>Écoutant</label>
+          <div class="transfer-list">
+            ${ecoutants.map(e => `<button type="button" class="transfer-item" data-uid="${e.id}"><span class="transfer-avatar">${e.avatar || '🧑‍⚕️'}</span><span class="transfer-name">${escapeHtml(e.displayName || 'Écoutant')}<br><small>@${escapeHtml(e.username || '')}</small></span></button>`).join('')}
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label>Note pour l'autre écoutant (facultatif)</label>
+          <textarea id="transfer-note" maxlength="300" style="min-height:80px;" placeholder="Ex : je dois partir, je te laisse la suite…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost modal-close">Annuler</button>
+        <button class="btn btn-primary" id="transfer-confirm" disabled>🔄 Transférer</button>
+      </div>
+    </div>
+  `);
+
+  ov.querySelectorAll('.transfer-item').forEach(item => {
+    item.addEventListener('click', () => {
+      ov.querySelectorAll('.transfer-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      selectedId = item.dataset.uid;
+      ov.querySelector('#transfer-confirm').disabled = false;
+    });
+  });
+
+  ov.querySelector('#transfer-confirm').addEventListener('click', async () => {
+    if (!selectedId) return;
+    const newEco = ecoutants.find(e => e.id === selectedId);
+    const note = ov.querySelector('#transfer-note').value.trim();
+    const btn = ov.querySelector('#transfer-confirm');
+    btn.disabled = true;
+    btn.textContent = '⏳ Transfert…';
+    try {
+      await updateDoc(doc(db, 'conversations', conv.id), {
+        claimedBy: newEco.id,
+        claimedByName: newEco.displayName || 'Écoutant',
+        claimedAt: serverTimestamp(),
+        transferNote: note || null,
+        transferredFrom: currentUser.uid,
+        transferredFromName: currentUserData?.displayName || 'Écoutant',
+        transferredAt: serverTimestamp()
+      });
+      await logAction('conversation', `<strong>${escapeHtml(currentUserData?.displayName || 'Écoutant')}</strong> a transféré une conversation à <strong>${escapeHtml(newEco.displayName || 'Écoutant')}</strong>`);
+      ov.remove();
+      notify(`Transférée à ${newEco.displayName || 'Écoutant'} ✅`, 'success');
+      if (ecoChatUnsub) { ecoChatUnsub(); ecoChatUnsub = null; }
+      ecoConvId = null;
+      openPage('app-ecoutant', 'conversations');
+      setActiveNav('app-ecoutant', 'conversations');
+    } catch (e) {
+      notify('Erreur : ' + e.message, 'error');
+      btn.disabled = false;
+      btn.textContent = '🔄 Transférer';
+    }
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // INIT GLOBAL
 // ═══════════════════════════════════════════════════════════════════════════
