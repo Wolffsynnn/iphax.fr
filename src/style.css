@@ -2808,7 +2808,7 @@
   flex-direction: column;
   width: 380px;
   flex-shrink: 0;
-  background: linear-gradient(180deg, rgba(15,37,81,0.98), rgba(10,26,61,0.98));
+  background: var(--bg-secondary);
   border-left: 1.5px solid var(--border);
   overflow: hidden;
 }
@@ -2990,194 +2990,186 @@
   margin: 12px 0;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   PANEL ÉCOUTANT — STYLE DES BLOCS
+   PANEL ÉCOUTANT — STYLE DES BLOCS (thémable)
    ═══════════════════════════════════════════════════════════════════ */
 
-/* Chaque bloc du panel */
-.panel-block {
-  background: rgba(10,26,61,0.5);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Titre d'un bloc */
-.panel-block-title {
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 2px;
-}
-
-/* Lignes d'infos (label + valeur) */
-.panel-info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  gap: 10px;
-}
-.panel-info-label {
-  color: var(--text-muted);
-  font-weight: 500;
-}
-.panel-info-value {
-  color: var(--text-primary);
-  font-weight: 700;
-  text-align: right;
-}
-
-/* Boutons du panel */
-.panel-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  background: rgba(15,37,81,0.7);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, transform 0.1s;
-}
-.panel-btn:hover {
-  background: rgba(0,229,255,0.08);
-  border-color: var(--accent);
-}
-.panel-btn:active {
-  transform: scale(0.98);
-}
-.panel-btn-icon {
-  font-size: 16px;
-  flex-shrink: 0;
-}
-.panel-btn-danger {
-  border-color: rgba(224,74,90,0.4);
-}
-.panel-btn-danger:hover {
-  background: rgba(224,74,90,0.12);
-  border-color: var(--error);
-}
-.panel-btn-success {
-  border-color: rgba(61,220,151,0.4);
-}
-.panel-btn-success:hover {
-  background: rgba(61,220,151,0.12);
-  border-color: var(--success);
-}
-.panel-btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2, #00B8D9));
-  border-color: transparent;
-  color: #050E24;
-  font-weight: 800;
-  justify-content: center;
-}
-.panel-btn-primary:hover {
-  filter: brightness(1.1);
-}
-
-/* Bloc actions : espacement vertical entre les boutons */
-.panel-actions {
-  gap: 8px;
-}
-
-/* Toggles (Important / Épingler) */
-.panel-toggles {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.panel-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px;
-  background: rgba(15,37,81,0.7);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.panel-toggle:hover {
-  border-color: var(--accent);
-}
-.panel-toggle.active {
-  background: rgba(0,229,255,0.15);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-/* Urgence perso : 5 boutons côte à côte */
-.panel-urgence {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-}
-.panel-urgence-btn {
-  aspect-ratio: 1;
-  background: rgba(15,37,81,0.7);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.panel-urgence-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.panel-urgence-btn.active {
-  background: linear-gradient(135deg, #E04A5A, #FF9F45);
-  border-color: transparent;
-  color: #fff;
-}
-
-/* Petite note explicative sous l'urgence */
-.panel-hint {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-style: italic;
-  margin: 0;
-  text-align: center;
-}
-
-/* Bloc notes internes */
-.panel-notes textarea {
-  width: 100%;
-  min-height: 160px;
-  max-height: 300px;
-  padding: 12px;
-  background: rgba(10,26,61,0.7);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 13px;
-  line-height: 1.5;
-  resize: vertical;
-  box-sizing: border-box;
-}
-.panel-notes textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-.panel-notes textarea::placeholder {
-  color: var(--text-muted);
-}
+   .panel-block {
+    background: var(--bg-card, rgba(255,255,255,0.06));
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .panel-block-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  
+  .panel-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    gap: 10px;
+  }
+  .panel-info-label {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .panel-info-value {
+    color: var(--text-primary);
+    font-weight: 700;
+    text-align: right;
+  }
+  
+  .panel-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg-input, rgba(255,255,255,0.08));
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.1s;
+  }
+  .panel-btn:hover {
+    background: var(--bg-input-hover, rgba(255,255,255,0.15));
+    border-color: var(--accent);
+  }
+  .panel-btn:active {
+    transform: scale(0.98);
+  }
+  .panel-btn-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .panel-btn-danger {
+    border-color: rgba(224,74,90,0.5);
+  }
+  .panel-btn-danger:hover {
+    background: rgba(224,74,90,0.15);
+    border-color: var(--error);
+  }
+  .panel-btn-success {
+    border-color: rgba(61,220,151,0.5);
+  }
+  .panel-btn-success:hover {
+    background: rgba(61,220,151,0.15);
+    border-color: var(--success);
+  }
+  .panel-btn-primary {
+    background: var(--accent);
+    border-color: transparent;
+    color: var(--bg-primary);
+    font-weight: 800;
+    justify-content: center;
+  }
+  .panel-btn-primary:hover {
+    filter: brightness(1.1);
+    background: var(--accent);
+  }
+  
+  .panel-actions {
+    gap: 8px;
+  }
+  
+  .panel-toggles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .panel-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    background: var(--bg-input, rgba(255,255,255,0.08));
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .panel-toggle:hover {
+    border-color: var(--accent);
+  }
+  .panel-toggle.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg-primary);
+  }
+  
+  .panel-urgence {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .panel-urgence-btn {
+    aspect-ratio: 1;
+    background: var(--bg-input, rgba(255,255,255,0.08));
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .panel-urgence-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .panel-urgence-btn.active {
+    background: linear-gradient(135deg, #E04A5A, #FF9F45);
+    border-color: transparent;
+    color: #fff;
+  }
+  
+  .panel-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin: 0;
+    text-align: center;
+  }
+  
+  .panel-notes textarea {
+    width: 100%;
+    min-height: 160px;
+    max-height: 300px;
+    padding: 12px;
+    background: var(--bg-input, rgba(255,255,255,0.08));
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  .panel-notes textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .panel-notes textarea::placeholder {
+    color: var(--text-muted);
+  }
