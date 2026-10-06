@@ -1412,7 +1412,9 @@ function openSettingsModal() {
         <button class="btn btn-ghost" id="s-lo" style="flex:1;">🚪 Déconnexion</button>
       </div>
     </div>`);
-  ov.querySelectorAll('.theme-choice:not(#theme-custom)').forEach(b => b.addEventListener('click', async () => {
+    ov.querySelectorAll('.theme-choice').forEach(b => {
+      if (b.id === 'theme-custom') return;
+      b.addEventListener('click', async () => {
     const c = b.dataset.theme; applyTheme(c);
     ov.querySelectorAll('.theme-choice').forEach(x => x.classList.remove('selected'));
     b.classList.add('selected');
@@ -1423,7 +1425,8 @@ function openSettingsModal() {
     } catch (e) {
       notify('Erreur sauvegarde : ' + e.message, 'error');
     }
-  }));
+    });
+  });
   ov.querySelector('#theme-custom')?.addEventListener('click', () => { ov.remove(); setTimeout(openCustomTheme, 150); });
   ov.querySelector('#s-dn').addEventListener('click', () => { ov.remove(); setTimeout(openEditDisplayName, 150); });
   ov.querySelector('#s-un').addEventListener('click', () => { ov.remove(); setTimeout(openEditUsername, 150); });
