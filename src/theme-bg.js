@@ -359,11 +359,6 @@
       } else {
         drawLeaf(p.x, p.y, p.size, p.rot, p.color, p.opacity);
       }
-    }
-    function drawStar(x, y, size, rot, color, opacity) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.globalAlpha = opacity;
     
         // Halo
         const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 2);
