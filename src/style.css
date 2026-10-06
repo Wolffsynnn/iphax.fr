@@ -3219,3 +3219,43 @@
   font-weight: 400;
   opacity: 0.7;
 }
+/* ═══════════════════════════════════════════════════════════════════
+   MESSAGE BÊTA — ÉCRAN D'INTRO
+   ═══════════════════════════════════════════════════════════════════ */
+   .intro-beta {
+    margin-top: 20px;
+    margin-bottom: 16px;
+    padding: 14px 18px;
+    background: rgba(0, 229, 255, 0.06);
+    border: 1.5px solid rgba(0, 229, 255, 0.25);
+    border-radius: var(--radius-md);
+    max-width: 420px;
+    text-align: center;
+    animation: introBetaFade 1s ease-out 0.5s both;
+  }
+  
+  @keyframes introBetaFade {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  .intro-beta-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  
+  .intro-beta-line {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 4px 0;
+  }
+  
+  .intro-beta-line strong {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
