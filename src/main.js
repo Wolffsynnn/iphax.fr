@@ -139,9 +139,19 @@ function openModal(html, onMount) {
 // ═══════════════════════════════════════════════════════════════════════════
 $('btn-continuer')?.addEventListener('click', async () => {
   let w = 0; while (!authReady && w < 2000) { await new Promise(r => setTimeout(r, 50)); w += 50; }
-  if (currentUser && currentUserData) routeUser(currentUserData);
-  else if (currentUser) showScreen('screen-cgu');
-  else showScreen('screen-auth');
+
+  const goNext = () => {
+    if (currentUser && currentUserData) routeUser(currentUserData);
+    else if (currentUser) showScreen('screen-cgu');
+    else showScreen('screen-auth');
+  };
+
+  // Affiche les crédits puis enchaîne
+  if (window.iphaxCredits && typeof window.iphaxCredits.show === 'function') {
+    window.iphaxCredits.show(goNext);
+  } else {
+    goNext();
+  }
 });
 function routeUser(data) {
   if (!data.cguAccepted) { showScreen('screen-cgu'); return; }
@@ -1297,7 +1307,7 @@ function initProfilUI() {
       b.addEventListener('touchstart', (e) => { e.preventDefault(); openSettingsModal(); }, { passive: false });
     }
   });
-  
+
 }
 function openAvatarPicker(data) {
   const cur = data.avatar || '🌙';
@@ -1407,6 +1417,9 @@ function openSettingsModal() {
         <div class="field" style="margin-top:24px;"><label style="font-size:14px;color:var(--text-primary);font-weight:600;">🔐 Sécurité</label>
           <button class="btn btn-ghost btn-full" id="s-pw" style="justify-content:flex-start;">🔑 Changer mot de passe</button>
         </div>
+        <div class="field" style="margin-top:24px;"><label style="font-size:14px;color:var(--text-primary);font-weight:600;">🎬 À propos</label>
+        <button class="btn btn-ghost btn-full" id="s-credits" style="justify-content:flex-start;">🎬 Voir les crédits</button>
+      </div>
         <div class="field" style="margin-top:24px;"><label style="font-size:14px;color:var(--text-primary);font-weight:600;">ℹ️ Infos</label>
           <div style="padding:12px;background:rgba(10,26,61,0.5);border-radius:var(--radius-sm);font-size:13px;color:var(--text-secondary);">📧 ${escapeHtml(currentUserData?.email || '—')}<br>🎂 ${escapeHtml(currentUserData?.birthdate || '—')}</div>
         </div>
@@ -1436,6 +1449,18 @@ function openSettingsModal() {
   ov.querySelector('#s-un').addEventListener('click', () => { ov.remove(); setTimeout(openEditUsername, 150); });
   ov.querySelector('#s-bio').addEventListener('click', () => { ov.remove(); setTimeout(openEditBio, 150); });
   ov.querySelector('#s-pw').addEventListener('click', () => { ov.remove(); setTimeout(openChangePassword, 150); });
+  ov.querySelector('#s-credits').addEventListener('click', () => {
+    ov.remove();
+    setTimeout(() => {
+      if (window.iphaxCredits && typeof window.iphaxCredits.show === 'function') {
+        window.iphaxCredits.show(() => {
+          // Retour au profil après les crédits
+          const profilActif = document.querySelector('.screen.active');
+          if (profilActif) profilActif.classList.add('active');
+        });
+      }
+    }, 150);
+  });
   ov.querySelector('#s-reset').addEventListener('click', () => {
     localStorage.removeItem('iphax_theme');
     notify('Thème réinitialisé ✅', 'success');
