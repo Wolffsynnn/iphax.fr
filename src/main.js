@@ -656,9 +656,18 @@ async function sendMemberMessage(e) {
   if (!text || !currentUser || !memberConvId) return;
   input.value = '';
   try {
-    await addDoc(collection(db, 'conversations', memberConvId, 'messages'), { text, senderId: currentUser.uid, senderName: currentUserData?.displayName || 'Membre', senderRole: 'membre', createdAt: serverTimestamp() });
-    await updateDoc(doc(db, 'conversations', memberConvId), { lastMessage: text.substring(0, 60), lastMessageAt: serverTimestamp(), lastMessageFrom: currentUser.uid });
-  } catch (err) { notify('Impossible d\'envoyer.', 'error'); }
+    await addDoc(collection(db, 'conversations', memberConvId, 'messages'), { 
+      text, 
+      senderId: currentUser.uid, 
+      senderName: currentUserData?.displayName || 'Membre', 
+      senderRole: 'membre', 
+      createdAt: serverTimestamp() 
+    });
+    // Plus d'updateDoc ici pour tester
+  } catch (err) { 
+    console.error('Erreur sendMessage:', err);
+    notify('Impossible d\'envoyer.', 'error'); 
+  }
 }
 async function quitMemberChat() {
   if (!memberConvId) return;
