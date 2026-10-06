@@ -273,6 +273,76 @@
         drawLeaf(p.x, p.y, p.size, p.rot, p.color, p.opacity);
       }
     }
+    function drawStar(x, y, size, rot, color, opacity) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.globalAlpha = opacity;
+    
+        // Halo
+        const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 2);
+        grad.addColorStop(0, '#FFFFFF');
+        grad.addColorStop(0.3, color);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+    
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 2, 0, Math.PI * 2);
+        ctx.fill();
+    
+        // Étoile à 4 branches
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.moveTo(0, -size * 1.5);
+        ctx.lineTo(size * 0.3, -size * 0.3);
+        ctx.lineTo(size * 1.5, 0);
+        ctx.lineTo(size * 0.3, size * 0.3);
+        ctx.lineTo(0, size * 1.5);
+        ctx.lineTo(-size * 0.3, size * 0.3);
+        ctx.lineTo(-size * 1.5, 0);
+        ctx.lineTo(-size * 0.3, -size * 0.3);
+        ctx.closePath();
+        ctx.fill();
+    
+        ctx.restore();
+      }
+    
+      function drawNebula(x, y, size, rot, color, opacity) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.globalAlpha = opacity * 0.5;
+    
+        const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 3);
+        grad.addColorStop(0, color);
+        grad.addColorStop(0.5, shade(color, 0.7));
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+    
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 3, 0, Math.PI * 2);
+        ctx.fill();
+    
+        ctx.restore();
+      }
+    
+      function drawCloud(x, y, size, rot, color, opacity) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.globalAlpha = opacity * 0.35;
+    
+        const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 2.5);
+        grad.addColorStop(0, color);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+    
+        ctx.fillStyle = grad;
+        // Plusieurs cercles pour effet nuage
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 2, 0, Math.PI * 2);
+        ctx.arc(size * 1.2, -size * 0.3, size * 1.6, 0, Math.PI * 2);
+        ctx.arc(-size * 1.2, -size * 0.4, size * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+    
+        ctx.restore();
+      }
   
     /* ─────────────── PARTICULES ─────────────── */
   
