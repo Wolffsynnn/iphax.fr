@@ -349,10 +349,16 @@ function initMembre() {
   startEcoNewsListener('news-dynamic');
   $('btn-fil-general')?.addEventListener('click', () => openFil('general', 'membre'), { once: true });
   loadFilsTheraMembre();
-  $('btn-parler-maintenant')?.addEventListener('click', () => openMemberChat('parler-maintenant'), { once: true });
-  $('btn-mon-ecoutant')?.addEventListener('click', () => openMemberChat('mon-ecoutant'), { once: true });
-  $('btn-quit-chat')?.addEventListener('click', quitMemberChat, { once: true });
-  $('chat-form')?.addEventListener('submit', sendMemberMessage, { once: true });
+  const bindOnce = (id, evt, fn) => {
+    const el = $(id);
+    if (!el || el.dataset.bound) return;
+    el.dataset.bound = '1';
+    el.addEventListener(evt, fn);
+  };
+  bindOnce('btn-parler-maintenant', 'click', () => openMemberChat('parler-maintenant'));
+  bindOnce('btn-mon-ecoutant', 'click', () => openMemberChat('mon-ecoutant'));
+  bindOnce('btn-quit-chat', 'click', quitMemberChat);
+  bindOnce('chat-form', 'submit', sendMemberMessage);
   initProfilUI();
 }
 
@@ -705,7 +711,13 @@ function initEcoutant() {
     });
   });
   startEcoNewsListener('news-eco-dynamic');
-  $('chat-eco-form')?.addEventListener('submit', sendEcoMessage, { once: true });
+  const bindOnce = (id, evt, fn) => {
+    const el = $(id);
+    if (!el || el.dataset.bound) return;
+    el.dataset.bound = '1';
+    el.addEventListener(evt, fn);
+  };
+  bindOnce('chat-eco-form', 'submit', sendEcoMessage);
   loadFilsList('eco');
   const bp = $('btn-proposer-post-eco');
   if (bp && !bp.dataset.bound) { bp.dataset.bound = '1'; bp.addEventListener('click', () => openFil('general', 'eco')); }
