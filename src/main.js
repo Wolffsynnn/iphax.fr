@@ -811,6 +811,7 @@ async function openEcoChat(convId) {
       }
     }
   } catch (e) {}
+  renderEcoPanel(snap.exists() ? { id: convId, ...snap.data() } : null);
   startEcoChatListener(convId);
 }
 function startEcoChatListener(convId) {
@@ -2180,6 +2181,104 @@ onAuthStateChanged(auth, async user => {
     ecoConvId = null;
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL ÉCOUTANT — RENDU
+// ═══════════════════════════════════════════════════════════════════════════
+function renderEcoPanel(conv) {
+  const body = $('chat-eco-panel-body');
+  if (!body) return;
+
+  if (!conv) {
+    body.innerHTML = '<p class="empty-state">Aucune conversation.</p>';
+    return;
+  }
+
+  const dateDebut = toDate(conv.createdAt);
+  const dateDebutStr = dateDebut ? dateDebut.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+
+  const derniereActivite = toDate(conv.lastMessageAt);
+  let tempsEcoule = '—';
+  if (derniereActivite) {
+    const diff = Math.floor((Date.now() - derniereActivite.getTime()) / 1000);
+    if (diff < 60) tempsEcoule = 'à l\'instant';
+    else if (diff < 3600) tempsEcoule = `il y a ${Math.floor(diff/60)} min`;
+    else if (diff < 86400) tempsEcoule = `il y a ${Math.floor(diff/3600)} h`;
+    else tempsEcoule = `il y a ${Math.floor(diff/86400)} j`;
+  }
+
+  const statusLabel = conv.status === 'waiting' ? '⏳ En attente'
+                    : conv.status === 'claimed' ? '💚 En cours'
+                    : conv.status === 'resolved' ? '✅ Résolue'
+                    : conv.status === 'abandoned' ? '🚪 Abandonnée'
+                    : conv.status || '—';
+
+  const typeLabel = conv.type === 'referent' ? '👤 Référent' : '💬 Éphémère';
+
+  body.innerHTML = `
+    <!-- Bloc infos conversation -->
+    <div class="panel-block panel-infos">
+      <div class="panel-block-title">📋 Infos conversation</div>
+      <div class="panel-info-row"><span class="panel-info-label">Statut</span><span class="panel-info-value">${statusLabel}</span></div>
+      <div class="panel-info-row"><span class="panel-info-label">Type</span><span class="panel-info-value">${typeLabel}</span></div>
+      <div class="panel-info-row"><span class="panel-info-label">Début</span><span class="panel-info-value">${dateDebutStr}</span></div>
+      <div class="panel-info-row"><span class="panel-info-label">Dernier msg</span><span class="panel-info-value">${tempsEcoule}</span></div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="panel-block panel-actions">
+      <button class="panel-btn panel-btn-danger" id="panel-quit">
+        <span class="panel-btn-icon">🚪</span>
+        <span>Quitter la conversation</span>
+      </button>
+      <button class="panel-btn" id="panel-transfer">
+        <span class="panel-btn-icon">🔄</span>
+        <span>Transférer à un écoutant</span>
+      </button>
+      <button class="panel-btn panel-btn-success" id="panel-resolve">
+        <span class="panel-btn-icon">✅</span>
+        <span>Marquer résolu</span>
+      </button>
+    </div>
+
+    <!-- Marqueurs -->
+    <div class="panel-block">
+      <div class="panel-block-title">🏷️ Marqueurs</div>
+      <div class="panel-toggles">
+        <button class="panel-toggle ${conv.marked ? 'active' : ''}" id="panel-marked">
+          <span>⭐</span> Important
+        </button>
+        <button class="panel-toggle ${conv.pinned ? 'active' : ''}" id="panel-pinned">
+          <span>📌</span> Épingler
+        </button>
+      </div>
+    </div>
+
+    <!-- Urgence perso -->
+    <div class="panel-block">
+      <div class="panel-block-title">🎯 Urgence perso</div>
+      <div class="panel-urgence">
+        ${[1,2,3,4,5].map(n => `<button class="panel-urgence-btn ${conv.urgenceEco === n ? 'active' : ''}" data-urg="${n}">${n}</button>`).join('')}
+      </div>
+      <p class="panel-hint">Ton évaluation personnelle</p>
+    </div>
+
+    <!-- Notes internes -->
+    <div class="panel-block panel-notes">
+      <div class="panel-block-title">📝 Notes internes</div>
+      <textarea id="panel-notes-textarea" placeholder="Note ce que tu veux ici (visible par toi uniquement)…">${escapeHtml(conv.notesInternes || '')}</textarea>
+      <button class="panel-btn panel-btn-primary" id="panel-notes-save">💾 Enregistrer les notes</button>
+    </div>
+
+    <!-- Signaler -->
+    <div class="panel-block">
+      <button class="panel-btn panel-btn-danger" id="panel-signaler">
+        <span class="panel-btn-icon">🚨</span>
+        <span>Signaler</span>
+      </button>
+    </div>
+  `;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INIT GLOBAL
