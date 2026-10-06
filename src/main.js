@@ -667,6 +667,7 @@ async function sendMemberMessage(e) {
   } catch (err) { 
     console.error('Erreur sendMessage:', err);
     notify('Impossible d\'envoyer.', 'error'); 
+    notify('Erreur : ' + err.message, 'error');
   }
 }
 async function quitMemberChat() {
