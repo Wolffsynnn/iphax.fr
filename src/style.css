@@ -196,7 +196,7 @@
      --glow-strong: 0 0 40px rgba(229,184,0,0.5);
      --grid-line: rgba(229,184,0,0.08);
      --particle: rgba(229,184,0,0.55);
-     --bg-image: none;
+     --bg-image: url('https://i.imgur.com/7AOd0PO.png');
    }
    
    [data-theme="autumn"] {
@@ -376,6 +376,9 @@
     }
     [data-theme="midnight"] {
       --bg-image: url('https://i.imgur.com/DirQgT3.png');
+    }
+    [data-theme="golden"] {
+      --bg-image: url('https://i.imgur.com/51BplmP.png');
     }
    }
    
