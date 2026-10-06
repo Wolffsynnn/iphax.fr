@@ -2127,7 +2127,36 @@ onAuthStateChanged(auth, async user => {
         if (currentUserData.theme) applyTheme(currentUserData.theme);
       }
     } catch (e) {}
-  } else { currentUser = null; currentUserData = null; }
+  } else {
+    currentUser = null;
+    currentUserData = null;
+    // Nettoyage de TOUS les listeners au logout
+    [
+      memberChatUnsub, ecoChatUnsub,
+      unsubEcoAttente, unsubEcoMes, unsubEcoResolues,
+      unsubAdminNews, unsubEcoNews, unsubAdminDemandes,
+      unsubFilPosts, unsubFilsList, unsubDemandesPerso,
+      unsubDevLogs
+    ].forEach(u => {
+      if (typeof u === 'function') {
+        try { u(); } catch (e) {}
+      }
+    });
+    memberChatUnsub = null;
+    ecoChatUnsub = null;
+    unsubEcoAttente = null;
+    unsubEcoMes = null;
+    unsubEcoResolues = null;
+    unsubAdminNews = null;
+    unsubEcoNews = null;
+    unsubAdminDemandes = null;
+    unsubFilPosts = null;
+    unsubFilsList = null;
+    unsubDemandesPerso = null;
+    unsubDevLogs = null;
+    memberConvId = null;
+    ecoConvId = null;
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
