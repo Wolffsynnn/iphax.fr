@@ -139,14 +139,11 @@ function openModal(html, onMount) {
 // ═══════════════════════════════════════════════════════════════════════════
 $('btn-continuer')?.addEventListener('click', async () => {
   let w = 0; while (!authReady && w < 2000) { await new Promise(r => setTimeout(r, 50)); w += 50; }
-
   const goNext = () => {
     if (currentUser && currentUserData) routeUser(currentUserData);
     else if (currentUser) showScreen('screen-cgu');
     else showScreen('screen-auth');
   };
-
-  // Affiche les crédits puis enchaîne
   if (window.iphaxCredits && typeof window.iphaxCredits.show === 'function') {
     window.iphaxCredits.show(goNext);
   } else {
@@ -637,53 +634,43 @@ function startMemberChatListener(convId) {
     else if (data.status === 'resolved') { if (sEl) sEl.textContent = '✅ Terminée'; }
   });
   const q = query(collection(db, 'conversations', convId, 'messages'), orderBy('createdAt', 'asc'), limit(300));
-    const unsubMsgs = onSnapshot(q, snap => {
-      console.log('📩 Snapshot reçu, docs:', snap.size);
-    if (snap.empty) { messagesEl.innerHTML = '<p class="empty-state">Dis bonjour 💙</p>'; return; }
-    messagesEl.innerHTML = '';
-    snap.forEach(d => {
-      const msg = d.data(); const isMe = msg.senderId === currentUser.uid;
-      const div = document.createElement('div'); div.className = 'chat-msg ' + (isMe ? 'me' : 'them');
-      div.innerHTML = `${escapeHtml(msg.text)}<span class="chat-msg-time">${formatTime(msg.createdAt)}</span>`;
-      messagesEl.appendChild(div);
-    });
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+  const unsubMsgs = onSnapshot(q, snap => {
+    try {
+      if (snap.empty) { messagesEl.innerHTML = '<p class="empty-state">Dis bonjour 💙</p>'; return; }
+      messagesEl.innerHTML = '';
+      snap.forEach(d => {
+        const msg = d.data(); const isMe = msg.senderId === currentUser.uid;
+        const div = document.createElement('div'); div.className = 'chat-msg ' + (isMe ? 'me' : 'them');
+        div.innerHTML = `${escapeHtml(msg.text)}<span class="chat-msg-time">${formatTime(msg.createdAt)}</span>`;
+        messagesEl.appendChild(div);
+      });
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    } catch (e) {
+      console.error('ERREUR rendu messages:', e);
+    }
   });
   memberChatUnsub = () => { unsubConv(); unsubMsgs(); };
 }
-const unsubMsgs = onSnapshot(q, snap => {
-  try {
-    if (snap.empty) { messagesEl.innerHTML = '<p class="empty-state">Dis bonjour 💙</p>'; return; }
-    messagesEl.innerHTML = '';
-    snap.forEach(d => {
-      const msg = d.data(); const isMe = msg.senderId === currentUser.uid;
-      const div = document.createElement('div'); div.className = 'chat-msg ' + (isMe ? 'me' : 'them');
-      div.innerHTML = `${escapeHtml(msg.text)}<span class="chat-msg-time">${formatTime(msg.createdAt)}</span>`;
-      messagesEl.appendChild(div);
-    });
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  } catch (e) {
-    console.error('ERREUR rendu messages:', e);
-    notify('Erreur rendu : ' + e.message, 'error');
-  }
-});
 async function sendMemberMessage(e) {
   e.preventDefault();
   const input = $('chat-input'); const text = input.value.trim();
   if (!text || !currentUser || !memberConvId) return;
   input.value = '';
   try {
-    await addDoc(collection(db, 'conversations', memberConvId, 'messages'), { 
-      text, 
-      senderId: currentUser.uid, 
-      senderName: currentUserData?.displayName || 'Membre', 
-      senderRole: 'membre', 
-      createdAt: serverTimestamp() 
+    await addDoc(collection(db, 'conversations', memberConvId, 'messages'), {
+      text,
+      senderId: currentUser.uid,
+      senderName: currentUserData?.displayName || 'Membre',
+      senderRole: 'membre',
+      createdAt: serverTimestamp()
     });
-    // Plus d'updateDoc ici pour tester
-  } catch (err) { 
+    await updateDoc(doc(db, 'conversations', memberConvId), {
+      lastMessage: text.substring(0, 60),
+      lastMessageAt: serverTimestamp(),
+      lastMessageFrom: currentUser.uid
+    });
+  } catch (err) {
     console.error('Erreur sendMessage:', err);
-    notify('Impossible d\'envoyer.', 'error'); 
     notify('Erreur : ' + err.message, 'error');
   }
 }
@@ -705,7 +692,6 @@ function initEcoutant() {
   startAttenteListener();
   startMesConvsListener();
   startResoluesListener();
-  initProfilUI();
   document.querySelectorAll('#app-ecoutant .mini-tab').forEach(tab => {
     if (tab.dataset.bound) return; tab.dataset.bound = '1';
     tab.addEventListener('click', () => {
@@ -813,15 +799,19 @@ function startEcoChatListener(convId) {
   mEl.innerHTML = '<p class="empty-state">Chargement...</p>';
   const q = query(collection(db, 'conversations', convId, 'messages'), orderBy('createdAt', 'asc'), limit(300));
   ecoChatUnsub = onSnapshot(q, snap => {
-    if (snap.empty) { mEl.innerHTML = '<p class="empty-state">Aucun message.</p>'; return; }
-    mEl.innerHTML = '';
-    snap.forEach(d => {
-      const msg = d.data(); const isMe = msg.senderId === currentUser.uid;
-      const div = document.createElement('div'); div.className = 'chat-msg ' + (isMe ? 'me' : 'them');
-      div.innerHTML = `${escapeHtml(msg.text)}<span class="chat-msg-time">${formatTime(msg.createdAt)}</span>`;
-      mEl.appendChild(div);
-    });
-    mEl.scrollTop = mEl.scrollHeight;
+    try {
+      if (snap.empty) { mEl.innerHTML = '<p class="empty-state">Aucun message.</p>'; return; }
+      mEl.innerHTML = '';
+      snap.forEach(d => {
+        const msg = d.data(); const isMe = msg.senderId === currentUser.uid;
+        const div = document.createElement('div'); div.className = 'chat-msg ' + (isMe ? 'me' : 'them');
+        div.innerHTML = `${escapeHtml(msg.text)}<span class="chat-msg-time">${formatTime(msg.createdAt)}</span>`;
+        mEl.appendChild(div);
+      });
+      mEl.scrollTop = mEl.scrollHeight;
+    } catch (e) {
+      console.error('ERREUR rendu messages eco:', e);
+    }
   });
 }
 async function sendEcoMessage(e) {
@@ -832,7 +822,10 @@ async function sendEcoMessage(e) {
   try {
     await addDoc(collection(db, 'conversations', ecoConvId, 'messages'), { text, senderId: currentUser.uid, senderName: currentUserData?.displayName || 'Écoutant', senderRole: 'ecoutant', createdAt: serverTimestamp() });
     await updateDoc(doc(db, 'conversations', ecoConvId), { lastMessage: text.substring(0, 60), lastMessageAt: serverTimestamp(), lastMessageFrom: currentUser.uid });
-  } catch (err) { notify('Impossible d\'envoyer.', 'error'); }
+  } catch (err) {
+    console.error('Erreur sendEcoMessage:', err);
+    notify('Erreur : ' + err.message, 'error');
+  }
 }
 function isUnread(c) {
   if (!c.lastMessageFrom) return false;
@@ -1152,7 +1145,6 @@ function openDemandePostModal(filId) {
       </div>
       <div class="modal-footer"><button class="btn btn-ghost modal-close">Annuler</button><button class="btn btn-primary" id="dpS">📩 Envoyer la demande</button></div>
     </div>`);
-  ov.querySelectorAll('.journal-privacy-option').forEach(o => ov.querySelectorAll('.journal-privacy-option').forEach(x => x.classList.remove('active')) || o.classList.add('active'));
   ov.querySelectorAll('.journal-privacy-option').forEach(o => o.addEventListener('click', () => {
     ov.querySelectorAll('.journal-privacy-option').forEach(x => x.classList.remove('active'));
     o.classList.add('active'); anonyme = o.dataset.anon === 'true';
@@ -1334,7 +1326,6 @@ function initProfilUI() {
       b.addEventListener('touchstart', (e) => { e.preventDefault(); openSettingsModal(); }, { passive: false });
     }
   });
-
 }
 function openAvatarPicker(data) {
   const cur = data.avatar || '🌙';
@@ -1445,8 +1436,8 @@ function openSettingsModal() {
           <button class="btn btn-ghost btn-full" id="s-pw" style="justify-content:flex-start;">🔑 Changer mot de passe</button>
         </div>
         <div class="field" style="margin-top:24px;"><label style="font-size:14px;color:var(--text-primary);font-weight:600;">🎬 À propos</label>
-        <button class="btn btn-ghost btn-full" id="s-credits" style="justify-content:flex-start;">🎬 Voir les crédits</button>
-      </div>
+          <button class="btn btn-ghost btn-full" id="s-credits" style="justify-content:flex-start;">🎬 Voir les crédits</button>
+        </div>
         <div class="field" style="margin-top:24px;"><label style="font-size:14px;color:var(--text-primary);font-weight:600;">ℹ️ Infos</label>
           <div style="padding:12px;background:rgba(10,26,61,0.5);border-radius:var(--radius-sm);font-size:13px;color:var(--text-secondary);">📧 ${escapeHtml(currentUserData?.email || '—')}<br>🎂 ${escapeHtml(currentUserData?.birthdate || '—')}</div>
         </div>
@@ -1456,19 +1447,19 @@ function openSettingsModal() {
         <button class="btn btn-ghost" id="s-lo" style="flex:1;">🚪 Déconnexion</button>
       </div>
     </div>`);
-    ov.querySelectorAll('.theme-choice').forEach(b => {
-      if (b.id === 'theme-custom') return;
-      b.addEventListener('click', async () => {
-    const c = b.dataset.theme; applyTheme(c);
-    ov.querySelectorAll('.theme-choice').forEach(x => x.classList.remove('selected'));
-    b.classList.add('selected');
-    try {
-      await updateDoc(doc(db, 'users', currentUser.uid), { theme: c });
-      currentUserData.theme = c;
-      notify('Thème enregistré ✅', 'success');
-    } catch (e) {
-      notify('Erreur sauvegarde : ' + e.message, 'error');
-    }
+  ov.querySelectorAll('.theme-choice').forEach(b => {
+    if (b.id === 'theme-custom') return;
+    b.addEventListener('click', async () => {
+      const c = b.dataset.theme; applyTheme(c);
+      ov.querySelectorAll('.theme-choice').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), { theme: c });
+        currentUserData.theme = c;
+        notify('Thème enregistré ✅', 'success');
+      } catch (e) {
+        notify('Erreur sauvegarde : ' + e.message, 'error');
+      }
     });
   });
   ov.querySelector('#theme-custom')?.addEventListener('click', () => { ov.remove(); setTimeout(openCustomTheme, 150); });
@@ -1481,7 +1472,6 @@ function openSettingsModal() {
     setTimeout(() => {
       if (window.iphaxCredits && typeof window.iphaxCredits.show === 'function') {
         window.iphaxCredits.show(() => {
-          // Retour au profil après les crédits
           const profilActif = document.querySelector('.screen.active');
           if (profilActif) profilActif.classList.add('active');
         });
@@ -1536,7 +1526,6 @@ function initAdmin() {
   if (bn && !bn.dataset.bound) { bn.dataset.bound = '1'; bn.addEventListener('click', openCreateNewsModal); }
   loadFilsList('admin');
 
-  // Panel Dev
   loadDevStats();
   bindDevTabs();
 
@@ -2130,7 +2119,6 @@ onAuthStateChanged(auth, async user => {
   } else {
     currentUser = null;
     currentUserData = null;
-    // Nettoyage de TOUS les listeners au logout
     [
       memberChatUnsub, ecoChatUnsub,
       unsubEcoAttente, unsubEcoMes, unsubEcoResolues,
