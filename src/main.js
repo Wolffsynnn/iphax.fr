@@ -2076,7 +2076,3 @@ onAuthStateChanged(auth, async user => {
 // ═══════════════════════════════════════════════════════════════════════════
 setupFilsButtons();
 console.log('✅ main.js chargé et prêt');
-// Force reset (temporaire — à supprimer après)
-localStorage.clear();
-sessionStorage.clear();
-console.log('🧹 Storage vidé');
