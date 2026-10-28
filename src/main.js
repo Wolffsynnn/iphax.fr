@@ -2518,6 +2518,56 @@ async function openTransferModal(conv) {
   });
 }
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+async function activerNotifications() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    alert("Les notifications ne sont pas supportées sur ce navigateur.");
+    return;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.register('/sw.js');
+    const permission = await Notification.requestPermission();
+    
+    if (permission !== 'granted') {
+      alert("Vous avez refusé les notifications.");
+      return;
+    }
+
+    // Votre clé publique
+    const publicVapidKey = 'BHF5GyZeVDOMQO4a_-jFfrYAR-LbeIZhLXiXVm6duOeeJ_zQKHg3xHZq1m6VC-TRl1-Bs_Lc2QPTG3cW-mudGMY'; 
+    
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+    });
+
+    console.log("Abonnement réussi :", JSON.stringify(subscription));
+    
+    // On envoie l'abonnement à notre future API Vercel
+    await fetch('/api/save-subscription', {
+      method: 'POST',
+      body: JSON.stringify(subscription),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    alert("Notifications activées !");
+
+  } catch (error) {
+    console.error("Erreur :", error);
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // INIT GLOBAL
 // ═══════════════════════════════════════════════════════════════════════════

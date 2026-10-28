@@ -1119,6 +1119,20 @@
   import("/src/credits.js").catch(e => console.warn("credits :", e));
   await import("/src/main.js");
 
+return (
+    <div>
+      {/* Votre contenu existant */}
+
+      {/* LE BOUTON À AJOUTER : */}
+      <button 
+        onClick={activerNotifications} 
+        style={{ padding: '10px 20px', backgroundColor: '#0070f3', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', marginTop: '20px' }}
+      >
+        Activer les notifications
+      </button>
+    </div>
+  );
+  
 </script>
 
 </body>
